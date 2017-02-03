@@ -30,5 +30,8 @@ Edit pages in [Microb manager](https://github.com/synw/microb-manager) or direct
 		}
 }
    ```
-Run: `./bin/microb`
+
+Edit the client side routes in `routes.js`
+
+Run: `./microb`
 
