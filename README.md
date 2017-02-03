@@ -19,17 +19,21 @@ Configuration
 	"domain": "localhost"
 }
    ```
-Edit pages in [Microb manager](https://github.com/synw/microb-manager) or directly in Rethinkdb. The json files must have at least these fields:
+Edit pages in [Microb manager](https://github.com/synw/microb-manager) or directly in Rethinkdb. 
+The json documents must have at least these fields:
 
    ```json
 {
 	"uri":"/page1/",
+	"domain":"mysite.com",
 	"fields":{
 		"title":"Page title",
 		"content":"Page content"
 		}
 }
    ```
+   
+The `uri` field has to be unique with domain as it is used as a coumpound index in Rethinkdb.
 
 Edit the client side routes in `routes.js`
 
