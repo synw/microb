@@ -9,7 +9,7 @@ import (
     "net/http"
     "html/template"
     "encoding/json"
-    "microb/conf"
+    "github.com/synw/microb/conf"
     "github.com/synw/microb/db/rethinkdb"
     "github.com/acmacalister/skittles"
 )
