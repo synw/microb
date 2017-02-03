@@ -1,0 +1,11 @@
+{
+	"db_type": "rethinkdb",
+	"db_host":"localhost",
+	"db_port":"28015",
+	"database":"microb",
+	"table":"pages",
+	"db_user":"admin",
+	"db_password":"mypwd",
+	"http_port":":8080",
+	"domain": "localhost"
+}

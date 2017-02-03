@@ -1,0 +1,25 @@
+body {
+	background-color:white;
+	margin:0;
+	padding:0;
+}
+h1 {
+	margin:0;
+}
+#header {
+	width:100%;
+	min-height:60px;
+	background-color:grey;
+}
+#navbar {
+	width:100%;
+	padding:0.5em;
+	background-color:lightgrey;
+}
+#content {
+	width:100%;
+	padding:1em;
+}
+.gc {
+	text-align:center;
+}
