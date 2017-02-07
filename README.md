@@ -12,7 +12,7 @@ What you get:
 - Speed: fast server, light javascript: [Page.js](https://github.com/visionmedia/page.js) (7.8 Ko) and 
 [Promise.js](https://github.com/stackp/promisejs) (2,3 Ko) for the client-side routing
 - Easy horizontal scalability thanks to [Rethinkdb](http://www.rethinkdb.com)
-- Decoupling of admin: to edit content use [Microb manager](https://github.com/synw/microb-manager) or anything that can edit
+- Decoupling of admin: to edit content use [Microb Manager](https://github.com/synw/microb-manager) or anything that can edit
 documents in Rethinkdb
 
 Configuration
@@ -42,7 +42,7 @@ r.db("localhost").table("pages").indexCreate("key", [r.row("uri"), r.row("domain
 Usage
 -----
 
-Edit pages in [Microb manager](https://github.com/synw/microb-manager) or directly in Rethinkdb. 
+Edit pages in [Microb Manager](https://github.com/synw/microb-manager) or directly in Rethinkdb. 
 The json documents must have at least these fields:
 
    ```json
