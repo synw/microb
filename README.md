@@ -34,7 +34,7 @@ r.db("localhost").table("pages").indexCreate("key", [r.row("uri"), r.row("domain
 	"table":"pages",
 	"db_user":"admin",
 	"db_password":"mypwd",
-	"http_port":":8080",
+	"http_port":":8081",
 	"domain": "localhost"
 }
    ```
@@ -61,6 +61,8 @@ The json documents must have at least these fields:
 The `uri` field has to be unique with `domain` as it is used as a compound index in Rethinkdb.
 
 Run: `./microb`
+
+Go to `localhost:8081`
 
 Todo
 ----
