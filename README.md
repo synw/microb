@@ -42,6 +42,8 @@ r.db("localhost").table("pages").indexCreate("key", [r.row("uri"), r.row("domain
 Usage
 -----
 
+Edit the main template: `templates/view.html`
+
 Edit pages in [Microb Manager](https://github.com/synw/microb-manager) or directly in Rethinkdb. 
 The json documents must have at least these fields:
 
