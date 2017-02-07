@@ -56,7 +56,7 @@ The json documents must have at least these fields:
 }
    ```
    
-The `uri` field has to be unique with domain as it is used as a compound index in Rethinkdb.
+The `uri` field has to be unique with `domain` as it is used as a compound index in Rethinkdb.
 
 Edit the client side routes in `routes.js`
 
