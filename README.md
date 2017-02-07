@@ -10,7 +10,7 @@ Create a database in Rethinkdb, ex: `localhost`. Create tables `pages` and `comm
 `pages` with this reql query:
 
    ```javascript
-r.db("localhost").table("pages").indexCreate("key", [r.row("domain"), r.row("uri")])
+r.db("localhost").table("pages").indexCreate("key", [r.row("uri"), r.row("domain")])
    ```
 
    ```json
