@@ -7,6 +7,14 @@ Single page app engine using Go stdlib and Rethinkdb. This package provides:
 - A process that listens to some Rethinkdb changefeeds to detect CRUD events in the database: these events will
 trigger templates reparsing and client-side routes update at the http server level
 
+What you get:
+
+- Speed: fast server, light javascript: [Page.js](https://github.com/visionmedia/page.js) (7.8 Ko) and 
+[Promise.js](https://github.com/stackp/promisejs) (2,3 Ko) for the client-side routing
+- Easy horizontal scalability thanks to [Rethinkdb](http://www.rethinkdb.com)
+- Decoupling of admin: to edit content use [Microb manager](https://github.com/synw/microb-manager) or anything that can edit
+documents in Rethinkdb
+
 Configuration
 -------------
 
