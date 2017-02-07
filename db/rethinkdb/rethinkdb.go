@@ -5,7 +5,7 @@ import (
 	"log"
 	"sync"
 	 r "gopkg.in/dancannon/gorethink.v2"
-	 "microb/conf"
+	 "github.com/synw/microb/conf"
 	 //"microb/utils"
 )
 

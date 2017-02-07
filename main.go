@@ -11,9 +11,9 @@ import (
     "sync"
     "io/ioutil"
     "github.com/acmacalister/skittles"
-    "microb/conf"
-    "microb/utils"
-    "microb/db/rethinkdb"
+    "github.com/synw/microb/conf"
+    "github.com/synw/microb/utils"
+    "github.com/synw/microb/db/rethinkdb"
 )
 
 
