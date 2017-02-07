@@ -3,7 +3,7 @@ Microb
 
 Single page app engine using Go stdlib and Rethinkdb. This package provides:
 
-- An http server serves pages and API requests
+- An http server for pages and API requests
 - A process that listens to some Rethinkdb changefeeds to detect CRUD events in the database: these events will
 trigger templates reparsing and client-side routes update
 
