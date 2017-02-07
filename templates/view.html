@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>{{ .Title }}</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="stylesheet" media="screen, projection" href="/static/css/screen.css" />
+	<script type="text/javascript" src="/static/js/page.js"></script>
+	<script type="text/javascript" src="/static/js/promise.min.js"></script>
+</head>
+
+<body>
+	<script type="text/javascript">
+	function loadPage(resturl){
+		var container = 'content';
+		promise.get(resturl,{},{"Accept":"application/json"}).then(function(error, data, xhr) {
+			//console.log("Raw data from "+resturl+" : "+data);
+		    if (error) {console.log('Error ' + xhr.status);return;}    
+		    var parsed_data = JSON.parse(data);
+		    //console.log("Parsed data from "+resturl+" : "+parsed_data);
+		    var content = parsed_data.Content;
+		    var title = parsed_data.Title;
+		    var url = parsed_data.Url;
+		    top.document.title = title;
+		    if ( url == "404" ) {
+		    	top.document.getElementById(container).innerHTML = '<h1 class="gc">Page not found</h1>'
+		    } else {
+		    	top.document.getElementById(container).innerHTML = content;
+		    }
+		});
+		return
+	}
+	page('/', function(ctx, next) { loadPage('/x/') } );
+	{{ template "routes.js" . }}
+	page();
+	</script>
+	<div id="header">
+		<h1>Microb x</h1>
+	</div>
+	<div id="navbar">
+		<a href="/">Home</a>
+		<a href="/page1">Page 1</a>
+		<a href="/page2">Page 2</a>
+		<a href="/page3">Page 3</a>
+		<a href="/page4">Page 4</a>
+	</div>
+	<div id="content">
+	</div>
+</body>
+</html>

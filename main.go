@@ -5,13 +5,15 @@ import (
     "log"
     "strings"
     "flag"
-    "time"
     "net/http"
     "html/template"
     "encoding/json"
-    "github.com/synw/microb/conf"
-    "github.com/synw/microb/db/rethinkdb"
+    "sync"
+    "io/ioutil"
     "github.com/acmacalister/skittles"
+    "microb/conf"
+    "microb/utils"
+    "microb/db/rethinkdb"
 )
 
 
@@ -22,12 +24,8 @@ type Page struct {
 }
 
 var Config = conf.GetConf()
-var edit_mode = flag.Bool("e", false, "Enable edit mode")
-
-func getTime() string {
-	t := time.Now()
-	return t.Format("15:04:05")
-}
+var Nochangefeed = flag.Bool("nf", false, "Do not use changefeed")
+var CommandFlag = flag.String("c", "", "Fire command")
 
 func getPage(url string) *Page {
 	hasSlash := strings.HasSuffix(url, "/")
@@ -56,7 +54,7 @@ func getPage(url string) *Page {
 	return &page
 }
 
-var view = template.Must(template.New("view.html").ParseFiles("view.html", "routes.js"))
+var view = template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/routes.js"))
 
 func renderTemplate(response http.ResponseWriter, page *Page) {
     err := view.Execute(response, page)
@@ -67,7 +65,7 @@ func renderTemplate(response http.ResponseWriter, page *Page) {
 
 func viewHandler(response http.ResponseWriter, request *http.Request) {
     url := request.URL.Path
-    fmt.Printf("%s Page %s\n", getTime(), url)
+    fmt.Printf("%s Page %s\n", utils.GetTime(), url)
     page := &Page{Url: url, Title: "Page not found", Content: "Page not found"}
     renderTemplate(response, page)
 }
@@ -79,18 +77,116 @@ func apiHandler(response http.ResponseWriter, request *http.Request) {
     if (page.Url == "404") {
 		status = "Error 404"
 	}
-    fmt.Printf("%s API %s %s\n", getTime(), url, skittles.BoldRed(status))
+    fmt.Printf("%s API %s %s\n", utils.GetTime(), url, skittles.BoldRed(status))
 	json_bytes, _ := json.Marshal(page)
 	fmt.Fprintf(response, "%s\n", json_bytes)
 }
 
+func reparseStatic() {
+	utils.PrintEvent("command", "Reparsing static files")
+	view = template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/routes.js"))
+}
+
+func updateRoutes(c chan bool) {
+	var routestab []string
+	if (Config["db_type"] == "rethinkdb") {
+		routestab = rethinkdb.GetRoutes()
+	} else {
+		utils.PrintEvent("error", "No database configured to get routes")
+	}
+	var routestr string
+	var route string
+	for i := range(routestab) {
+		route = routestab[i]
+		routestr = routestr+fmt.Sprintf("page('%s', function(ctx, next) { loadPage('/x%s') } );", route, route)
+	}
+	utils.PrintEvent("command", "Rebuilding client side routes")
+    str := []byte(routestr)
+    err := ioutil.WriteFile("routes.js", str, 0644)
+    if err != nil {
+        panic(err)
+    }
+	c <- true
+}
+
 func main() {
 	flag.Parse()
-	if ( *edit_mode == true ) {
-		fmt.Println(skittles.Yellow("Warning"), ": edit mode is enabled")
+	// commands
+	if (*CommandFlag != "") {
+		valid_commands := []string{"update_routes", "reparse_templates"}
+		is_valid := false
+		for _, com := range(valid_commands) {
+			if (com == *CommandFlag) {
+				is_valid = true
+				break
+			}
+		}
+		if (is_valid == true) {
+			msg := "Sending command "+skittles.BoldWhite(*CommandFlag)+" to the server"
+			utils.PrintEvent("event", msg)
+			var wg sync.WaitGroup
+			wg.Add(1)
+			go rethinkdb.SaveCommand(*CommandFlag, &wg)
+			wg.Wait()
+			
+		} else {
+			msg := "Unknown command: "+*CommandFlag
+			utils.PrintEvent("error", msg)
+		}
+		return
 	}
+	if (*Nochangefeed == false) {
+		utils.PrintEvent("info", "listening to changefeed")
+	}
+	// changefeed
+	if (Config["db_type"] == "rethinkdb") {
+		c := make(chan *rethinkdb.DataChanges)
+		c2 := make(chan bool)
+		comchan := make(chan *rethinkdb.Command)
+		go rethinkdb.PageChangesListener(c)
+		go rethinkdb.CommandsListener(comchan)
+		// channel listeners
+		go func() {
+        	for {
+                changes := <- c
+				if (changes.Type == "update") {
+					utils.PrintEvent("event", changes.Msg)
+					go updateRoutes(c2)
+				} else if (changes.Type == "delete") {
+					utils.PrintEvent("event", changes.Msg)
+					go updateRoutes(c2)
+				} else if (changes.Type == "insert") {
+					utils.PrintEvent("event", changes.Msg)
+					go updateRoutes(c2)
+				}
+        	}
+        }()
+        go func() {
+        	for {
+                com := <- comchan
+				if (com.Name != "") {
+					msg := "Command "+skittles.BoldWhite(com.Name)+" received"
+					utils.PrintEvent("event", msg)
+					if (com.Name == "reparse_templates") {
+						go reparseStatic()
+					} 
+				}
+        	}
+        }()
+        go func() {
+			for {
+				routes_done := <- c2
+				if (routes_done == true) {
+					//fmt.Println("[OK] Routes updated")
+					go reparseStatic()
+				}
+			}
+		}()
+	}
+	// http server
 	http_port := Config["http_port"].(string)
-	fmt.Printf("Server started on %s...\n", http_port)
+	msg := "Server started on "+http_port+" ..."
+	utils.PrintEvent("nil", msg)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 	http.Handle("/media/", http.StripPrefix("/media/", http.FileServer(http.Dir("./media/"))))
 	http.HandleFunc("/x/", apiHandler)
