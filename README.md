@@ -30,6 +30,10 @@ r.db("localhost").table("pages").indexCreate("key", [r.row("uri"), r.row("domain
 	"domain": "localhost"
 }
    ```
+   
+Usage
+-----
+
 Edit pages in [Microb manager](https://github.com/synw/microb-manager) or directly in Rethinkdb. 
 The json documents must have at least these fields:
 
