@@ -6,6 +6,13 @@ Single page app engine using Go stdlib and Rethinkdb
 Configuration
 -------------
 
+Create a database in Rethinkdb, ex: `localhost`. Create tables `pages` and `commands`. Set a compound index for table
+`pages` with this reql query:
+
+   ```javascript
+r.db("localhost").table("pages").indexCreate("key", [r.row("domain"), r.row("uri")])
+   ```
+
    ```json
 {
 	"db_type": "rethinkdb",
