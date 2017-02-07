@@ -39,3 +39,10 @@ Edit the client side routes in `routes.js`
 
 Run: `./microb`
 
+Todo
+----
+
+- [ ] Better error handling
+- [ ] Logging
+- [ ] Redis cache
+- [ ] Monitoring
