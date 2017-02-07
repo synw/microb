@@ -102,7 +102,7 @@ func updateRoutes(c chan bool) {
 	}
 	utils.PrintEvent("command", "Rebuilding client side routes")
     str := []byte(routestr)
-    err := ioutil.WriteFile("routes.js", str, 0644)
+    err := ioutil.WriteFile("templates/routes.js", str, 0644)
     if err != nil {
         panic(err)
     }
