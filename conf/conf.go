@@ -18,8 +18,7 @@ func GetConf() map[string]interface{} {
 	viper.SetDefault("db_password", "")
 	viper.SetDefault("hits_log", true)
 	viper.SetDefault("hits_monitor", true)
-	defaut_hits_chan := "$"+viper.Get("domain").(string)+"_hits"
-	viper.SetDefault("hits_channel", defaut_hits_chan)
+	viper.SetDefault("hits_channel", "$microb_hits")
 	err := viper.ReadInConfig()
 	if err != nil {
 	    panic(fmt.Errorf("Fatal error config file: %s \n", err))
