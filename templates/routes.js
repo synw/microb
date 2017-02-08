@@ -1,2 +1,1 @@
-//page('/page2/', function(ctx, next) { loadPage('/x/page2/') } );
-//page('/page1/', function(ctx, next) { loadPage('/x/page1/') } );
+page('/', function(ctx, next) { loadPage('/x/') } );page('/page1/1/', function(ctx, next) { loadPage('/x/page1/1/') } );

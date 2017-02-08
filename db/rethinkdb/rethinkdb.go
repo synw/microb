@@ -6,10 +6,10 @@ import (
 	"sync"
 	 r "gopkg.in/dancannon/gorethink.v2"
 	 "github.com/synw/microb/conf"
-	 //"microb/utils"
 )
 
 var Config = conf.GetConf()
+var Conn = connectToDb()
 
 type DataChanges struct {
 	Msg string
@@ -24,16 +24,18 @@ type Command struct {
 func connectToDb() (*r.Session) {
 	host := Config["db_host"].(string)
 	port := Config["db_port"].(string)
-	db := Config["database"].(string)
+	//db := Config["domain"].(string)
 	user := Config["db_user"].(string)
 	pwd := Config["db_password"].(string)
 	addr := host+":"+port
 	// connect to Rethinkdb
 	session, err := r.Connect(r.ConnectOpts{
 		Address: addr,
-		Database: db,
+		//Database: db,
 		Username: user,
 		Password: pwd,
+		InitialCap: 10,
+        MaxOpen:    10,
 	})
     if err != nil {
         log.Fatalln(err.Error())
@@ -42,10 +44,9 @@ func connectToDb() (*r.Session) {
 }
 
 func GetRoutes() []string {
-	session := connectToDb()
-	db := Config["database"].(string)
-	table := Config["table"].(string)
-	res, err := r.DB(db).Table(table).Pluck("uri").Run(session)
+	session := Conn
+	db := Config["domain"].(string)
+	res, err := r.DB(db).Table("pages").Pluck("uri").Run(session)
 	defer res.Close()
 	var row map[string]interface{}
 	var routes []string
@@ -60,19 +61,18 @@ func GetRoutes() []string {
 }
 
 func GetFromDb (url string)  (map[string]interface{}, bool)  {
-	session := connectToDb()
+	session := Conn
 	found := false
-	db := Config["database"].(string)
-	table := Config["table"].(string)
+	db := Config["domain"].(string)
 	filters := map[string]interface{}{"uri":url}
-	res, err := r.DB(db).Table(table).Filter(filters).Pluck("fields").Run(session)
+	res, err := r.DB(db).Table("pages").Filter(filters).Pluck("fields").Run(session)
+	defer res.Close()
 	if err == r.ErrEmptyResult {
 	    fmt.Printf("Rethinkdb: no results for uri scan: %s\n", err)
 	}
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
-	defer res.Close()
 	var rescol map[string]interface{}
 	err = res.One(&rescol)
 	if err != nil {
@@ -143,9 +143,8 @@ func scanForChanges(res map[string]interface{}) *DataChanges {
 }
 
 func SaveCommand(command string, wg *sync.WaitGroup) {
-	session := connectToDb()
+	session := Conn
 	defer wg.Done()
-	defer session.Close()
 	db := Config["database"].(string)
 	new_command := &Command{Name:command}
 	_, err := r.DB(db).Table("commands").Insert(new_command, r.InsertOpts{ReturnChanges: false}).RunWrite(session)
@@ -153,10 +152,11 @@ func SaveCommand(command string, wg *sync.WaitGroup) {
 }
 
 func CommandsListener(comchan chan *Command) {
-	session := connectToDb()
-	db := Config["database"].(string)
+	session := Conn
+	db := Config["domain"].(string)
 	// monitor commands
 	com, err := r.DB(db).Table("commands").Pluck("Name").Changes().Run(session)
+	defer com.Close()
 	if err != nil { log.Fatalln(err) }
 	var commands map[string]interface{}
 	for com.Next(&commands) {
@@ -168,11 +168,11 @@ func CommandsListener(comchan chan *Command) {
 }
 
 func PageChangesListener(c chan *DataChanges) {
-	session := connectToDb()
-	db := Config["database"].(string)
-	table := Config["table"].(string)
+	session := Conn
+	db := Config["domain"].(string)
 	// monitor changes in pages table
-	res, err := r.DB(db).Table(table).Changes().Run(session)
+	res, err := r.DB(db).Table("pages").Changes().Run(session)
+	defer res.Close()
 	if err != nil { log.Fatalln(err) }
 	var changes map[string]interface{}
 	var dataChanged *DataChanges
