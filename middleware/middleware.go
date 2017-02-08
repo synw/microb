@@ -70,7 +70,7 @@ func sendHits(num_hits int) {
 	if err != nil {
 	 	println(err.Error())
 	 }
-	_, err = client.Publish(Config["hits_channel"], data)
+	_, err = client.Publish(Config["hits_channel"].(string), data)
 	 if err != nil {
 	 	println("WS ERROR:", err.Error())
 	 }
