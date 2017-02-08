@@ -16,6 +16,7 @@ import (
     "github.com/synw/microb/conf"
     "github.com/synw/microb/utils"
     "github.com/synw/microb/db/rethinkdb"
+    "github.com/synw/microb/middleware"
 )
 
 
@@ -25,7 +26,6 @@ type Page struct {
     Content  string
 }
 
-var Nochangefeed = flag.Bool("nf", false, "Do not use changefeed")
 var CommandFlag = flag.String("c", "", "Fire command")
 
 var Config = conf.GetConf()
@@ -66,6 +66,9 @@ func viewHandler(response http.ResponseWriter, request *http.Request) {
     url := request.URL.Path
     fmt.Printf("%s Page %s\n", utils.GetTime(), url)
     page := &Page{Url: url, Title: "Page not found", Content: "Page not found"}
+    if (Config["hits_log"] == "on") {
+    	go middleware.WriteHit(request)
+    }
     renderTemplate(response, page)
 }
 
@@ -78,6 +81,9 @@ func apiHandler(response http.ResponseWriter, request *http.Request) {
     	utils.PrintEvent("error", msg)
     }
 	json_bytes, _ := json.Marshal(page)
+	if (Config["hits_log"] == "on") {
+		go middleware.WriteHit(request)
+	}
 	fmt.Fprintf(response, "%s\n", json_bytes)
 }
 
@@ -106,6 +112,7 @@ func updateRoutes(c chan bool) {
 }
 
 func init() {
+	utils.PrintEvent("info", "listening to changefeeds")
 	// changefeed listeners
 	c := make(chan *rethinkdb.DataChanges)
 	c2 := make(chan bool)
@@ -149,6 +156,10 @@ func init() {
 			}
 		}
 	}()
+	// hits writer
+	if (Config["hits_log"] == "on") {
+		go middleware.WatchHits(1)
+	}
 }
 
 func main() {
@@ -176,9 +187,6 @@ func main() {
 			utils.PrintEvent("error", msg)
 		}
 		return
-	}
-	if (*Nochangefeed == false) {
-		utils.PrintEvent("info", "listening to changefeed")
 	}
 	// http server
 	http_host := Config["http_host"].(string)

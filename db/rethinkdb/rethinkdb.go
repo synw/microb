@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
+	"strings"
 	 r "gopkg.in/dancannon/gorethink.v2"
 	 "github.com/synw/microb/conf"
 )
@@ -19,6 +21,15 @@ type DataChanges struct {
 
 type Command struct {
 	Name string
+}
+
+type Hit struct {
+	Url string
+	Method string
+	Ip string
+	User_agent string
+	Referer string
+	Date time.Time
 }
 
 func connectToDb() (*r.Session) {
@@ -41,6 +52,22 @@ func connectToDb() (*r.Session) {
         log.Fatalln(err.Error())
     }
     return session
+}
+
+func SaveHits(values []string) {
+	session := Conn
+	db := Config["domain"].(string)
+	for _, doc := range values {
+		// unpack the data
+		data := strings.Split(doc, "#!#")
+		datenow := time.Now()
+		hit := &Hit{data[0], data[1], data[2], data[3], data[4], datenow}
+		// package the data in json
+	   	_, err := r.DB(db).Table("hits").Insert(hit, r.InsertOpts{Durability: "soft", ReturnChanges: false}).Run(session)
+		if err != nil {
+			fmt.Println("Rehinkdb: error writing hits data:", err)
+		}
+	}
 }
 
 func GetRoutes() []string {

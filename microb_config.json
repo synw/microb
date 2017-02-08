@@ -4,5 +4,6 @@
 	"db_user":"admin",
 	"db_password":"rdbadm",
 	"http_host":":8080",
-	"domain": "dev"
+	"domain": "dev",
+	"hits_log": "on"
 }

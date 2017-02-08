@@ -17,6 +17,7 @@ func GetConf() map[string]interface{} {
 	viper.SetDefault("db_user", "admin")
 	viper.SetDefault("db_password", "")
 	viper.SetDefault("domain", "localhost")
+	viper.SetDefault("hits_log", "on")
 	err := viper.ReadInConfig()
 	if err != nil {
 	    panic(fmt.Errorf("Fatal error config file: %s \n", err))
@@ -31,5 +32,6 @@ func GetConf() map[string]interface{} {
 	conf["db_user"] = viper.Get("db_user")
 	conf["db_password"] = viper.Get("db_password")
 	conf["domain"] = viper.Get("domain")
+	conf["hits_log"] = viper.Get("hits_log")
 	return conf
 }
