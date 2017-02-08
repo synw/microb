@@ -1,9 +1,13 @@
 {
-	"db_host":"192.168.1.15",
+	"centrifugo_host":"localhost",
+	"centrifugo_port":"8001",
+	"centrifugo_secret_key":"mycentrifugosecretkey",
+	"db_host":"localhost",
 	"db_port":"28015",
 	"db_user":"admin",
-	"db_password":"rdbadm",
+	"db_password":"pwd",
 	"http_host":":8080",
-	"domain": "dev",
-	"hits_log": "on"
+	"domain": "localhost",
+	"hits_log": "on",
+	"hits_monitor":"on"
 }

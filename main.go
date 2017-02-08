@@ -4,6 +4,7 @@ import (
     "fmt"
     "log"
     "strings"
+    "strconv"
     "flag"
     "net/http"
     "html/template"
@@ -27,8 +28,12 @@ type Page struct {
 }
 
 var CommandFlag = flag.String("c", "", "Fire command")
+var Metrics = flag.Bool("m", false, "Display metrics")
+var Verbosity = flag.Int("v", 1, "Verbosity level")
 
 var Config = conf.GetConf()
+
+var C_display = make(chan string)
 
 func getPage(url string) *Page {
 	hasSlash := strings.HasSuffix(url, "/")
@@ -63,27 +68,23 @@ func renderTemplate(response http.ResponseWriter, page *Page) {
 }
 
 func viewHandler(response http.ResponseWriter, request *http.Request) {
-    url := request.URL.Path
-    fmt.Printf("%s Page %s\n", utils.GetTime(), url)
-    page := &Page{Url: url, Title: "Page not found", Content: "Page not found"}
-    if (Config["hits_log"] == "on") {
-    	go middleware.WriteHit(request)
-    }
+    purl := request.URL.Path
+    //fmt.Printf("%s Page %s\n", utils.GetTime(), url)
+    page := &Page{Url: purl, Title: "Page not found", Content: "Page not found"}
+    go middleware.ProcessHit(request, Config["hits_log"].(bool), *Verbosity, C_display)
     renderTemplate(response, page)
 }
 
 func apiHandler(response http.ResponseWriter, request *http.Request) {
-    url := request.URL.Path
-    page := getPage(url)
-    fmt.Printf("%s API %s\n", utils.GetTime(), url)
+    purl := request.URL.Path
+    page := getPage(purl)
+    //fmt.Printf("%s API %s\n", utils.GetTime(), url)
     if (page.Url == "404") {
-    	msg := "404 page not found in database: "+url
+    	msg := "404 page not found in database: "+purl
     	utils.PrintEvent("error", msg)
     }
 	json_bytes, _ := json.Marshal(page)
-	if (Config["hits_log"] == "on") {
-		go middleware.WriteHit(request)
-	}
+    go middleware.ProcessHit(request, Config["hits_log"].(bool), *Verbosity, C_display)
 	fmt.Fprintf(response, "%s\n", json_bytes)
 }
 
@@ -112,7 +113,16 @@ func updateRoutes(c chan bool) {
 }
 
 func init() {
-	utils.PrintEvent("info", "listening to changefeeds")
+	flag.Parse()
+	if (*Verbosity > 0) {
+		if (Config["hits_monitor"] == "on") {
+			utils.PrintEvent("info", "Monitoring hits")
+		}
+		if (Config["hits_log"] == "on") {
+			utils.PrintEvent("info", "Logging hits")
+		}
+		utils.PrintEvent("info", "Listening to changefeeds")
+	}
 	// changefeed listeners
 	c := make(chan *rethinkdb.DataChanges)
 	c2 := make(chan bool)
@@ -121,6 +131,7 @@ func init() {
 	go rethinkdb.CommandsListener(comchan)
 	// channel listeners
 	go func() {
+		// page changes channel
     	for {
             changes := <- c
 			if (changes.Type == "update") {
@@ -136,6 +147,7 @@ func init() {
     	}
     }()
     go func() {
+    	// commands channel
     	for {
             com := <- comchan
 			if (com.Name != "") {
@@ -148,6 +160,7 @@ func init() {
     	}
     }()
     go func() {
+    	// reparse staticfiles when the routes have been changed
 		for {
 			routes_done := <- c2
 			if (routes_done == true) {
@@ -157,13 +170,36 @@ func init() {
 		}
 	}()
 	// hits writer
-	if (Config["hits_log"] == "on") {
-		go middleware.WatchHits(1)
+	c_hits := make(chan int)
+	if (Config["hits_monitor"].(bool) == true || Config["hits_log"].(bool) == true) {
+		go middleware.WatchHits(1, Config["hits_log"].(bool), c_hits)
+	}
+	// hits monitor
+	if (Config["hits_monitor"].(bool) == true) {
+		go func() {
+			for {
+				num_hits := <- c_hits
+				if (num_hits > 0) {
+					if (*Metrics == true) {
+						msg := "Hits per second: "+strconv.Itoa(num_hits)
+						utils.PrintEvent("metric", msg)
+					}
+				}
+			}
+		}()
+	}
+	// hits display
+	if (*Verbosity > 0) {
+		go func() {
+			for {
+				msg := <- C_display
+				fmt.Println(msg)
+			}
+		}()
 	}
 }
 
 func main() {
-	flag.Parse()
 	// commands
 	if (*CommandFlag != "") {
 		valid_commands := []string{"update_routes", "reparse_templates"}
@@ -190,8 +226,12 @@ func main() {
 	}
 	// http server
 	http_host := Config["http_host"].(string)
-	msg := "Server started on "+http_host+" for domain "+Config["domain"].(string)+" with db "+Config["domain"].(string)
-	msg = msg+" at "+Config["db_host"].(string)
+	var msg string
+	if (*Verbosity > 0) {
+		msg = "Server started on "+http_host+" for domain "+skittles.BoldWhite(Config["domain"].(string))
+		msg = msg+" with db "+Config["domain"].(string)
+		msg = msg+" ("+Config["db_host"].(string)+")"
+	}
 	utils.PrintEvent("nil", msg)
 	server := &http.Server{
 		Addr: http_host,

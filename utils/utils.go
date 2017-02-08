@@ -10,6 +10,7 @@ var info_m = " ["+skittles.Green("info")+"]"
 var event_m = " ["+skittles.Yellow("event")+"]"
 var command_m = " [=> "+skittles.Cyan("command")+"]"
 var error_m = " ["+skittles.BoldRed("error")+"]"
+var metric_m = " ["+skittles.Cyan("metric")+"]"
 
 func GetTime() string {
 	t := time.Now()
@@ -26,6 +27,8 @@ func GetEvent(itype string, msg string) string {
 		event = event+command_m+" "+msg
 	} else if (itype == "error") {
 		event = event+error_m+" "+msg
+	} else if (itype == "metric") {
+		event = event+metric_m+" "+msg
 	} else if (itype == "nil") {
 		event = event+" "+msg
 	}
@@ -33,5 +36,5 @@ func GetEvent(itype string, msg string) string {
 }
 
 func PrintEvent(itype string, msg string) {
-	fmt.Println(GetEvent(itype, msg))
+	go fmt.Println(GetEvent(itype, msg))
 }

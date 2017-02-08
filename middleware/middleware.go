@@ -11,7 +11,6 @@ import (
 	"flag"
 	"github.com/garyburd/redigo/redis"
 	"github.com/synw/microb/conf"
-	"github.com/synw/microb/utils"
 	"github.com/synw/microb/db/rethinkdb"
 )
  
@@ -50,28 +49,36 @@ func connect() redis.Conn {
     return conn
 }
 
-func WriteHit(request *http.Request) {
-	Conn := connect()
-	defer Conn.Close()
+func ProcessHit(request *http.Request, loghit bool, verbosity int, c_display chan string) {
+	purl := request.URL.Path
 	user_agent := strings.Join(request.Header["User-Agent"], ",")
-	referer := "nil"
-	val, ok := request.Header["Referer"]
-    if (ok == true) {
-    	referer = strings.Join(val, ",")
-    }
-	s := "#!#"
-	ts := strconv.FormatInt(time.Now().UnixNano(), 10)
-	hit_str := request.URL.String()+s+request.Method+s+request.RemoteAddr+s+user_agent+s+referer+s+ts
-	_, err := Conn.Do("LPUSH", &HitsKeyName, hit_str)
-	if err != nil {
-        fmt.Println("KEYS: error writing key in Redis:", err)
+	if (loghit == true) {
+		Conn := connect()
+		defer Conn.Close()
+		referer := "nil"
+		val, ok := request.Header["Referer"]
+	    if (ok == true) {
+	    	referer = strings.Join(val, ",")
+	    }
+		s := "#!#"
+		ts := strconv.FormatInt(time.Now().UnixNano(), 10)
+		hit_str := purl+s+request.Method+s+request.RemoteAddr+s+user_agent+s+referer+s+ts
+		_, err := Conn.Do("LPUSH", &HitsKeyName, hit_str)
+		if err != nil {
+	        fmt.Println("KEYS: error writing key in Redis:", err)
+	    }
+	}
+    if (verbosity > 0) {
+    	msg := request.Method+" "+purl+" from "+request.RemoteAddr+" - "+user_agent
+    	c_display <- msg
     }
 }
 
-func storeHits(quiet bool) {
+func storeHits(quiet bool, store_hits bool, c chan int) {
 	Conn := connect()
 	defer Conn.Close()
 	// get hits set
+	listlen := 0
 	listlen, err := redis.Int(Conn.Do("LLEN", &HitsKeyName))
     if err != nil {
         fmt.Println("KEYS: error retrieving Redis list len:", err)
@@ -83,8 +90,10 @@ func storeHits(quiet bool) {
 		if err != nil {
 	        fmt.Println("KEYS: error retrieving Redis list values:", err)
 	    }
-		// save the keys into the db
-		go rethinkdb.SaveHits(values)
+	    if (store_hits == true) {
+			// save the keys into the db
+			go rethinkdb.SaveHits(values)
+		}
 		_, err = Conn.Do("DEL", &HitsKeyName)
 	    if err != nil {
 	        fmt.Println("DEL: error deleting Redis keys:", err)
@@ -98,14 +107,16 @@ func storeHits(quiet bool) {
     		fmt.Println(date, "- 0 hits")
     	}
     }
+    c <- listlen
+    return
 }
 
-func WatchHits(frequency int)  {
-	utils.PrintEvent("info", "watching hits")
+func WatchHits(frequency int, store_hits bool, c chan int)  {
 	for {
 		duration := time.Duration(frequency)*time.Second
 		for range time.Tick(duration) {
-			go storeHits(true)
+			go storeHits(true, store_hits, c)
 		}
 	}
+	
 }
