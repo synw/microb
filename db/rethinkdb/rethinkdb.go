@@ -54,14 +54,19 @@ func connectToDb() (*r.Session) {
     return session
 }
 
+func MakeHit(doc string) *Hit {
+	data := strings.Split(doc, "#!#")
+	datenow := time.Now()
+	hit := &Hit{data[0], data[1], data[2], data[3], data[4], datenow}
+	return hit
+}
+
 func SaveHits(values []string) {
 	session := Conn
 	db := Config["domain"].(string)
 	for _, doc := range values {
 		// unpack the data
-		data := strings.Split(doc, "#!#")
-		datenow := time.Now()
-		hit := &Hit{data[0], data[1], data[2], data[3], data[4], datenow}
+		hit := MakeHit(doc)
 		// package the data in json
 	   	_, err := r.DB(db).Table("hits").Insert(hit, r.InsertOpts{Durability: "soft", ReturnChanges: false}).Run(session)
 		if err != nil {

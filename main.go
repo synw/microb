@@ -172,7 +172,7 @@ func init() {
 	// hits writer
 	c_hits := make(chan int)
 	if (Config["hits_monitor"].(bool) == true || Config["hits_log"].(bool) == true) {
-		go middleware.WatchHits(1, Config["hits_log"].(bool), c_hits)
+		go middleware.WatchHits(1, Config["hits_log"].(bool), Config["hits_monitor"].(bool), c_hits)
 	}
 	// hits monitor
 	if (Config["hits_monitor"].(bool) == true) {
