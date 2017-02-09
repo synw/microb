@@ -8,6 +8,7 @@
 	"db_password":"pwd",
 	"http_host":":8080",
 	"domain": "localhost",
-	"hits_log": "on",
-	"hits_monitor":"on"
+	"hits_log": true,
+	"hits_monitor":true,
+	"hits_channel":"microb_hits"
 }

@@ -18,8 +18,8 @@ documents in Rethinkdb
 Configuration
 -------------
 
-Create a database in Rethinkdb, ex: `localhost`. Create tables `pages` and `commands`. Set a compound index for table
-`pages` with this reql query:
+Create a database in Rethinkdb, ex: `localhost`. Create tables `pages` and `commands` and `hits`. Set a compound index 
+for table `pages` with this reql query:
 
    ```javascript
 r.db("localhost").table("pages").indexCreate("key", [r.row("uri"), r.row("domain")])
@@ -27,18 +27,23 @@ r.db("localhost").table("pages").indexCreate("key", [r.row("uri"), r.row("domain
 
    ```json
 {
-	"db_type": "rethinkdb",
+	"centrifugo_host":"localhost",
+	"centrifugo_port":"8001",
+	"centrifugo_secret_key":"mycentrifugosecretkey",
 	"db_host":"localhost",
 	"db_port":"28015",
-	"database":"microb",
-	"table":"pages",
 	"db_user":"admin",
-	"db_password":"mypwd",
-	"http_port":":8081",
-	"domain": "localhost"
+	"db_password":"pwd",
+	"http_host":":8080",
+	"domain": "localhost",
+	"hits_log": true,
+	"hits_monitor":true,
+	"hits_channel":"microb_hits"
 }
    ```
-   
+
+[Install the Centrifugo websockets server](https://github.com/centrifugal/centrifugo) if you turned monitoring on
+
 Usage
 -----
 
@@ -71,3 +76,4 @@ Todo
 - [ ] Logging
 - [ ] Redis cache
 - [ ] Monitoring
+- [ ] Decent UI for the default page
