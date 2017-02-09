@@ -10,5 +10,5 @@
 	"domain": "localhost",
 	"hits_log": true,
 	"hits_monitor":true,
-	"hits_channel":"microb_hits"
+	"hits_channel":"$microb_hits"
 }

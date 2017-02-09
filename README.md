@@ -5,7 +5,8 @@ Single page app engine using Go stdlib and Rethinkdb. This package provides:
 
 - An http server for pages and API requests
 - A process that listens to some Rethinkdb changefeeds to detect CRUD events in the database: these events will
-trigger templates reparsing and client-side routes update at the http server level
+trigger commands at the http server level (like templates reparsing and client-side routes rebuilding), 
+or elsewhere (send some data over websockets for monitoring, update cache)
 
 What you get:
 
@@ -42,7 +43,7 @@ r.db("localhost").table("pages").indexCreate("key", [r.row("uri"), r.row("domain
 	"domain": "localhost",
 	"hits_log": true,
 	"hits_monitor":true,
-	"hits_channel":"microb_hits"
+	"hits_channel":"$microb_hits"
 }
    ```
 
