@@ -115,10 +115,10 @@ func updateRoutes(c chan bool) {
 func init() {
 	flag.Parse()
 	if (*Verbosity > 0) {
-		if (Config["hits_monitor"] == "on") {
+		if (Config["hits_monitor"] == true) {
 			utils.PrintEvent("info", "Monitoring hits")
 		}
-		if (Config["hits_log"] == "on") {
+		if (Config["hits_log"] == true) {
 			utils.PrintEvent("info", "Logging hits")
 		}
 		utils.PrintEvent("info", "Listening to changefeeds")

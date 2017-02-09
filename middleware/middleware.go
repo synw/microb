@@ -15,7 +15,14 @@ import (
 	"github.com/synw/microb/conf"
 	"github.com/synw/microb/db/rethinkdb"
 )
- 
+
+
+type wsMsg struct {
+	Server string
+	EventClass string
+	Message string
+	Hits int
+}
 
 type Hit struct {
 	Url *url.URL
@@ -24,12 +31,6 @@ type Hit struct {
 	User_agent string
 	Referer string
 	Date time.Time
-}
-
-type NumHits struct {
-	Hits int
-	Timestamp time.Time
-	Domain string
 }
 
 var Config = conf.GetConf()
@@ -64,17 +65,18 @@ func sendHits(num_hits int) {
 	purl := fmt.Sprintf("%s:%s", host, port)
 	// connect to Centrifugo
 	client := gocent.NewClient(purl, secret, 5*time.Second)
-	now := time.Now()
-	hit := &NumHits{num_hits, now, Config["domain"].(string)}
-	data, err := json.Marshal(hit)
+	msg := "Hit at "+Config["domain"].(string)
+	eventstr := &wsMsg{Config["domain"].(string), "hit", msg, num_hits}
+	event, err := json.Marshal(eventstr)
 	if err != nil {
 	 	println(err.Error())
 	 }
-	_, err = client.Publish(Config["hits_channel"].(string), data)
-	 if err != nil {
-	 	println("WS ERROR:", err.Error())
-	 }
-	 return
+	_, err = client.Publish(Config["hits_channel"].(string), event)
+	//fmt.Println("Sending event to", Config["hits_channel"].(string), event.EventClass)
+	if err != nil {
+		println("WS ERROR:", err.Error())
+	}
+	return
 }
 
 func ProcessHit(request *http.Request,loghit bool, verbosity int, c_display chan string) {
