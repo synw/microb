@@ -16,7 +16,7 @@ What you get:
 documents in Rethinkdb
 
 <p align="center">
-  <img src="https://raw.github.com/synw/django-microb/master/docs/img/microb_stack.png" alt="Microb stack"/>
+  <img src="https://github.com/synw/microb/raw/master/doc/img/microb_stack.png" alt="Microb stack"/>
 </p>
 
 Configuration
