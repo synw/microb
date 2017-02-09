@@ -36,5 +36,5 @@ func GetEvent(itype string, msg string) string {
 }
 
 func PrintEvent(itype string, msg string) {
-	go fmt.Println(GetEvent(itype, msg))
+	fmt.Println(GetEvent(itype, msg))
 }

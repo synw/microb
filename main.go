@@ -155,6 +155,8 @@ func init() {
 				utils.PrintEvent("event", msg)
 				if (com.Name == "reparse_templates") {
 					go reparseStatic()
+				} else if (com.Name == "update_routes") {
+					go updateRoutes(c2)
 				} 
 			}
     	}
@@ -164,7 +166,6 @@ func init() {
 		for {
 			routes_done := <- c2
 			if (routes_done == true) {
-				//fmt.Println("[OK] Routes updated")
 				go reparseStatic()
 			}
 		}
@@ -182,7 +183,7 @@ func init() {
 				if (num_hits > 0) {
 					if (*Metrics == true) {
 						msg := "Hits per second: "+strconv.Itoa(num_hits)
-						utils.PrintEvent("metric", msg)
+						go utils.PrintEvent("metric", msg)
 					}
 				}
 			}

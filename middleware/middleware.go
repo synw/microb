@@ -74,6 +74,7 @@ func sendHits(num_hits int) {
 	 if err != nil {
 	 	println("WS ERROR:", err.Error())
 	 }
+	 return
 }
 
 func ProcessHit(request *http.Request,loghit bool, verbosity int, c_display chan string) {
@@ -100,6 +101,7 @@ func ProcessHit(request *http.Request,loghit bool, verbosity int, c_display chan
     	msg := request.Method+" "+purl+" from "+request.RemoteAddr+" - "+user_agent
     	c_display <- msg
     }
+    return
 }
 
 func storeHits(quiet bool, store_hits bool, monitorhits bool, c chan int) {
@@ -130,6 +132,7 @@ func storeHits(quiet bool, store_hits bool, monitorhits bool, c chan int) {
 	    if (quiet == false) {
 	    	fmt.Println(date, "-", listlen, "hits")
 	    }
+	    // send the hits report on websocket
 	    if (monitorhits == true) {
 	    	sendHits(listlen)
 	    }
