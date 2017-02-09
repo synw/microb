@@ -15,6 +15,10 @@ What you get:
 - Decoupling of admin: to edit content use [Microb Manager](https://github.com/synw/microb-manager) or anything that can edit
 documents in Rethinkdb
 
+<p align="center">
+  <img src="https://raw.github.com/synw/django-microb/master/docs/img/microb_stack.png" alt="Microb stack"/>
+</p>
+
 Configuration
 -------------
 
