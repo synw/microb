@@ -20,7 +20,6 @@ import (
 type wsMsg struct {
 	Server string
 	EventClass string
-	Message string
 	Hits int
 }
 
@@ -65,8 +64,7 @@ func sendHits(num_hits int) {
 	purl := fmt.Sprintf("%s:%s", host, port)
 	// connect to Centrifugo
 	client := gocent.NewClient(purl, secret, 5*time.Second)
-	msg := "Hit at "+Config["domain"].(string)
-	eventstr := &wsMsg{Config["domain"].(string), "hit", msg, num_hits}
+	eventstr := &wsMsg{Config["domain"].(string), "hit", num_hits}
 	event, err := json.Marshal(eventstr)
 	channels := Config["hits_channels"].([]interface{})
 	if (Config["hits_channels"] != nil) {
