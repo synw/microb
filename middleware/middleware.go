@@ -67,12 +67,6 @@ func sendHits(num_hits int) {
 	eventstr := &wsMsg{Config["domain"].(string), "hit", num_hits}
 	event, err := json.Marshal(eventstr)
 	channels := Config["hits_channels"].([]interface{})
-	if (Config["hits_channels"] != nil) {
-		fmt.Println("Hitschan", channels)
-	} else {
-		fmt.Println("No conf")
-	}
-	
 	if err != nil {
 	 	println(err.Error())
 	 }
