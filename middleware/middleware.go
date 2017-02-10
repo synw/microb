@@ -68,13 +68,21 @@ func sendHits(num_hits int) {
 	msg := "Hit at "+Config["domain"].(string)
 	eventstr := &wsMsg{Config["domain"].(string), "hit", msg, num_hits}
 	event, err := json.Marshal(eventstr)
+	channels := Config["hits_channels"].([]interface{})
+	if (Config["hits_channels"] != nil) {
+		fmt.Println("Hitschan", channels)
+	} else {
+		fmt.Println("No conf")
+	}
+	
 	if err != nil {
 	 	println(err.Error())
 	 }
-	_, err = client.Publish(Config["hits_channel"].(string), event)
-	//fmt.Println("Sending event to", Config["hits_channel"].(string), event.EventClass)
-	if err != nil {
-		println("WS ERROR:", err.Error())
+	 for i, _ := range channels {
+		_, err = client.Publish(channels[i].(string), event)
+		if err != nil {
+			println("WS ERROR:", err.Error())
+		}
 	}
 	return
 }

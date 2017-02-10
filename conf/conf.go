@@ -7,7 +7,7 @@ import (
 
 
 func GetConf() map[string]interface{} {
-	viper.SetConfigName("microb_config")
+	viper.SetConfigName("microb_dev_config")
 	viper.AddConfigPath(".")
 	viper.SetDefault("http_host", ":8080")
 	viper.SetDefault("centrifugo_host", "localhost")
@@ -18,7 +18,8 @@ func GetConf() map[string]interface{} {
 	viper.SetDefault("db_password", "")
 	viper.SetDefault("hits_log", true)
 	viper.SetDefault("hits_monitor", true)
-	viper.SetDefault("hits_channel", "$microb_hits")
+	hits_channels := []string{"$microb_hits"}
+	viper.SetDefault("hits_channels", hits_channels)
 	err := viper.ReadInConfig()
 	if err != nil {
 	    panic(fmt.Errorf("Fatal error config file: %s \n", err))
@@ -35,6 +36,6 @@ func GetConf() map[string]interface{} {
 	conf["domain"] = viper.Get("domain")
 	conf["hits_log"] = viper.Get("hits_log")
 	conf["hits_monitor"] = viper.Get("hits_monitor")
-	conf["hits_channel"] = viper.Get("hits_channel")
+	conf["hits_channels"] = viper.Get("hits_channels")
 	return conf
 }
