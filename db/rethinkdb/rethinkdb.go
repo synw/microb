@@ -12,8 +12,13 @@ import (
 )
 
 var Config = conf.GetConf()
-var Conn = connectToDb()
+var Conn *r.Session
 
+func init() {
+	if Config["db_type"] == "rethinkdb" {
+		Conn = connectToDb()
+	}
+}
 
 func connectToDb() (*r.Session) {
 	host := Config["db_host"].(string)
@@ -157,12 +162,11 @@ func scanForChanges(res map[string]interface{}) *datatypes.DataChanges {
 	return dataChanges
 }
 
-func SaveCommand(command string, wg *sync.WaitGroup) {
+func SaveCommand(command *datatypes.Command, wg *sync.WaitGroup) {
 	session := Conn
 	defer wg.Done()
 	db := Config["database"].(string)
-	new_command := &datatypes.Command{Name:command}
-	_, err := r.DB(db).Table("commands").Insert(new_command, r.InsertOpts{ReturnChanges: false}).RunWrite(session)
+	_, err := r.DB(db).Table("commands").Insert(command, r.InsertOpts{ReturnChanges: false}).RunWrite(session)
 	if err != nil { log.Fatalln(err) }
 }
 

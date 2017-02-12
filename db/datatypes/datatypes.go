@@ -12,6 +12,8 @@ type DataChanges struct {
 
 type Command struct {
 	Name string
+	From string
+	Reason string
 }
 
 type Hit struct {

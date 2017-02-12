@@ -6,10 +6,10 @@ import (
     "strings"
     "strconv"
     "flag"
+    "sync"
     "net/http"
     "html/template"
     "encoding/json"
-    "sync"
     "io/ioutil"
     "time"
     _ "expvar"
@@ -19,6 +19,7 @@ import (
     "github.com/synw/microb/db"
     "github.com/synw/microb/db/datatypes"
     "github.com/synw/microb/middleware"
+    "github.com/synw/microb/commands"
 )
 
 
@@ -28,9 +29,10 @@ type Page struct {
     Content  string
 }
 
-var CommandFlag = flag.String("c", "", "Fire command")
+var CommandFlag = flag.String("c", "noflag", "Fire command")
 var Metrics = flag.Bool("m", false, "Display metrics")
 var Verbosity = flag.Int("v", 1, "Verbosity level")
+var Reason = flag.String("r", "nil", "Reason for sending a command (to use with the -c flag)")
 
 var Config = conf.GetConf()
 
@@ -115,133 +117,124 @@ func updateRoutes(c chan bool) {
 
 func init() {
 	flag.Parse()
-	if (*Verbosity > 0) {
-		if (Config["hits_monitor"] == true) {
-			utils.PrintEvent("info", "Monitoring hits")
-		}
-		if (Config["hits_log"] == true) {
-			utils.PrintEvent("info", "Logging hits")
-		}
-		utils.PrintEvent("info", "Listening to changefeeds")
-	}
-	// changefeed listeners
-	c := make(chan *datatypes.DataChanges)
-	c2 := make(chan bool)
-	comchan := make(chan *datatypes.Command)
-	go db.PageChangesListener(c)
-	go db.CommandsListener(comchan)
-	// channel listeners
-	go func() {
-		// page changes channel
-    	for {
-            changes := <- c
-			if (changes.Type == "update") {
-				utils.PrintEvent("event", changes.Msg)
-				go updateRoutes(c2)
-			} else if (changes.Type == "delete") {
-				utils.PrintEvent("event", changes.Msg)
-				go updateRoutes(c2)
-			} else if (changes.Type == "insert") {
-				utils.PrintEvent("event", changes.Msg)
-				go updateRoutes(c2)
+	if (*CommandFlag == "noflag") {
+		if (*Verbosity > 0) {
+			if (Config["hits_monitor"] == true) {
+				utils.PrintEvent("info", "Monitoring hits")
 			}
-    	}
-    }()
-    go func() {
-    	// commands channel
-    	for {
-            com := <- comchan
-			if (com.Name != "") {
-				msg := "Command "+skittles.BoldWhite(com.Name)+" received"
-				utils.PrintEvent("event", msg)
-				if (com.Name == "reparse_templates") {
-					go reparseStatic()
-				} else if (com.Name == "update_routes") {
-					go updateRoutes(c2)
-				} 
+			if (Config["hits_log"] == true) {
+				utils.PrintEvent("info", "Logging hits")
 			}
-    	}
-    }()
-    go func() {
-    	// reparse staticfiles when the routes have been changed
-		for {
-			routes_done := <- c2
-			if (routes_done == true) {
-				go reparseStatic()
-			}
+			utils.PrintEvent("info", "Listening to changefeeds")
 		}
-	}()
-	// hits writer
-	c_hits := make(chan int)
-	if (Config["hits_monitor"].(bool) == true || Config["hits_log"].(bool) == true) {
-		go middleware.WatchHits(1, Config["hits_log"].(bool), Config["hits_monitor"].(bool), c_hits)
-	}
-	// hits monitor
-	if (Config["hits_monitor"].(bool) == true) {
+		// changefeed listeners
+		c := make(chan *datatypes.DataChanges)
+		c2 := make(chan bool)
+		comchan := make(chan *datatypes.Command)
+		go db.PageChangesListener(c)
+		go db.CommandsListener(comchan)
+		// channel listeners
 		go func() {
+			// page changes channel
+	    	for {
+	            changes := <- c
+				if (changes.Type == "update") {
+					utils.PrintEvent("event", changes.Msg)
+					go updateRoutes(c2)
+				} else if (changes.Type == "delete") {
+					utils.PrintEvent("event", changes.Msg)
+					go updateRoutes(c2)
+				} else if (changes.Type == "insert") {
+					utils.PrintEvent("event", changes.Msg)
+					go updateRoutes(c2)
+				}
+	    	}
+	    }()
+	    go func() {
+	    	// commands channel
+	    	for {
+	            com := <- comchan
+				if (com.Name != "") {
+					msg := "Command "+skittles.BoldWhite(com.Name)+" received"
+					utils.PrintEvent("event", msg)
+					if (com.Name == "reparse_templates") {
+						go reparseStatic()
+					} else if (com.Name == "update_routes") {
+						go updateRoutes(c2)
+					} 
+				}
+	    	}
+	    }()
+	    go func() {
+	    	// reparse staticfiles when the routes have been changed
 			for {
-				num_hits := <- c_hits
-				if (num_hits > 0) {
-					if (*Metrics == true) {
-						msg := "Hits per second: "+strconv.Itoa(num_hits)
-						go utils.PrintEvent("metric", msg)
-					}
+				routes_done := <- c2
+				if (routes_done == true) {
+					go reparseStatic()
 				}
 			}
 		}()
-	}
-	// hits display
-	if (*Verbosity > 0) {
-		go func() {
-			for {
-				msg := <- C_display
-				fmt.Println(msg)
-			}
-		}()
+		// hits writer
+		c_hits := make(chan int)
+		if (Config["hits_monitor"].(bool) == true || Config["hits_log"].(bool) == true) {
+			go middleware.WatchHits(1, Config["hits_log"].(bool), Config["hits_monitor"].(bool), c_hits)
+		}
+		// hits monitor
+		if (Config["hits_monitor"].(bool) == true) {
+			go func() {
+				for {
+					num_hits := <- c_hits
+					if (num_hits > 0) {
+						if (*Metrics == true) {
+							msg := "Hits per second: "+strconv.Itoa(num_hits)
+							go utils.PrintEvent("metric", msg)
+						}
+					}
+				}
+			}()
+		}
+		// hits display
+		if (*Verbosity > 0) {
+			go func() {
+				for {
+					msg := <- C_display
+					fmt.Println(msg)
+				}
+			}()
+		}
 	}
 }
 
 func main() {
-	// commands
-	if (*CommandFlag != "") {
-		valid_commands := []string{"update_routes", "reparse_templates"}
-		is_valid := false
-		for _, com := range(valid_commands) {
-			if (com == *CommandFlag) {
-				is_valid = true
-				break
-			}
+	// manual commands
+	if (*CommandFlag != "noflag") {
+		command := &datatypes.Command{*CommandFlag, "terminal", "nil"}
+		if *Reason != "nil" {
+			command.Reason = *Reason
 		}
-		if (is_valid == true) {
-			msg := "Sending command "+skittles.BoldWhite(*CommandFlag)+" to the server"
-			utils.PrintEvent("event", msg)
-			var wg sync.WaitGroup
-			wg.Add(1)
-			go db.SaveCommand(*CommandFlag, &wg)
-			wg.Wait()
-			
-		} else {
-			msg := "Unknown command: "+*CommandFlag
-			utils.PrintEvent("error", msg)
-		}
+		var wg sync.WaitGroup
+		wg.Add(1)
+		commands.RunCommandAndExit(command, &wg)
+		wg.Wait()
 		return
+	} else {
+		// http server
+		http_host := Config["http_host"].(string)
+		var msg string
+		if (*Verbosity > 0) {
+			msg = "Server started on "+http_host+" for domain "+skittles.BoldWhite(Config["domain"].(string))
+			msg = msg+" with "+Config["db_type"].(string)+" db "+Config["domain"].(string)
+			msg = msg+" ("+Config["db_host"].(string)+")"
+		}
+		utils.PrintEvent("nil", msg)
+		server := &http.Server{
+			Addr: http_host,
+		    ReadTimeout: 5 * time.Second,
+		    WriteTimeout: 10 * time.Second,
+		}
+		http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+		http.HandleFunc("/x/", apiHandler)
+	    http.HandleFunc("/", viewHandler)
+	    log.Fatal(server.ListenAndServe())
 	}
-	// http server
-	http_host := Config["http_host"].(string)
-	var msg string
-	if (*Verbosity > 0) {
-		msg = "Server started on "+http_host+" for domain "+skittles.BoldWhite(Config["domain"].(string))
-		msg = msg+" with db "+Config["domain"].(string)
-		msg = msg+" ("+Config["db_host"].(string)+")"
-	}
-	utils.PrintEvent("nil", msg)
-	server := &http.Server{
-		Addr: http_host,
-	    ReadTimeout: 5 * time.Second,
-	    WriteTimeout: 10 * time.Second,
-	}
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
-	http.HandleFunc("/x/", apiHandler)
-    http.HandleFunc("/", viewHandler)
-    log.Fatal(server.ListenAndServe())
 }
