@@ -8,29 +8,12 @@ import (
 	"strings"
 	 r "gopkg.in/dancannon/gorethink.v2"
 	 "github.com/synw/microb/conf"
+	 "github.com/synw/microb/db/datatypes"
 )
 
 var Config = conf.GetConf()
 var Conn = connectToDb()
 
-type DataChanges struct {
-	Msg string
-	Type string
-	Values map[string]interface{}
-}
-
-type Command struct {
-	Name string
-}
-
-type Hit struct {
-	Url string
-	Method string
-	Ip string
-	User_agent string
-	Referer string
-	Date time.Time
-}
 
 func connectToDb() (*r.Session) {
 	host := Config["db_host"].(string)
@@ -54,10 +37,10 @@ func connectToDb() (*r.Session) {
     return session
 }
 
-func MakeHit(doc string) *Hit {
+func MakeHit(doc string) *datatypes.Hit {
 	data := strings.Split(doc, "#!#")
 	datenow := time.Now()
-	hit := &Hit{data[0], data[1], data[2], data[3], data[4], datenow}
+	hit := &datatypes.Hit{data[0], data[1], data[2], data[3], data[4], datenow}
 	return hit
 }
 
@@ -121,7 +104,7 @@ func GetFromDb (url string)  (map[string]interface{}, bool)  {
 	return page_served, found
 }
 
-func scanForChanges(res map[string]interface{}) *DataChanges {
+func scanForChanges(res map[string]interface{}) *datatypes.DataChanges {
 	new_val := res["new_val"].(map[string]interface{})
 	old_val := res["old_val"].(map[string]interface{})
 	new_domain := new_val["domain"].(string)
@@ -170,7 +153,7 @@ func scanForChanges(res map[string]interface{}) *DataChanges {
 		m := "-> "+new_uri+": "+new_editor+" changed fields: "+fieldsChanges
 		msg = msg+m
 	}
-	dataChanges := &DataChanges{Msg:msg, Type:ctype, Values:changes}
+	dataChanges := &datatypes.DataChanges{Msg:msg, Type:ctype, Values:changes}
 	return dataChanges
 }
 
@@ -178,12 +161,12 @@ func SaveCommand(command string, wg *sync.WaitGroup) {
 	session := Conn
 	defer wg.Done()
 	db := Config["database"].(string)
-	new_command := &Command{Name:command}
+	new_command := &datatypes.Command{Name:command}
 	_, err := r.DB(db).Table("commands").Insert(new_command, r.InsertOpts{ReturnChanges: false}).RunWrite(session)
 	if err != nil { log.Fatalln(err) }
 }
 
-func CommandsListener(comchan chan *Command) {
+func CommandsListener(comchan chan *datatypes.Command) {
 	session := Conn
 	db := Config["domain"].(string)
 	// monitor commands
@@ -194,12 +177,12 @@ func CommandsListener(comchan chan *Command) {
 	for com.Next(&commands) {
 		comt := commands["new_val"].(map[string]interface{})
 		comc := comt["Name"].(string)
-		coms := &Command{Name:comc}
+		coms := &datatypes.Command{Name:comc}
 		comchan <- coms
 	}
 }
 
-func PageChangesListener(c chan *DataChanges) {
+func PageChangesListener(c chan *datatypes.DataChanges) {
 	session := Conn
 	db := Config["domain"].(string)
 	// monitor changes in pages table
@@ -207,7 +190,7 @@ func PageChangesListener(c chan *DataChanges) {
 	defer res.Close()
 	if err != nil { log.Fatalln(err) }
 	var changes map[string]interface{}
-	var dataChanged *DataChanges
+	var dataChanged *datatypes.DataChanges
 	defer res.Close()
 	for res.Next(&changes) {
 		//fmt.Println(&changes)
@@ -231,11 +214,11 @@ func PageChangesListener(c chan *DataChanges) {
 		} else if (old_val == nil) {
 			msg = "Changes detected in the database (insert):\n"
 			msg = msg+"-> "+new_val["editor"].(string)+" created a new document: "+new_val["uri"].(string)
-			dataChanged = &DataChanges{Msg:msg, Type:"insert", Values:new_val}
+			dataChanged = &datatypes.DataChanges{Msg:msg, Type:"insert", Values:new_val}
 		} else if (new_val == nil) {
 			msg = "Changes detected in the database (delete):\n"
 			msg = msg+"-> Document "+old_val["uri"].(string)+" has been deleted"
-			dataChanged = &DataChanges{Msg:msg, Type:"delete", Values:old_val}
+			dataChanged = &datatypes.DataChanges{Msg:msg, Type:"delete", Values:old_val}
 		}
 		c <- dataChanged
 	}

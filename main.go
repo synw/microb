@@ -16,7 +16,8 @@ import (
     "github.com/acmacalister/skittles"
     "github.com/synw/microb/conf"
     "github.com/synw/microb/utils"
-    "github.com/synw/microb/db/rethinkdb"
+    "github.com/synw/microb/db"
+    "github.com/synw/microb/db/datatypes"
     "github.com/synw/microb/middleware"
 )
 
@@ -47,7 +48,7 @@ func getPage(url string) *Page {
 	// remove url mask
 	index_url = strings.Replace(index_url,"/x","",-1)
 	// hit db
-	data, found = rethinkdb.GetFromDb(index_url)
+	data, found = db.GetFromDb(index_url)
 	if (found == false) {
 		return &page
 	}
@@ -96,7 +97,7 @@ func reparseStatic() {
 func updateRoutes(c chan bool) {
 	var routestab []string
 	// hit db
-	routestab = rethinkdb.GetRoutes()
+	routestab = db.GetRoutes()
 	var routestr string
 	var route string
 	for i := range(routestab) {
@@ -124,11 +125,11 @@ func init() {
 		utils.PrintEvent("info", "Listening to changefeeds")
 	}
 	// changefeed listeners
-	c := make(chan *rethinkdb.DataChanges)
+	c := make(chan *datatypes.DataChanges)
 	c2 := make(chan bool)
-	comchan := make(chan *rethinkdb.Command)
-	go rethinkdb.PageChangesListener(c)
-	go rethinkdb.CommandsListener(comchan)
+	comchan := make(chan *datatypes.Command)
+	go db.PageChangesListener(c)
+	go db.CommandsListener(comchan)
 	// channel listeners
 	go func() {
 		// page changes channel
@@ -216,7 +217,7 @@ func main() {
 			utils.PrintEvent("event", msg)
 			var wg sync.WaitGroup
 			wg.Add(1)
-			go rethinkdb.SaveCommand(*CommandFlag, &wg)
+			go db.SaveCommand(*CommandFlag, &wg)
 			wg.Wait()
 			
 		} else {
