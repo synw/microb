@@ -34,50 +34,16 @@ func GetRoutes() []string {
 	return routes
 }
 
-func commandsTransports() []string {
-	var ts []string
-	cts := Config["commands_transport"].([]string)
-	// check for defaults
-	is_default := false
-	for _, transp := range cts {
-		if transp == "default" {
-			is_default = true
-			if Config["db_type"].(string) == "rethinkdb" {
-				ts = []string{"changefeeds"}
-			}
-		}
-	}
-	if is_default == false {
-		ts = cts
-	}
-	/*var ts_str string
-	for _, transport := range ts {
-		ts_str = ts_str+" "+transport
-	} 
-	utils.PrintEvent("info", "Transports used for commands:"+ts_str)*/
-	return ts
-}
 
-func listenToChangefeeds() bool {
-	listen := false
-	transports := commandsTransports()
-	for _, val := range transports {
-		if val == "changefeeds" {
-			listen = true
-			break
-		}
-	}
-	return listen
-}
 
 func CommandsListener(comchan chan *datatypes.Command) {
-	if listenToChangefeeds() == true {
+	if conf.ListenToChangefeeds() == true {
 		rethinkdb.CommandsListener(comchan)
 	}
 }
 
 func PageChangesListener(c chan *datatypes.DataChanges) {
-	if listenToChangefeeds() == true {
+	if conf.ListenToChangefeeds() == true {
 		rethinkdb.PageChangesListener(c)
 	}
 }

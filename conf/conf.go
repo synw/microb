@@ -7,7 +7,7 @@ import (
 
 
 func GetConf() map[string]interface{} {
-	viper.SetConfigName("microb_config")
+	viper.SetConfigName("microb_dev_config_pg")
 	viper.AddConfigPath(".")
 	viper.SetDefault("http_host", ":8080")
 	viper.SetDefault("centrifugo_host", "localhost")
@@ -42,4 +42,37 @@ func GetConf() map[string]interface{} {
 	conf["hits_channels"] = viper.Get("hits_channels")
 	conf["commands_transport"] = viper.Get("commands_transport")
 	return conf
+}
+
+var Config = conf.GetConf()
+
+func commandsTransports() []string {
+	var ts []string
+	cts := Config["commands_transport"].([]string)
+	// check for defaults
+	is_default := false
+	for _, transp := range cts {
+		if transp == "default" {
+			is_default = true
+			if Config["db_type"].(string) == "rethinkdb" {
+				ts = []string{"changefeeds"}
+			}
+		}
+	}
+	if is_default == false {
+		ts = cts
+	}
+	return ts
+}
+
+func ListenToChangefeeds() bool {
+	listen := false
+	transports := commandsTransports()
+	for _, val := range transports {
+		if val == "changefeeds" {
+			listen = true
+			break
+		}
+	}
+	return listen
 }
