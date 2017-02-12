@@ -7,7 +7,7 @@ import (
 
 
 func GetConf() map[string]interface{} {
-	viper.SetConfigName("microb_dev_config_pg")
+	viper.SetConfigName("microb_config")
 	viper.AddConfigPath(".")
 	viper.SetDefault("http_host", ":8080")
 	viper.SetDefault("centrifugo_host", "localhost")
@@ -21,7 +21,7 @@ func GetConf() map[string]interface{} {
 	viper.SetDefault("hits_monitor", true)
 	hits_channels := []string{"$microb_hits"}
 	viper.SetDefault("hits_channels", hits_channels)
-	viper.SetDefault("commands_transport", []string{"default"})
+	viper.SetDefault("commands_brokers", []string{"default"})
 	err := viper.ReadInConfig()
 	if err != nil {
 	    panic(fmt.Errorf("Fatal error config file: %s \n", err))
@@ -40,7 +40,7 @@ func GetConf() map[string]interface{} {
 	conf["hits_log"] = viper.Get("hits_log")
 	conf["hits_monitor"] = viper.Get("hits_monitor")
 	conf["hits_channels"] = viper.Get("hits_channels")
-	conf["commands_transport"] = viper.Get("commands_transport")
+	conf["commands_brokers"] = viper.Get("commands_brokers")
 	return conf
 }
 
@@ -48,7 +48,7 @@ var Config = GetConf()
 
 func commandsTransports() []string {
 	var ts []string
-	cts := Config["commands_transport"].([]string)
+	cts := Config["commands_brokers"].([]string)
 	// check for defaults
 	is_default := false
 	for _, transp := range cts {

@@ -16,8 +16,6 @@ import (
 
 var Config = conf.GetConf()
 
-var transport = Config["commands_transport"].([]string)
-
 // commands
 func reparseTemplates(c chan bool) {
 	utils.PrintEvent("command", "Reparsing templates")

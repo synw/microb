@@ -2,6 +2,7 @@
 	"centrifugo_host":"localhost",
 	"centrifugo_port":"8001",
 	"centrifugo_secret_key":"mycentrifugosecretkey",
+	"db_type":"rethinkdb",
 	"db_host":"localhost",
 	"db_port":"28015",
 	"db_user":"admin",
