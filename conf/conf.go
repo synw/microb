@@ -44,7 +44,7 @@ func GetConf() map[string]interface{} {
 	return conf
 }
 
-var Config = conf.GetConf()
+var Config = GetConf()
 
 func commandsTransports() []string {
 	var ts []string
