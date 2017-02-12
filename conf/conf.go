@@ -7,7 +7,7 @@ import (
 
 
 func GetConf() map[string]interface{} {
-	viper.SetConfigName("microb_dev_config_pg")
+	viper.SetConfigName("microb_config")
 	viper.AddConfigPath(".")
 	viper.SetDefault("http_host", ":8080")
 	viper.SetDefault("centrifugo_host", "localhost")
