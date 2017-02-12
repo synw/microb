@@ -10,7 +10,6 @@ import (
     "net/http"
     "html/template"
     "encoding/json"
-    "io/ioutil"
     "time"
     _ "expvar"
     "github.com/acmacalister/skittles"
@@ -91,33 +90,31 @@ func apiHandler(response http.ResponseWriter, request *http.Request) {
 	fmt.Fprintf(response, "%s\n", json_bytes)
 }
 
-func reparseStatic() {
-	utils.PrintEvent("command", "Reparsing static files")
-	view = template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/routes.js"))
-}
-
-func updateRoutes(c chan bool) {
-	var routestab []string
-	// hit db
-	routestab = db.GetRoutes()
-	var routestr string
-	var route string
-	for i := range(routestab) {
-		route = routestab[i]
-		routestr = routestr+fmt.Sprintf("page('%s', function(ctx, next) { loadPage('/x%s') } );", route, route)
-	}
-	utils.PrintEvent("command", "Rebuilding client side routes")
-    str := []byte(routestr)
-    err := ioutil.WriteFile("templates/routes.js", str, 0644)
-    if err != nil {
-        panic(err)
-    }
-	c <- true
-}
-
 func init() {
 	flag.Parse()
-	if (*CommandFlag == "noflag") {
+	c_commands_results := make(chan bool)
+	// listen to commands results
+    go func() {
+		for {
+			result := <- c_commands_results
+			if (result == true) {
+				utils.PrintEvent("nil", "Command successfull")
+			} else {
+				utils.PrintEvent("error", "Error executing command")
+			}
+		}
+	}()
+	// manual commands
+	if (*CommandFlag != "noflag") {
+		command := &datatypes.Command{*CommandFlag, "terminal", "nil"}
+		if *Reason != "nil" {
+			command.Reason = *Reason
+		}
+		var wg sync.WaitGroup
+		wg.Add(1)
+		commands.RunCommandAndExit(command, &wg, c_commands_results)
+		wg.Wait()
+	} else {
 		if (*Verbosity > 0) {
 			if (Config["hits_monitor"] == true) {
 				utils.PrintEvent("info", "Monitoring hits")
@@ -128,52 +125,42 @@ func init() {
 			utils.PrintEvent("info", "Listening to changefeeds")
 		}
 		// changefeed listeners
-		c := make(chan *datatypes.DataChanges)
-		c2 := make(chan bool)
+		c_pages_changes := make(chan *datatypes.DataChanges)
 		comchan := make(chan *datatypes.Command)
-		go db.PageChangesListener(c)
+		go db.PageChangesListener(c_pages_changes)
 		go db.CommandsListener(comchan)
-		// channel listeners
+		// listen for change in pages table and trigger handlers
 		go func() {
-			// page changes channel
 	    	for {
-	            changes := <- c
+	            changes := <- c_pages_changes
 				if (changes.Type == "update") {
 					utils.PrintEvent("event", changes.Msg)
-					go updateRoutes(c2)
-				} else if (changes.Type == "delete") {
+					command := &datatypes.Command{"update_routes", "listener", "Update event in the database"}
+					go commands.RunCommand(command, c_commands_results, true)
+				} /*else if (changes.Type == "delete") {
 					utils.PrintEvent("event", changes.Msg)
-					go updateRoutes(c2)
+					go updateRoutes()
 				} else if (changes.Type == "insert") {
 					utils.PrintEvent("event", changes.Msg)
-					go updateRoutes(c2)
-				}
+					go updateRoutes()
+				}*/
 	    	}
 	    }()
+	    // listen for incoming commands
 	    go func() {
-	    	// commands channel
 	    	for {
 	            com := <- comchan
 				if (com.Name != "") {
 					msg := "Command "+skittles.BoldWhite(com.Name)+" received"
 					utils.PrintEvent("event", msg)
 					if (com.Name == "reparse_templates") {
-						go reparseStatic()
+						//go reparseStatic()
 					} else if (com.Name == "update_routes") {
-						go updateRoutes(c2)
+						//go updateRoutes(c2)
 					} 
 				}
 	    	}
 	    }()
-	    go func() {
-	    	// reparse staticfiles when the routes have been changed
-			for {
-				routes_done := <- c2
-				if (routes_done == true) {
-					go reparseStatic()
-				}
-			}
-		}()
 		// hits writer
 		c_hits := make(chan int)
 		if (Config["hits_monitor"].(bool) == true || Config["hits_log"].(bool) == true) {
@@ -206,35 +193,22 @@ func init() {
 }
 
 func main() {
-	// manual commands
-	if (*CommandFlag != "noflag") {
-		command := &datatypes.Command{*CommandFlag, "terminal", "nil"}
-		if *Reason != "nil" {
-			command.Reason = *Reason
-		}
-		var wg sync.WaitGroup
-		wg.Add(1)
-		commands.RunCommandAndExit(command, &wg)
-		wg.Wait()
-		return
-	} else {
-		// http server
-		http_host := Config["http_host"].(string)
-		var msg string
-		if (*Verbosity > 0) {
-			msg = "Server started on "+http_host+" for domain "+skittles.BoldWhite(Config["domain"].(string))
-			msg = msg+" with "+Config["db_type"].(string)+" db "+Config["domain"].(string)
-			msg = msg+" ("+Config["db_host"].(string)+")"
-		}
-		utils.PrintEvent("nil", msg)
-		server := &http.Server{
-			Addr: http_host,
-		    ReadTimeout: 5 * time.Second,
-		    WriteTimeout: 10 * time.Second,
-		}
-		http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
-		http.HandleFunc("/x/", apiHandler)
-	    http.HandleFunc("/", viewHandler)
-	    log.Fatal(server.ListenAndServe())
+	// http server
+	http_host := Config["http_host"].(string)
+	var msg string
+	if (*Verbosity > 0) {
+		msg = "Server started on "+http_host+" for domain "+skittles.BoldWhite(Config["domain"].(string))
+		msg = msg+" with "+Config["db_type"].(string)+" db "+Config["domain"].(string)
+		msg = msg+" ("+Config["db_host"].(string)+")"
 	}
+	utils.PrintEvent("nil", msg)
+	server := &http.Server{
+		Addr: http_host,
+	    ReadTimeout: 5 * time.Second,
+	    WriteTimeout: 10 * time.Second,
+	}
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+	http.HandleFunc("/x/", apiHandler)
+    http.HandleFunc("/", viewHandler)
+    log.Fatal(server.ListenAndServe())
 }

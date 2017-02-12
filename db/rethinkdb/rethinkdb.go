@@ -162,9 +162,19 @@ func scanForChanges(res map[string]interface{}) *datatypes.DataChanges {
 	return dataChanges
 }
 
-func SaveCommand(command *datatypes.Command, wg *sync.WaitGroup) {
+func SaveCommand(command *datatypes.Command) {
+	session := Conn
+	defer session.Close()
+	db := Config["database"].(string)
+	_, err := r.DB(db).Table("commands").Insert(command, r.InsertOpts{ReturnChanges: false}).RunWrite(session)
+	if err != nil { log.Fatalln(err) }
+}
+
+func SaveCommandWait(command *datatypes.Command, wg *sync.WaitGroup) {
 	session := Conn
 	defer wg.Done()
+	defer fmt.Println("save command wait")
+	defer session.Close()
 	db := Config["database"].(string)
 	_, err := r.DB(db).Table("commands").Insert(command, r.InsertOpts{ReturnChanges: false}).RunWrite(session)
 	if err != nil { log.Fatalln(err) }

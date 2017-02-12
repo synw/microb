@@ -1,8 +1,11 @@
 package commands
 
 import (
+	"fmt"
 	"sync"
 	"os"
+	"io/ioutil"
+	"html/template"
 	"github.com/acmacalister/skittles"
 	"github.com/synw/microb/conf"
 	"github.com/synw/microb/db"
@@ -15,6 +18,36 @@ var Config = conf.GetConf()
 
 var transport = Config["commands_transport"].([]string)
 
+// commands
+func reparseTemplates(c chan bool) {
+	utils.PrintEvent("command", "Reparsing templates")
+	template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/routes.js"))
+	c <- true
+}
+
+func updateRoutes(c chan bool) {
+	var routestab []string
+	// hit db
+	routestab = db.GetRoutes()
+	var routestr string
+	var route string
+	for i := range(routestab) {
+		route = routestab[i]
+		routestr = routestr+fmt.Sprintf("page('%s', function(ctx, next) { loadPage('/x%s') } );", route, route)
+	}
+	utils.PrintEvent("command", "Rebuilding client side routes")
+    str := []byte(routestr)
+    err := ioutil.WriteFile("templates/routes.js", str, 0644)
+    if err != nil {
+        panic(err)
+        c <- false
+    } else {
+    	c <- true
+    }
+ 	return
+}
+
+// handlers
 func isValid(command *datatypes.Command) bool {
 	valid_commands := []string{"update_routes", "reparse_templates", "init_pg"}
 	is_valid := false
@@ -27,12 +60,11 @@ func isValid(command *datatypes.Command) bool {
 	return is_valid
 }
 
-func RunCommand(command *datatypes.Command, wg *sync.WaitGroup) bool {
+func RunCommand(command *datatypes.Command, c chan bool, to_db bool) {
 	if  isValid(command) == false {
 		msg := "Unknown command: "+command.Name
 		utils.PrintEvent("error", msg)
-		wg.Done()
-		return false
+		c <- false
 	}
 	if command.From == "terminal" {
 		msg := "Sending command "+skittles.BoldWhite(command.Name)+" to the server "
@@ -42,13 +74,21 @@ func RunCommand(command *datatypes.Command, wg *sync.WaitGroup) bool {
 		}
 		utils.PrintEvent("event", msg)
 	}
+	// run command
+	if (command.Name == "update_routes") {
+		go updateRoutes(c)
+	} else if (command.Name == "reparse_templates") {
+		go reparseTemplates(c)
+	}
 	// save in db
-	go db.SaveCommand(command, wg)
-	return true
+	if to_db == true {
+		go db.SaveCommand(command)
+	}
 }
 
-func RunCommandAndExit(command *datatypes.Command, wg *sync.WaitGroup) {
-	RunCommand(command, wg)
+func RunCommandAndExit(command *datatypes.Command, wg *sync.WaitGroup, c chan bool) {
+	defer os.Exit(0)
+	RunCommand(command, c, false)
+	go db.SaveCommandWait(command, wg)
 	utils.PrintEvent("nil", "Exiting")
-	os.Exit(0)
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/centrifugal/gocent"
 	"github.com/synw/microb/conf"
-	"github.com/synw/microb/db/rethinkdb"
+	"github.com/synw/microb/db"
 )
 
 
@@ -124,7 +124,7 @@ func storeHits(quiet bool, store_hits bool, monitorhits bool, c chan int) {
 	    }
 	    if (store_hits == true) {
 			// save the keys into the db
-			go rethinkdb.SaveHits(values)
+			go db.SaveHits(values)
 		}
 		_, err = Conn.Do("DEL", &HitsKeyName)
 	    if err != nil {

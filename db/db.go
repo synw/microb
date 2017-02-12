@@ -10,9 +10,23 @@ import (
 var Config = conf.GetConf()
 var Backend = Config["db_type"].(string)
 
-func SaveCommand(command *datatypes.Command, wg *sync.WaitGroup) {
+func SaveCommand(command *datatypes.Command) {
 	if Backend == "rethinkdb" {
-		rethinkdb.SaveCommand(command, wg)
+		rethinkdb.SaveCommand(command)
+	}
+	return
+}
+
+func SaveCommandWait(command *datatypes.Command, wg *sync.WaitGroup) {
+	if Backend == "rethinkdb" {
+		rethinkdb.SaveCommandWait(command, wg)
+	}
+	return
+}
+
+func SaveHits(values []string) {
+	if Backend == "rethinkdb" {
+		rethinkdb.SaveHits(values)
 	}
 	return
 }
@@ -33,8 +47,6 @@ func GetRoutes() []string {
 	}
 	return routes
 }
-
-
 
 func CommandsListener(comchan chan *datatypes.Command) {
 	if conf.ListenToChangefeeds() == true {
