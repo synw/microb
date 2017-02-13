@@ -8,7 +8,8 @@ import (
 )
 
 var Config = conf.GetConf()
-var Backend = Config["db_type"].(string)
+var main_db = conf.GetMainDb()
+var Backend = main_db["type"]
 
 func SaveCommand(command *datatypes.Command) {
 	if Backend == "rethinkdb" {

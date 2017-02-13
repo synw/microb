@@ -13,19 +13,20 @@ import (
 
 var Config = conf.GetConf()
 var Conn *r.Session
+var Db map[string]string = conf.GetMainDb()
 
 func init() {
-	if Config["db_type"] == "rethinkdb" {
+	if Db["type"] == "rethinkdb" {
 		Conn = connectToDb()
 	}
 }
 
 func connectToDb() (*r.Session) {
-	host := Config["db_host"].(string)
-	port := Config["db_port"].(string)
-	//db := Config["domain"].(string)
-	user := Config["db_user"].(string)
-	pwd := Config["db_password"].(string)
+	db := conf.GetMainDb()
+	host := db["host"]
+	port := db["port"]
+	user := db["user"]
+	pwd := db["password"]
 	addr := host+":"+port
 	// connect to Rethinkdb
 	session, err := r.Connect(r.ConnectOpts{

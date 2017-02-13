@@ -4,7 +4,6 @@ import (
 	//"sync"
 	//"github.com/synw/microb/conf"
 	"github.com/synw/microb/db/datatypes"
-	//"github.com/synw/microb/db/rethinkdb"
 	"github.com/jinzhu/gorm"
     _ "github.com/jinzhu/gorm/dialects/postgres"
 )

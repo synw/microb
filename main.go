@@ -32,6 +32,7 @@ var CommandFlag = flag.String("c", "noflag", "Fire command")
 var Metrics = flag.Bool("m", false, "Display metrics")
 var Verbosity = flag.Int("v", 1, "Verbosity level")
 var Reason = flag.String("r", "nil", "Reason for sending a command (to use with the -c flag)")
+//var ConfigName = flag.String("c", "default", "Configuration to use: ex: -c=dev")
 
 var Config = conf.GetConf()
 
@@ -195,11 +196,12 @@ func init() {
 func main() {
 	// http server
 	http_host := Config["http_host"].(string)
+	db := conf.GetMainDb()
 	var msg string
 	if (*Verbosity > 0) {
 		msg = "Server started on "+http_host+" for domain "+skittles.BoldWhite(Config["domain"].(string))
-		msg = msg+" with "+Config["db_type"].(string)+" db "+Config["domain"].(string)
-		msg = msg+" ("+Config["db_host"].(string)+")"
+		msg = msg+" with "+db["type"]+" db "+Config["domain"].(string)
+		msg = msg+" ("+db["host"]+")"
 	}
 	utils.PrintEvent("nil", msg)
 	server := &http.Server{

@@ -7,21 +7,18 @@ import (
 
 
 func GetConf() map[string]interface{} {
-	viper.SetConfigName("microb_config")
+	// set some defaults for conf
+	viper.SetConfigName("microb_dev_config")
 	viper.AddConfigPath(".")
 	viper.SetDefault("http_host", ":8080")
 	viper.SetDefault("centrifugo_host", "localhost")
 	viper.SetDefault("centrifugo_port", 8001)
-	viper.SetDefault("db_type", "rethinkdb")
-	viper.SetDefault("db_host", "localhost")
-	viper.SetDefault("db_port", 28015)
-	viper.SetDefault("db_user", "admin")
-	viper.SetDefault("db_password", "")
 	viper.SetDefault("hits_log", true)
 	viper.SetDefault("hits_monitor", true)
 	hits_channels := []string{"$microb_hits"}
 	viper.SetDefault("hits_channels", hits_channels)
 	viper.SetDefault("commands_brokers", []string{"default"})
+	// get the actual conf
 	err := viper.ReadInConfig()
 	if err != nil {
 	    panic(fmt.Errorf("Fatal error config file: %s \n", err))
@@ -31,11 +28,8 @@ func GetConf() map[string]interface{} {
 	conf["centrifugo_host"] = viper.Get("centrifugo_host")
 	conf["centrifugo_port"] = viper.Get("centrifugo_port")
 	conf["centrifugo_secret_key"] = viper.Get("centrifugo_secret_key")
-	conf["db_type"] = viper.Get("db_type")
-	conf["db_host"] = viper.Get("db_host")
-	conf["db_port"] = viper.Get("db_port")
-	conf["db_user"] = viper.Get("db_user")
-	conf["db_password"] = viper.Get("db_password")
+	conf["databases"] = viper.Get("databases").(interface{})
+	conf["main_database"] = viper.Get("databases.main")
 	conf["domain"] = viper.Get("domain")
 	conf["hits_log"] = viper.Get("hits_log")
 	conf["hits_monitor"] = viper.Get("hits_monitor")
@@ -46,15 +40,27 @@ func GetConf() map[string]interface{} {
 
 var Config = GetConf()
 
+func GetMainDb() map[string]string {
+	db := make(map[string]string)
+	main_db := Config["main_database"].(map[string]interface{})
+	db["type"] = main_db["type"].(string)
+	db["host"] = main_db["host"].(string)
+	db["port"] = main_db["port"].(string)
+	db["user"] = main_db["user"].(string)
+	db["password"] = main_db["password"].(string)
+	return db
+}
+
 func commandsTransports() []string {
 	var ts []string
 	cts := Config["commands_brokers"].([]string)
+	db_type := GetMainDb()["type"]
 	// check for defaults
 	is_default := false
 	for _, transp := range cts {
 		if transp == "default" {
 			is_default = true
-			if Config["db_type"].(string) == "rethinkdb" {
+			if db_type == "rethinkdb" {
 				ts = []string{"changefeeds"}
 			}
 		}
