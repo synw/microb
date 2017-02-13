@@ -22,28 +22,23 @@ import (
 )
 
 
-type Page struct {
-    Url string
-    Title string
-    Content  string
-}
-
 var CommandFlag = flag.String("c", "noflag", "Fire command")
 var Metrics = flag.Bool("m", false, "Display metrics")
 var Verbosity = flag.Int("v", 1, "Verbosity level")
 var Reason = flag.String("r", "nil", "Reason for sending a command (to use with the -c flag)")
+var ToDb = flag.String("to_db", "", "Database to import to: use this with the syncdb command")
 //var ConfigName = flag.String("c", "default", "Configuration to use: ex: -c=dev")
 
 var Config = conf.GetConf()
 
 var C_display = make(chan string)
 
-func getPage(url string) *Page {
+func getPage(url string) *datatypes.Page {
 	hasSlash := strings.HasSuffix(url, "/")
 	index_url := url
 	found := false
 	var data map[string]interface{}
-	page := Page{Url:"404", Title:"Page not found", Content:"Page not found"}
+	page := &datatypes.Page{Url:"404", Title:"Page not found", Content:"Page not found"}
 	if (hasSlash == false) {
 		index_url = url+"/"
 	}
@@ -52,18 +47,18 @@ func getPage(url string) *Page {
 	// hit db
 	data, found = db.GetFromDb(index_url)
 	if (found == false) {
-		return &page
+		return page
 	}
 	fields := data["fields"].(map[string]interface{})
 	content := fields["content"].(string)
 	title := fields["title"].(string)
-	page = Page{Url: url, Title: title, Content: content}
-	return &page
+	page = &datatypes.Page{Url: url, Title: title, Content: content}
+	return page
 }
 
 var view = template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/routes.js"))
 
-func renderTemplate(response http.ResponseWriter, page *Page) {
+func renderTemplate(response http.ResponseWriter, page *datatypes.Page) {
     err := view.Execute(response, page)
     if err != nil {
         http.Error(response, err.Error(), http.StatusInternalServerError)
@@ -73,7 +68,7 @@ func renderTemplate(response http.ResponseWriter, page *Page) {
 func viewHandler(response http.ResponseWriter, request *http.Request) {
     purl := request.URL.Path
     //fmt.Printf("%s Page %s\n", utils.GetTime(), url)
-    page := &Page{Url: purl, Title: "Page not found", Content: "Page not found"}
+    page := &datatypes.Page{Url: purl, Title: "Page not found", Content: "Page not found"}
     go middleware.ProcessHit(request, Config["hits_log"].(bool), *Verbosity, C_display)
     renderTemplate(response, page)
 }
@@ -107,7 +102,11 @@ func init() {
 	}()
 	// manual commands
 	if (*CommandFlag != "noflag") {
-		command := &datatypes.Command{*CommandFlag, "terminal", "nil"}
+		var v [1]interface{}
+		if *ToDb != "" {
+			v[0]="to_db"
+		}
+		command := &datatypes.Command{*CommandFlag, "terminal", "nil", v}
 		if *Reason != "nil" {
 			command.Reason = *Reason
 		}
@@ -136,7 +135,8 @@ func init() {
 	            changes := <- c_pages_changes
 				if (changes.Type == "update") {
 					utils.PrintEvent("event", changes.Msg)
-					command := &datatypes.Command{"update_routes", "listener", "Update event in the database"}
+					var v [0]interface{}
+					command := &datatypes.Command{"update_routes", "listener", "Update event in the database", v}
 					go commands.RunCommand(command, c_commands_results, true)
 				} /*else if (changes.Type == "delete") {
 					utils.PrintEvent("event", changes.Msg)
@@ -200,8 +200,8 @@ func main() {
 	var msg string
 	if (*Verbosity > 0) {
 		msg = "Server started on "+http_host+" for domain "+skittles.BoldWhite(Config["domain"].(string))
-		msg = msg+" with "+db["type"]+" db "+Config["domain"].(string)
-		msg = msg+" ("+db["host"]+")"
+		msg = msg+" with "+db.Type+" db "+Config["domain"].(string)
+		msg = msg+" ("+db.Host+")"
 	}
 	utils.PrintEvent("nil", msg)
 	server := &http.Server{

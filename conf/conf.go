@@ -3,6 +3,7 @@ package conf
 import (
 	"fmt"
 	"github.com/spf13/viper"
+	"github.com/synw/microb/db/datatypes"
 )
 
 
@@ -40,7 +41,7 @@ func GetConf() map[string]interface{} {
 
 var Config = GetConf()
 
-func GetMainDb() map[string]string {
+func GetMainDb() *datatypes.Database {
 	db := make(map[string]string)
 	main_db := Config["main_database"].(map[string]interface{})
 	db["type"] = main_db["type"].(string)
@@ -48,13 +49,14 @@ func GetMainDb() map[string]string {
 	db["port"] = main_db["port"].(string)
 	db["user"] = main_db["user"].(string)
 	db["password"] = main_db["password"].(string)
-	return db
+	database := &datatypes.Database{db["type"], "main", db["host"], db["port"], db["user"], db["password"]}
+	return database
 }
 
 func commandsTransports() []string {
 	var ts []string
 	cts := Config["commands_brokers"].([]string)
-	db_type := GetMainDb()["type"]
+	db_type := GetMainDb().Type
 	// check for defaults
 	is_default := false
 	for _, transp := range cts {

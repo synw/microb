@@ -13,20 +13,20 @@ import (
 
 var Config = conf.GetConf()
 var Conn *r.Session
-var Db map[string]string = conf.GetMainDb()
+var MainDb *datatypes.Database = conf.GetMainDb()
 
 func init() {
-	if Db["type"] == "rethinkdb" {
+	if MainDb.Type == "rethinkdb" {
 		Conn = connectToDb()
 	}
 }
 
 func connectToDb() (*r.Session) {
 	db := conf.GetMainDb()
-	host := db["host"]
-	port := db["port"]
-	user := db["user"]
-	pwd := db["password"]
+	host := db.Host
+	port := db.Port
+	user := db.User
+	pwd := db.Password
 	addr := host+":"+port
 	// connect to Rethinkdb
 	session, err := r.Connect(r.ConnectOpts{
@@ -81,7 +81,20 @@ func GetRoutes() []string {
 	return routes
 }
 
-func GetFromDb (url string)  (map[string]interface{}, bool)  {
+func GetAllData(database *datatypes.Database, table string) *r.Cursor  {
+	session := Conn
+	res, err := r.DB(database.Name).Table(table).GetAll().Run(session)
+	defer session.Close()
+	if err == r.ErrEmptyResult {
+	    fmt.Printf("Rethinkdb: no data in table: %s\n", err)
+	}
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	return res
+}
+
+func GetFromDb(url string)  (map[string]interface{}, bool)  {
 	session := Conn
 	found := false
 	db := Config["domain"].(string)

@@ -77,6 +77,8 @@ func RunCommand(command *datatypes.Command, c chan bool, to_db bool) {
 		go updateRoutes(c)
 	} else if (command.Name == "reparse_templates") {
 		go reparseTemplates(c)
+	} else if (command.Name == "syncdb") {
+		go db.ImportPagesFromMainDb(command.Values.(string))
 	}
 	// save in db
 	if to_db == true {
