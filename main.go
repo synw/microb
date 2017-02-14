@@ -1,37 +1,34 @@
-package main 
+package main
 
 import (
     "fmt"
-    "log"
-    "strings"
-    "strconv"
-    "flag"
-    "sync"
     "net/http"
-    "html/template"
+    "log"
+    "flag"
+    "strings"
     "encoding/json"
-    "time"
-    _ "expvar"
+    "html/template"
+    "github.com/julienschmidt/httprouter"
     "github.com/acmacalister/skittles"
     "github.com/synw/microb/conf"
-    "github.com/synw/microb/utils"
+    "github.com/synw/microb/events"
+    "github.com/synw/microb/datatypes"
     "github.com/synw/microb/db"
-    "github.com/synw/microb/db/datatypes"
-    "github.com/synw/microb/middleware"
-    "github.com/synw/microb/commands"
 )
 
 
-var CommandFlag = flag.String("c", "noflag", "Fire command")
-var Metrics = flag.Bool("m", false, "Display metrics")
 var Verbosity = flag.Int("v", 1, "Verbosity level")
-var Reason = flag.String("r", "nil", "Reason for sending a command (to use with the -c flag)")
-var ToDb = flag.String("to_db", "", "Database to import to: use this with the syncdb command")
-//var ConfigName = flag.String("c", "default", "Configuration to use: ex: -c=dev")
 
 var Config = conf.GetConf()
 
-var C_display = make(chan string)
+var view = template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/routes.js"))
+
+func renderTemplate(response http.ResponseWriter, page *datatypes.Page) {
+    err := view.Execute(response, page)
+    if err != nil {
+        http.Error(response, err.Error(), http.StatusInternalServerError)
+    }
+}
 
 func getPage(url string) *datatypes.Page {
 	hasSlash := strings.HasSuffix(url, "/")
@@ -45,7 +42,7 @@ func getPage(url string) *datatypes.Page {
 	// remove url mask
 	index_url = strings.Replace(index_url,"/x","",-1)
 	// hit db
-	data, found = db.GetFromDb(index_url)
+	data, found = db.GetFromUrl(index_url)
 	if (found == false) {
 		return page
 	}
@@ -56,161 +53,40 @@ func getPage(url string) *datatypes.Page {
 	return page
 }
 
-var view = template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/routes.js"))
-
-func renderTemplate(response http.ResponseWriter, page *datatypes.Page) {
-    err := view.Execute(response, page)
-    if err != nil {
-        http.Error(response, err.Error(), http.StatusInternalServerError)
+func serveRequest(response http.ResponseWriter, request *http.Request, ps httprouter.Params) {
+	url := ps.ByName("url")
+	msg := "Page "+url+" requested"
+	event := *events.NewEvent("runtime_info", "http_server", msg)
+    events.Handle(&event)
+    if strings.HasPrefix(url, "/x/") {
+    	fmt.Println("API call", url)
+    	page := getPage(url)
+	    if (page.Url == "404") {
+	    	msg = "404 page not found in database: "+url
+	    	event = *events.NewEvent("error", "http_server", msg)
+	    	events.Handle(&event)
+	    }
+		json_bytes, _ := json.Marshal(page)
+		fmt.Fprintf(response, "%s\n", json_bytes)
+    } else {
+    	page := &datatypes.Page{Url: url, Title: "Page not found", Content: "Page not found"}
+    	renderTemplate(response, page)
     }
-}
-
-func viewHandler(response http.ResponseWriter, request *http.Request) {
-    purl := request.URL.Path
-    //fmt.Printf("%s Page %s\n", utils.GetTime(), url)
-    page := &datatypes.Page{Url: purl, Title: "Page not found", Content: "Page not found"}
-    go middleware.ProcessHit(request, Config["hits_log"].(bool), *Verbosity, C_display)
-    renderTemplate(response, page)
-}
-
-func apiHandler(response http.ResponseWriter, request *http.Request) {
-    purl := request.URL.Path
-    page := getPage(purl)
-    //fmt.Printf("%s API %s\n", utils.GetTime(), url)
-    if (page.Url == "404") {
-    	msg := "404 page not found in database: "+purl
-    	utils.PrintEvent("error", msg)
-    }
-	json_bytes, _ := json.Marshal(page)
-    go middleware.ProcessHit(request, Config["hits_log"].(bool), *Verbosity, C_display)
-	fmt.Fprintf(response, "%s\n", json_bytes)
-}
-
-func init() {
-	flag.Parse()
-	c_commands_results := make(chan bool)
-	// listen to commands results
-    go func() {
-		for {
-			result := <- c_commands_results
-			if (result == true) {
-				utils.PrintEvent("nil", "Command successfull")
-			} else {
-				utils.PrintEvent("error", "Error executing command")
-			}
-		}
-	}()
-	// manual commands
-	if (*CommandFlag != "noflag") {
-		var v [1]interface{}
-		if *ToDb != "" {
-			v[0]="to_db"
-		}
-		command := &datatypes.Command{*CommandFlag, "terminal", "nil", v}
-		if *Reason != "nil" {
-			command.Reason = *Reason
-		}
-		var wg sync.WaitGroup
-		wg.Add(1)
-		commands.RunCommandAndExit(command, &wg, c_commands_results)
-		wg.Wait()
-	} else {
-		if (*Verbosity > 0) {
-			if (Config["hits_monitor"] == true) {
-				utils.PrintEvent("info", "Monitoring hits")
-			}
-			if (Config["hits_log"] == true) {
-				utils.PrintEvent("info", "Logging hits")
-			}
-			utils.PrintEvent("info", "Listening to changefeeds")
-		}
-		// changefeed listeners
-		c_pages_changes := make(chan *datatypes.DataChanges)
-		comchan := make(chan *datatypes.Command)
-		go db.PageChangesListener(c_pages_changes)
-		go db.CommandsListener(comchan)
-		// listen for change in pages table and trigger handlers
-		go func() {
-	    	for {
-	            changes := <- c_pages_changes
-				if (changes.Type == "update") {
-					utils.PrintEvent("event", changes.Msg)
-					var v [0]interface{}
-					command := &datatypes.Command{"update_routes", "listener", "Update event in the database", v}
-					go commands.RunCommand(command, c_commands_results, true)
-				} /*else if (changes.Type == "delete") {
-					utils.PrintEvent("event", changes.Msg)
-					go updateRoutes()
-				} else if (changes.Type == "insert") {
-					utils.PrintEvent("event", changes.Msg)
-					go updateRoutes()
-				}*/
-	    	}
-	    }()
-	    // listen for incoming commands
-	    go func() {
-	    	for {
-	            com := <- comchan
-				if (com.Name != "") {
-					msg := "Command "+skittles.BoldWhite(com.Name)+" received"
-					utils.PrintEvent("event", msg)
-					if (com.Name == "reparse_templates") {
-						//go reparseStatic()
-					} else if (com.Name == "update_routes") {
-						//go updateRoutes(c2)
-					} 
-				}
-	    	}
-	    }()
-		// hits writer
-		c_hits := make(chan int)
-		if (Config["hits_monitor"].(bool) == true || Config["hits_log"].(bool) == true) {
-			go middleware.WatchHits(1, Config["hits_log"].(bool), Config["hits_monitor"].(bool), c_hits)
-		}
-		// hits monitor
-		if (Config["hits_monitor"].(bool) == true) {
-			go func() {
-				for {
-					num_hits := <- c_hits
-					if (num_hits > 0) {
-						if (*Metrics == true) {
-							msg := "Hits per second: "+strconv.Itoa(num_hits)
-							go utils.PrintEvent("metric", msg)
-						}
-					}
-				}
-			}()
-		}
-		// hits display
-		if (*Verbosity > 0) {
-			go func() {
-				for {
-					msg := <- C_display
-					fmt.Println(msg)
-				}
-			}()
-		}
-	}
 }
 
 func main() {
-	// http server
-	http_host := Config["http_host"].(string)
-	db := conf.GetMainDb()
-	var msg string
-	if (*Verbosity > 0) {
-		msg = "Server started on "+http_host+" for domain "+skittles.BoldWhite(Config["domain"].(string))
-		msg = msg+" with "+db.Type+" db "+Config["domain"].(string)
-		msg = msg+" ("+db.Host+")"
+    router := httprouter.New()
+    router.GET("/*url", serveRequest)
+    server := conf.GetServer()
+    database := conf.GetMainDatabase()
+    loc := server.Host+":"+server.Port
+    if (*Verbosity > 0) {
+		msg := "Server started on "+loc+" for domain "+skittles.BoldWhite(server.Domain)
+		msg = msg+" with "+database.Type
+		msg = msg+" ("+database.Host+")"
+		event := events.NewEvent("runtime_info", "http_server", msg)
+		events.Handle(event)
 	}
-	utils.PrintEvent("nil", msg)
-	server := &http.Server{
-		Addr: http_host,
-	    ReadTimeout: 5 * time.Second,
-	    WriteTimeout: 10 * time.Second,
-	}
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
-	http.HandleFunc("/x/", apiHandler)
-    http.HandleFunc("/", viewHandler)
-    log.Fatal(server.ListenAndServe())
+	
+    log.Fatal(http.ListenAndServe(loc, router))
 }
