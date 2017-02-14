@@ -1,6 +1,7 @@
 package main
 
 import (
+	"time"
     "net/http"
     "log"
     "github.com/julienschmidt/httprouter"
@@ -27,6 +28,11 @@ func main() {
 		msg = msg+" ("+database.Host+")"
 		events.New("runtime_info", "http_server", msg)
 	}
-	
-    log.Fatal(http.ListenAndServe(loc, router))
+	httpServer := &http.Server{
+		Addr: loc,
+	    ReadTimeout: 5 * time.Second,
+	    WriteTimeout: 10 * time.Second,
+	    Handler: router,
+	}
+    log.Fatal(httpServer.ListenAndServe())
 }
