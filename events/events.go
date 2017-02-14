@@ -46,10 +46,12 @@ func NewEvent(event_class string, from string, message string) *datatypes.Event 
 	return event
 }
 
-func Handle(event *datatypes.Event) {
+func Handle(event *datatypes.Event, verbosity int) {
 	print_type := event.Class
 	if event.Class == "runtime_info" {
 		print_type = "simple"
 	}
-	printMsg(print_type, event.Message)
+	if verbosity > 0 {
+		printMsg(print_type, event.Message)
+	}
 }

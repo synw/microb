@@ -75,8 +75,8 @@ func serveApi(response http.ResponseWriter, request *http.Request, ps httprouter
 	page := getPage(url)
     if (page.Url == "404") {
     	msg = "404 page not found in database: "+url
-    	event = *events.NewEvent("error", "http_server", msg)
-    	events.Handle(&event)
+    	event = events.NewEvent("error", "http_server", msg)
+    	events.Handle(event, *Verbosity)
     }
 	json_bytes, _ := json.Marshal(page)
 	fmt.Fprintf(response, "%s\n", json_bytes)
@@ -96,7 +96,7 @@ func main() {
 		msg = msg+" with "+database.Type
 		msg = msg+" ("+database.Host+")"
 		event := events.NewEvent("runtime_info", "http_server", msg)
-		events.Handle(event)
+		events.Handle(event, *Verbosity)
 	}
 	
     log.Fatal(http.ListenAndServe(loc, router))
