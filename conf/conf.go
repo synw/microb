@@ -8,7 +8,7 @@ import (
 
 func GetConf() map[string]interface{} {
 	// set some defaults for conf
-	viper.SetConfigName("microb_dev_config")
+	viper.SetConfigName("microb_config")
 	viper.AddConfigPath(".")
 	viper.SetDefault("http_host", "")
 	viper.SetDefault("http_port", "8080")

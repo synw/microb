@@ -1,15 +1,27 @@
 {
-	"centrifugo_host":"localhost",
-	"centrifugo_port":"8001",
-	"centrifugo_secret_key":"mycentrifugosecretkey",
-	"db_type":"rethinkdb",
-	"db_host":"localhost",
-	"db_port":"28015",
-	"db_user":"admin",
-	"db_password":"pwd",
-	"http_host":":8080",
 	"domain": "localhost",
+	"http_host":"",
+	"http_port":"8080",
+	"centrifugo_host":"http://localhost",
+	"centrifugo_port":"8001",
+	"centrifugo_secret_key":"secretkey",
+	"databases":{
+					"default": {
+						"type":"rethinkdb",
+						"host":"localhost",
+						"port":"28015",
+						"user":"admin",
+						"password":"pwd"
+					},
+					"local": {
+						"type":"postgresql",
+						"host":"localhost",
+						"port":"",
+						"user":"admin",
+						"password":"pwd"
+					}
+				},
 	"hits_log": true,
 	"hits_monitor":true,
-	"hits_channel":["$microb_hits"]
+	"hits_channels":["$dev_hits", "$microb_hits"]
 }
