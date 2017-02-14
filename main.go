@@ -20,6 +20,7 @@ import (
 var Verbosity = flag.Int("v", 1, "Verbosity level")
 
 var Config = conf.GetConf()
+var static_url = Config["staticfiles_host"].(string)
 
 var view = template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/routes.js"))
 
@@ -55,28 +56,38 @@ func getPage(url string) *datatypes.Page {
 
 func serveRequest(response http.ResponseWriter, request *http.Request, ps httprouter.Params) {
 	url := ps.ByName("url")
+	if url == "" {
+		url = "/"
+	}
 	msg := "Page "+url+" requested"
 	event := *events.NewEvent("runtime_info", "http_server", msg)
     events.Handle(&event)
-    if strings.HasPrefix(url, "/x/") {
-    	fmt.Println("API call", url)
-    	page := getPage(url)
-	    if (page.Url == "404") {
-	    	msg = "404 page not found in database: "+url
-	    	event = *events.NewEvent("error", "http_server", msg)
-	    	events.Handle(&event)
-	    }
-		json_bytes, _ := json.Marshal(page)
-		fmt.Fprintf(response, "%s\n", json_bytes)
-    } else {
-    	page := &datatypes.Page{Url: url, Title: "Page not found", Content: "Page not found"}
-    	renderTemplate(response, page)
+    page := &datatypes.Page{Url: url, Title: "", Content: ""}
+    renderTemplate(response, page)
+}
+
+func serveApi(response http.ResponseWriter, request *http.Request, ps httprouter.Params) {
+	url := ps.ByName("url")
+	msg := "Page "+url+" requested"
+	event := *events.NewEvent("runtime_info", "http_server", msg)
+    events.Handle(&event)
+	fmt.Println("API call", url)
+	page := getPage(url)
+    if (page.Url == "404") {
+    	msg = "404 page not found in database: "+url
+    	event = *events.NewEvent("error", "http_server", msg)
+    	events.Handle(&event)
     }
+	json_bytes, _ := json.Marshal(page)
+	fmt.Fprintf(response, "%s\n", json_bytes)
 }
 
 func main() {
     router := httprouter.New()
-    router.GET("/*url", serveRequest)
+    router.GET("/", serveRequest)
+    router.GET("/p/*url", serveRequest)
+    router.GET("/x/*url", serveApi)
+    router.ServeFiles("/static/*filepath", http.Dir("static"))
     server := conf.GetServer()
     database := conf.GetMainDatabase()
     loc := server.Host+":"+server.Port

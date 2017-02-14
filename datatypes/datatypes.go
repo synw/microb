@@ -19,6 +19,7 @@ type Page struct {
     Url string
     Title string
     Content  string
+    StaticUrl string
 }
 
 type Event struct {
