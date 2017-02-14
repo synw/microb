@@ -6,11 +6,12 @@ import (
 	 r "gopkg.in/dancannon/gorethink.v2"
 	 "github.com/synw/microb/conf"
 	 "github.com/synw/microb/datatypes"
+	 "github.com/synw/microb/metadata"
 )
 
 var Config = conf.GetConf()
 var Conn *r.Session
-var MainDb *datatypes.Database = conf.GetMainDatabase()
+var MainDb *datatypes.Database = metadata.GetMainDatabase()
 
 func init() {
 	if MainDb.Type == "rethinkdb" {
@@ -37,6 +38,23 @@ func connectToDb(database *datatypes.Database) (*r.Session) {
         log.Fatalln(err.Error())
     }
     return session
+}
+
+func GetRoutes() []string {
+	session := Conn
+	db := Config["domain"].(string)
+	res, err := r.DB(db).Table("pages").Pluck("uri").Run(session)
+	defer res.Close()
+	var row map[string]interface{}
+	var routes []string
+	for res.Next(&row) {
+		url := row["uri"].(string)
+	    routes = append(routes, url)
+	}
+	if err != nil {
+		fmt.Printf("Rethinkdb: error scanning database results: %s\n", err)
+	}
+	return routes
 }
 
 func GetFromDb(url string)  (map[string]interface{}, bool)  {

@@ -9,11 +9,12 @@ import (
 	"github.com/synw/microb/datatypes"
 	"github.com/synw/microb/db/rethinkdb"
 	//"github.com/synw/microb/utils"
+	"github.com/synw/microb/metadata"
 	
 )
 
 var Config = conf.GetConf()
-var MainDb *datatypes.Database = conf.GetMainDatabase()
+var MainDb *datatypes.Database = metadata.GetMainDatabase()
 var Backend = MainDb.Type
 
 
@@ -24,4 +25,12 @@ func GetFromUrl(url string)  (map[string]interface{}, bool) {
 		res, ok = rethinkdb.GetFromDb(url)
 	}
 	return res, ok
+}
+
+func GetRoutes() []string {
+	var routes []string
+	if Backend == "rethinkdb" {
+		routes = rethinkdb.GetRoutes()
+	}
+	return routes
 }

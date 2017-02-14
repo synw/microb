@@ -6,8 +6,12 @@ import (
 	"strconv"
 	"github.com/acmacalister/skittles"
 	"github.com/synw/microb/datatypes"
+	"github.com/synw/microb/conf"
 )
 
+
+var Config = conf.GetConf()
+var Verbosity = Config["verbosity"].(int)
 
 var info_m = " ["+skittles.Green("info")+"]"
 var out_m = " ["+skittles.Yellow("out")+"]"
@@ -41,9 +45,11 @@ func printMsg(event_class string, event *datatypes.Event) {
 			sc := event.Data["status_code"].(int)
 			var sc_str string
 			if sc == 404 {
-				sc_str = skittles.BoldRed(strconv.Itoa(sc))
+				sc_str = skittles.Red(strconv.Itoa(sc))
 			} else if sc == 200 {
 				sc_str = skittles.Green(strconv.Itoa(sc))
+			} else if sc == 500 {
+				sc_str = skittles.BoldRed(strconv.Itoa(sc))
 			}
 			out = out+" "+sc_str+" "+msg
 		}
@@ -57,7 +63,7 @@ func NewEvent(event_class string, from string, message string) *datatypes.Event 
 	return event
 }
 
-func Handle(event *datatypes.Event, verbosity int) {
+func Handle(event *datatypes.Event) {
 	event_class := event.Class
 	if event.Class == "runtime_info" {
 		event_class = "simple"
@@ -65,7 +71,7 @@ func Handle(event *datatypes.Event, verbosity int) {
 	if event.Class == "request" {
 		event_class = "request"
 	}
-	if verbosity > 0 {
+	if Verbosity > 0 {
 		printMsg(event_class, event)
 	}
 }
