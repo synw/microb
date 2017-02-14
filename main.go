@@ -25,8 +25,7 @@ func main() {
 		msg := "Server started on "+loc+" for domain "+skittles.BoldWhite(server.Domain)
 		msg = msg+" with "+database.Type
 		msg = msg+" ("+database.Host+")"
-		event := events.NewEvent("runtime_info", "http_server", msg)
-		events.Handle(event)
+		event := events.New("runtime_info", "http_server", msg)
 	}
 	
     log.Fatal(http.ListenAndServe(loc, router))

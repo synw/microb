@@ -57,13 +57,7 @@ func printMsg(event_class string, event *datatypes.Event) {
 	fmt.Println(out)
 }
 
-func NewEvent(event_class string, from string, message string) *datatypes.Event {
-	var d map[string]interface{}
-	event := &datatypes.Event{event_class, from, message, d}
-	return event
-}
-
-func Handle(event *datatypes.Event) {
+func Handle(*datatypes.Event) {
 	event_class := event.Class
 	if event.Class == "runtime_info" {
 		event_class = "simple"
@@ -74,4 +68,10 @@ func Handle(event *datatypes.Event) {
 	if Verbosity > 0 {
 		printMsg(event_class, event)
 	}
+}
+
+func New(event_class string, from string, message string) {
+	var d map[string]interface{}
+	event := &datatypes.Event{event_class, from, message, d}
+	Handle(event)
 }
