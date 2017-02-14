@@ -15,9 +15,25 @@ import (
 
 var Routes = db.GetRoutes()
 var View = template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/routes.js"))
+var V404 = template.Must(template.New("404.html").ParseFiles("templates/404.html", "templates/routes.js"))
+var V500 = template.Must(template.New("500.html").ParseFiles("templates/500.html", "templates/routes.js"))
 
 func renderTemplate(response http.ResponseWriter, page *datatypes.Page) {
     err := View.Execute(response, page)
+    if err != nil {
+        http.Error(response, err.Error(), http.StatusInternalServerError)
+    }
+}
+
+func render404(response http.ResponseWriter, page *datatypes.Page) {
+	err := V404.Execute(response, page)
+    if err != nil {
+        http.Error(response, err.Error(), http.StatusInternalServerError)
+    }
+}
+    
+func render500(response http.ResponseWriter, page *datatypes.Page) {
+	err := V500.Execute(response, page)
     if err != nil {
         http.Error(response, err.Error(), http.StatusInternalServerError)
     }
@@ -106,11 +122,10 @@ func Handle500(response http.ResponseWriter, request *http.Request, params inter
 	msg := "Error 500" 
 	event := events.NewEvent("error", "http_server", msg)
 	events.Handle(event)
-	page := &datatypes.Page{Url: "/error/", Title: "Technical error", Content: "<h1>Technical error</h1>"}
+	page := &datatypes.Page{Url: "/error/", Title: "", Content: ""}
 	status := http.StatusInternalServerError
-	json_bytes, _ := json.Marshal(page)
 	response = httpResponseWriter{response, &status}
-	fmt.Fprintf(response, "%s\n", json_bytes)
+	render500(response, page)
 }
 
 func handle404(response http.ResponseWriter, request *http.Request, url string, api bool) {
@@ -132,6 +147,6 @@ func handle404(response http.ResponseWriter, request *http.Request, url string, 
 		json_bytes, _ := json.Marshal(page)
 		fmt.Fprintf(response, "%s\n", json_bytes)
 	} else {
-		renderTemplate(response, page)
+		render404(response, page)
 	}
 }
