@@ -95,12 +95,19 @@ func serveApi(response http.ResponseWriter, request *http.Request, ps httprouter
 	fmt.Fprintf(response, "%s\n", json_bytes)
 }
 
+func handle500(http.ResponseWriter, *http.Request, interface{}) {
+	msg := "Error 500" 
+	event := events.NewEvent("error", "http_server", msg)
+	utils.Handle(event)
+}
+
 func main() {
     router := httprouter.New()
     router.GET("/", serveRequest)
     router.GET("/p/*url", serveRequest)
     router.GET("/x/*url", serveApi)
     router.ServeFiles("/static/*filepath", http.Dir("static"))
+    router.PanicHandler(handle500)
     server := conf.GetServer()
     database := conf.GetMainDatabase()
     loc := server.Host+":"+server.Port
