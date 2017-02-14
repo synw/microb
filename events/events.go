@@ -57,7 +57,7 @@ func printMsg(event_class string, event *datatypes.Event) {
 	fmt.Println(out)
 }
 
-func Handle(*datatypes.Event) {
+func Handle(event *datatypes.Event) {
 	event_class := event.Class
 	if event.Class == "runtime_info" {
 		event_class = "simple"

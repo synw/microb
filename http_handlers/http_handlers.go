@@ -119,8 +119,10 @@ func ServeApi(response http.ResponseWriter, request *http.Request, ps httprouter
 }
 
 func Handle500(response http.ResponseWriter, request *http.Request, params interface{}) {
-	msg := "Error 500" 
-	event := events.NewEvent("error", "http_server", msg)
+	msg := "Error 500"
+	d := make(map[string]interface{})
+	d["status_code"] = http.StatusInternalServerError
+	event := &datatypes.Event{"request_error", "http_server", msg, d}
 	events.Handle(event)
 	page := &datatypes.Page{Url: "/error/", Title: "", Content: ""}
 	status := http.StatusInternalServerError
