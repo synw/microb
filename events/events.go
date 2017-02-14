@@ -3,6 +3,7 @@ package events
 import (
 	"fmt"
 	"time"
+	"strconv"
 	"github.com/acmacalister/skittles"
 	"github.com/synw/microb/datatypes"
 )
@@ -19,22 +20,32 @@ func getTime() string {
 	return t.Format("15:04:05")
 }
 
-func printMsg(print_type string, msg string) {
+func printMsg(event_class string, event *datatypes.Event) {
 	t := getTime()
 	out := t+" "
-	if print_type == "simple" {
+	msg := event.Message
+	if event_class == "simple" {
 		out = out+msg
 	} else {
-		if (print_type == "info") {
+		if (event_class == "info") {
 			out = out+info_m+" "+msg
-		} else if (print_type == "out") {
+		} else if (event_class == "out") {
 			out = out+out_m+" "+msg
-		} else if (print_type == "command") {
+		} else if (event_class == "command") {
 			out = out+command_m+" "+msg
-		} else if (print_type == "error") {
+		} else if (event_class == "error") {
 			out = out+error_m+" "+msg
-		} else if (print_type == "metric") {
+		} else if (event_class == "metric") {
 			out = out+metric_m+" "+msg
+		} else if (event_class == "request" || event_class == "request_error") {
+			sc := event.Data["status_code"].(int)
+			var sc_str string
+			if sc == 404 {
+				sc_str = skittles.BoldRed(strconv.Itoa(sc))
+			} else if sc == 200 {
+				sc_str = skittles.Green(strconv.Itoa(sc))
+			}
+			out = out+" "+sc_str+" "+msg
 		}
 	}
 	fmt.Println(out)
@@ -47,11 +58,14 @@ func NewEvent(event_class string, from string, message string) *datatypes.Event 
 }
 
 func Handle(event *datatypes.Event, verbosity int) {
-	print_type := event.Class
+	event_class := event.Class
 	if event.Class == "runtime_info" {
-		print_type = "simple"
+		event_class = "simple"
+	}
+	if event.Class == "request" {
+		event_class = "request"
 	}
 	if verbosity > 0 {
-		printMsg(print_type, event.Message)
+		printMsg(event_class, event)
 	}
 }

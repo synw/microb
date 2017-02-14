@@ -46,15 +46,15 @@ func GetFromDb(url string)  (map[string]interface{}, bool)  {
 	filters := map[string]interface{}{"uri":url}
 	res, err := r.DB(db).Table("pages").Filter(filters).Pluck("fields").Run(session)
 	defer res.Close()
-	if err == r.ErrEmptyResult {
-	    fmt.Printf("Rethinkdb: no results for uri scan: %s\n", err)
-	}
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 	var rescol map[string]interface{}
 	err = res.One(&rescol)
-	if err != nil {
+	/*if err == r.ErrEmptyResult {
+	    //fmt.Printf("Rethinkdb: no results for uri scan: %s\n", err)
+	} else */
+	if err != nil && err != r.ErrEmptyResult {
 		fmt.Printf("Rethinkdb: error scanning database results: %s\n", err)
 	}
 	var page_served map[string]interface{}

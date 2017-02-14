@@ -59,26 +59,39 @@ func serveRequest(response http.ResponseWriter, request *http.Request, ps httpro
 	if url == "" {
 		url = "/"
 	}
-	msg := "Page "+url+" requested"
-	event := *events.NewEvent("runtime_info", "http_server", msg)
-    events.Handle(&event)
+	msg := url+" page request"
+	d := make(map[string]interface{})
+	d["status_code"] = http.StatusOK
+	status := http.StatusOK
+	event := &datatypes.Event{"request", "http_server", msg, d}
+    events.Handle(event, *Verbosity)
     page := &datatypes.Page{Url: url, Title: "", Content: ""}
+    response = httpResponseWriter{response, &status}
     renderTemplate(response, page)
+}
+
+type httpResponseWriter struct {
+	http.ResponseWriter
+	status *int
 }
 
 func serveApi(response http.ResponseWriter, request *http.Request, ps httprouter.Params) {
 	url := ps.ByName("url")
-	msg := "Page "+url+" requested"
-	event := *events.NewEvent("runtime_info", "http_server", msg)
-    events.Handle(&event)
-	fmt.Println("API call", url)
+	msg := url+" api request"
+	d := make(map[string]interface{})
+	d["status_code"] = http.StatusOK
+	event := &datatypes.Event{"request", "http_server", msg, d}
+    events.Handle(event, *Verbosity)
+    status := http.StatusOK
 	page := getPage(url)
     if (page.Url == "404") {
-    	msg = "404 page not found in database: "+url
-    	event = events.NewEvent("error", "http_server", msg)
+    	d["status_code"] = http.StatusNotFound
+    	msg = url+" document not found in the database"
+    	event := &datatypes.Event{"request_error", "http_server", msg, d}
     	events.Handle(event, *Verbosity)
     }
 	json_bytes, _ := json.Marshal(page)
+	response = httpResponseWriter{response, &status}
 	fmt.Fprintf(response, "%s\n", json_bytes)
 }
 
