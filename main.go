@@ -6,11 +6,16 @@ import (
     "log"
     "github.com/julienschmidt/httprouter"
     "github.com/acmacalister/skittles"
-    "github.com/synw/microb/libmicro/events"
-    "github.com/synw/microb/libmicro/metadata"
-    "github.com/synw/microb/libmicro/http_handlers"
+    "github.com/synw/microb/libmicrob/events"
+    "github.com/synw/microb/libmicrob/metadata"
+    "github.com/synw/microb/libmicrob/http_handlers"
+    "github.com/synw/microb/libmicrob/listeners"
 )
 
+
+func init() {
+	go listeners.ListenToIncomingCommands()
+}
 
 func main() {
     router := httprouter.New()

@@ -1,5 +1,4 @@
-microb_dev_config.json
-microb_dev_config_pg.json
+dev_config.json
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a
