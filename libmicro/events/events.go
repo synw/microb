@@ -5,8 +5,8 @@ import (
 	"time"
 	"strconv"
 	"github.com/acmacalister/skittles"
-	"github.com/synw/microb/datatypes"
-	"github.com/synw/microb/conf"
+	"github.com/synw/microb/libmicro/datatypes"
+	"github.com/synw/microb/libmicro/conf"
 )
 
 

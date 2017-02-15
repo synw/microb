@@ -6,9 +6,9 @@ import (
     "log"
     "github.com/julienschmidt/httprouter"
     "github.com/acmacalister/skittles"
-    "github.com/synw/microb/events"
-    "github.com/synw/microb/metadata"
-    "github.com/synw/microb/http_handlers"
+    "github.com/synw/microb/libmicro/events"
+    "github.com/synw/microb/libmicro/metadata"
+    "github.com/synw/microb/libmicro/http_handlers"
 )
 
 

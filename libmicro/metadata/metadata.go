@@ -1,8 +1,8 @@
 package metadata
 
 import (
-	"github.com/synw/microb/conf"
-    "github.com/synw/microb/datatypes"
+	"github.com/synw/microb/libmicro/conf"
+    "github.com/synw/microb/libmicro/datatypes"
 )
 
 

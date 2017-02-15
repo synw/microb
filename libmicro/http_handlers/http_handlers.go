@@ -7,9 +7,9 @@ import (
 	"encoding/json"
     "html/template"
     "github.com/julienschmidt/httprouter"
-    "github.com/synw/microb/events"
-    "github.com/synw/microb/datatypes"
-    "github.com/synw/microb/db"
+    "github.com/synw/microb/libmicro/events"
+    "github.com/synw/microb/libmicro/datatypes"
+    "github.com/synw/microb/libmicro/db"
 )
 
 

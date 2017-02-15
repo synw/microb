@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 	 r "gopkg.in/dancannon/gorethink.v2"
-	 "github.com/synw/microb/conf"
-	 "github.com/synw/microb/datatypes"
-	 "github.com/synw/microb/metadata"
+	 "github.com/synw/microb/libmicro/conf"
+	 "github.com/synw/microb/libmicro/datatypes"
+	 "github.com/synw/microb/libmicro/metadata"
 )
 
 var Config = conf.GetConf()
