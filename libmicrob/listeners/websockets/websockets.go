@@ -1,13 +1,14 @@
 package websockets
 
 import (
-	"log"
-	"fmt"
-	"encoding/json"
+	//"log"
+	//"fmt"
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/centrifugal/centrifugo/libcentrifugo/auth"
 	"github.com/synw/microb/libmicrob/conf"
 	appevents "github.com/synw/microb/libmicrob/events"
+	"github.com/synw/microb/libmicrob/datatypes/encoding"
+	"github.com/synw/microb/libmicrob/commands"
 )
 
 
@@ -28,37 +29,28 @@ func credentials() *centrifuge.Credentials {
 	}
 }
 
-type WsMsg struct {
-	EventClass string `json:"event_class"`
-	Data map[string]interface{} `json:"data"`
-}
 
-type Model struct {
-	EventClass  json.RawMessage `json:"event_class"`
-	Data string          `json:"data"`
-}
-
-func (m *Model) Name() string {
-	return string(m.EventClass)
-}
 
 func listenForCommands(channel_name string, done chan bool) (centrifuge.Centrifuge, *centrifuge.SubEventHandler) {
 	creds := credentials()
 	wsURL := "ws://"+Config["centrifugo_host"].(string)+":"+Config["centrifugo_port"].(string)+"/connection/websocket"
 	
-	onMessage := func(sub centrifuge.Sub, msg centrifuge.Message) error {
-		log.Println(fmt.Sprintf("New message received in channel %s: %#v", sub.Channel(), msg))
-		//x := new(WsMsg)
+	onMessage := func(sub centrifuge.Sub, rawmsg centrifuge.Message) error {
+		//log.Println(fmt.Sprintf("New message received in channel %s: %#v", sub.Channel(), rawmsg))
+		payload, err := encoding.DecodeJsonRawMessage(rawmsg.Data)
+		var msg string
+		if err != nil {
+			msg = "Error decoding json raw message: "+err.Error()
+			appevents.New("error", "websockets.listenForCommands()", msg)
+		}
+		command := encoding.GetCommandFromPayload(payload)
+		msg  = "Command received from websockets: "+command.Name
+		appevents.New("info", "websockets", msg)
+		commands.RunCommand(command)
+		if err != nil {
+			appevents.Error("websockets.listenForCommands", err)
+		}
 		
-		/*
-		var s string
-		d := json.Marshal(msg.Data)
-	    err := json.Unmarshal(d, &s)
-	    if err == nil {
-	        x.EventClass = s
-	    }
-		fmt.Println(x)
-		*/
 		return nil
 	}
 	/*

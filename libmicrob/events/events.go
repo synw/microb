@@ -75,3 +75,9 @@ func New(event_class string, from string, message string) {
 	event := &datatypes.Event{event_class, from, message, d}
 	Handle(event)
 }
+
+func Error(from string, err error) {
+	var d map[string]interface{}
+	event := &datatypes.Event{"error", from, err.Error(), d}
+	Handle(event)
+}

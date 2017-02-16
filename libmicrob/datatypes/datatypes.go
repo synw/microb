@@ -2,6 +2,7 @@ package datatypes
 
 import (
 	"time"
+	"encoding/json"
 )
 
 
@@ -42,6 +43,13 @@ type Command struct {
 	Date time.Time
 	Status string
 	Error error
+}
+
+type WsMessage struct {
+	RawMessage  json.RawMessage 
+	EventClass string `json:"event_class"`
+	Data map[string]interface{} `json:"data"`
+	Message string `json:"message"`
 }
 
 /*
