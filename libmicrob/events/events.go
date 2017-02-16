@@ -13,11 +13,13 @@ import (
 var Config = conf.GetConf()
 var Verbosity = Config["verbosity"].(int)
 
-var info_m = " ["+skittles.Green("info")+"]"
-var event_m = " ["+skittles.Yellow("event")+"]"
-var command_m = " [=> "+skittles.Cyan("command")+"]"
-var error_m = " ["+skittles.BoldRed("error")+"]"
-var metric_m = " ["+skittles.Cyan("metric")+"]"
+var info_m = "["+skittles.Green("info")+"]"
+var event_m = "["+skittles.Yellow("event")+"]"
+var command_m = "[=> "+skittles.Cyan("command")+"]"
+var error_m = "["+skittles.BoldRed("error")+"]"
+var metric_m = "["+skittles.Cyan("metric")+"]"
+var ok_m = "["+skittles.Green("ok")+"]"
+var report_m = "[-> "+skittles.Cyan("report")+"]"
 
 func getTime() string {
 	t := time.Now()
@@ -41,6 +43,10 @@ func printMsg(event_class string, event *datatypes.Event) {
 			out = out+error_m+" "+"from "+event.From+": "+msg
 		} else if (event_class == "metric") {
 			out = out+metric_m+" "+msg
+		} else if (event_class == "ok") {
+			out = out+ok_m+" "+msg
+		} else if (event_class == "report") {
+			out = out+report_m+" "+msg
 		} else if (event_class == "request" || event_class == "request_error") {
 			sc := event.Data["status_code"].(int)
 			var sc_str string

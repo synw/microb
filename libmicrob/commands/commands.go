@@ -16,13 +16,10 @@ import (
 var Config = conf.GetConf()
 
 func PrintFeedback(command *datatypes.Command) {
+	msg := "Command "+command.Name+" reported: "+command.Status
+	defer events.New("report", "command_feedback", msg)
 	if command.Status == "error" {
 		events.Error("command_execution", command.Error)
-	} else if command.Status == "success" {
-		events.New("runtime_info", "command_feedback", "Command successfull")
-	} else {
-		msg := "Command status: "+command.Status
-		events.New("runtime_info", "command_feedback", msg)
 	}
 }
 
