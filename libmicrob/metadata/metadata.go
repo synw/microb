@@ -58,3 +58,15 @@ func GetCommandsBrockers() []string {
 	}
 	return brokers
 }
+
+func IsWebsocketsBrocker() bool {
+	brockers := GetCommandsBrockers()
+	if brockers != nil {
+		for _, b := range(brockers) {
+			if b == "websockets" {
+				return true
+			}
+		}
+	}
+	return false
+}

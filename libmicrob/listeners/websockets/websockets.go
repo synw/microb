@@ -2,13 +2,17 @@ package websockets
 
 import (
 	//"log"
-	//"fmt"
+	"fmt"
+	"time"
+	"encoding/json"
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/centrifugal/centrifugo/libcentrifugo/auth"
+	"github.com/centrifugal/gocent"
 	"github.com/synw/microb/libmicrob/conf"
 	appevents "github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/datatypes/encoding"
 	"github.com/synw/microb/libmicrob/commands"
+	"github.com/synw/microb/libmicrob/datatypes"
 )
 
 
@@ -29,8 +33,6 @@ func credentials() *centrifuge.Credentials {
 	}
 }
 
-
-
 func listenForCommands(channel_name string, done chan bool) (centrifuge.Centrifuge, *centrifuge.SubEventHandler) {
 	creds := credentials()
 	wsURL := "ws://"+Config["centrifugo_host"].(string)+":"+Config["centrifugo_port"].(string)+"/connection/websocket"
@@ -45,12 +47,19 @@ func listenForCommands(channel_name string, done chan bool) (centrifuge.Centrifu
 		}
 		command := encoding.GetCommandFromPayload(payload)
 		msg  = "Command received from websockets: "+command.Name
-		appevents.New("info", "websockets", msg)
-		commands.RunCommand(command)
+		if command.Reason != "" {
+			msg = msg+". Reason: "+command.Reason
+		}
+		appevents.New("event", "websockets", msg)
+		c := make(chan *datatypes.Command)
+		go commands.Run(command, c)
+		cmd := <- c
+		close(c)
+		commands.PrintFeedback(cmd)
+		SendCommandFeedback(cmd)
 		if err != nil {
 			appevents.Error("websockets.listenForCommands", err)
 		}
-		
 		return nil
 	}
 	/*
@@ -81,23 +90,47 @@ func listenForCommands(channel_name string, done chan bool) (centrifuge.Centrifu
 		/*OnJoin:    onJoin,
 		OnLeave:   onLeave,*/
 	}
-	
 	c := centrifuge.NewCentrifuge(wsURL, creds, events, centrifuge.DefaultConfig)
-	
 	return c, subevents
 }
 
 func ListenToIncomingCommands(channel_name string) {
 	var done chan bool
+	// connect to channel
 	c, subevents := listenForCommands(channel_name, done)
 	defer c.Close()
 	err := c.Connect()
 	if err != nil {
 		appevents.New("error", "listeners.websockets.Listen()", err.Error())
 	}
+	// suscribe to channel
 	_, err = c.Subscribe(channel_name, subevents)
 	if err != nil {
 		appevents.New("error", "listeners.websockets.Listen()", err.Error())
 	}
+	// sit here and wait
 	<- done
+}
+
+func SendCommandFeedback(command *datatypes.Command) {
+	secret := Config["centrifugo_secret_key"].(string)
+	host := Config["centrifugo_host"].(string)
+	port := Config["centrifugo_port"].(string)
+	purl := fmt.Sprintf("http://%s:%s", host, port)
+	// connect to Centrifugo
+	client := gocent.NewClient(purl, secret, 5*time.Second)
+	var errstr string
+	if command.Error == nil {
+		errstr = ""
+	} else {
+		errstr = command.Error.Error()
+	}
+	eventstr := &datatypes.WsFeedbackMessage{"commands_feedback", command.Name, command.Status, errstr}
+	event, err := json.Marshal(eventstr)
+	channel := "$"+Config["domain"].(string)+"_feedback"
+	_, err = client.Publish(channel, event)
+	if err != nil {
+		appevents.Error("websockets.SendCommandFeedback()", err)
+	}
+	return
 }

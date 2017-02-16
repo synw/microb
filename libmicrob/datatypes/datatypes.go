@@ -52,6 +52,13 @@ type WsMessage struct {
 	Message string `json:"message"`
 }
 
+type WsFeedbackMessage struct {
+	EventClass string `json:"event_class"`
+	Command string `json:"command"`
+	Status string `json:"status"`
+	Error string `json:"error"`
+}
+
 /*
 type GormPage struct {
 	Domain string

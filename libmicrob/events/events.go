@@ -14,7 +14,7 @@ var Config = conf.GetConf()
 var Verbosity = Config["verbosity"].(int)
 
 var info_m = " ["+skittles.Green("info")+"]"
-var out_m = " ["+skittles.Yellow("out")+"]"
+var event_m = " ["+skittles.Yellow("event")+"]"
 var command_m = " [=> "+skittles.Cyan("command")+"]"
 var error_m = " ["+skittles.BoldRed("error")+"]"
 var metric_m = " ["+skittles.Cyan("metric")+"]"
@@ -33,8 +33,8 @@ func printMsg(event_class string, event *datatypes.Event) {
 	} else {
 		if (event_class == "info") {
 			out = out+info_m+" "+msg
-		} else if (event_class == "out") {
-			out = out+out_m+" "+msg
+		} else if (event_class == "event") {
+			out = out+event_m+" "+msg
 		} else if (event_class == "command") {
 			out = out+command_m+" "+msg
 		} else if (event_class == "error") {

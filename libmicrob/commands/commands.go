@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"html/template"
 	"errors"
-	"time"
 	"github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/db"
 	"github.com/synw/microb/libmicrob/datatypes"
@@ -15,6 +14,17 @@ import (
 
 
 var Config = conf.GetConf()
+
+func PrintFeedback(command *datatypes.Command) {
+	if command.Status == "error" {
+		events.Error("command_execution", command.Error)
+	} else if command.Status == "success" {
+		events.New("runtime_info", "command_feedback", "Command successfull")
+	} else {
+		msg := "Command status: "+command.Status
+		events.New("runtime_info", "command_feedback", msg)
+	}
+}
 
 // commands
 func reparseTemplates() error {
@@ -45,58 +55,54 @@ func ping() error {
 	return nil
 }
 
+func handleCommandError(command *datatypes.Command, err error, c chan *datatypes.Command) {
+	if err != nil { 
+		command.Status = "error" 
+		command.Error = err
+		c <- command
+	}
+	return
+}
 
 // handlers
-func RunCommand(command *datatypes.Command) error {
+func Run(command *datatypes.Command, c chan *datatypes.Command) {
 	events.New("command", "RunCommand()", command.Name)
 	if  commands_methods.IsValid(command) == false {
 		msg := "Unknown command: "+command.Name
-		command.Status = "error"
-		command.Error = errors.New(msg)
-		return command.Error
+		err := errors.New(msg)
+		handleCommandError(command, err, c)
+		return
 	}
-	// run command
 	if (command.Name == "update_routes") {
 		err := updateRoutes()
-		if err != nil { 
-			command.Status = "error" 
-			command.Error = err
-			return command.Error
+		if err != nil {
+			handleCommandError(command, err, c)
+			return
 		} else {
 			command.Status = "success"
 		}
 	} else if (command.Name == "reparse_templates") {
 		err := reparseTemplates()
-		if err != nil { command.Status = "error" } else {
+		if err != nil { 
+			handleCommandError(command, err, c)
+			return
+		} else {
 			command.Status = "success"
-			command.Error = err
-			return command.Error
 		}
 	} else if (command.Name == "ping") {
 		err := ping()
 		if err != nil { 
-			command.Status = "error"
-			command.Error = err
-			return command.Error
+			handleCommandError(command, err, c)
+			return
 		} else {
 			command.Status = "success"
 		}
 	}
+	c <- command
 	/*else if (command.Name == "syncdb") {
 		go db.ImportPagesFromMainDb(command.Values.(string))
 	}*/
 	// save in db
 	//go db.SaveCommand(command)
-	return nil
-}
-
-func Run(name string, from string, reason string) {
-	command := &datatypes.Command{name, from, reason, time.Now(), "pending", nil}
-	err := RunCommand(command)
-	if err != nil {
-		fmt.Println("Error executing command", name, ":", err)
-	} else {
-		fmt.Println("Command", name, "successfull")
-	}
 	return
 }
