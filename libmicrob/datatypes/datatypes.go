@@ -12,6 +12,7 @@ type Server struct {
 	Port string
 	WebsocketsHost string
 	WebsocketsPort string
+	WebsocketsKey string
 }
 
 type Database struct {
@@ -45,18 +46,18 @@ type Command struct {
 	Error error
 }
 
-type WsMessage struct {
+type WsIncomingMessage struct {
 	RawMessage  json.RawMessage 
 	EventClass string `json:"event_class"`
-	Data map[string]interface{} `json:"data"`
 	Message string `json:"message"`
+	Data map[string]interface{} `json:"data"`
 }
 
 type WsFeedbackMessage struct {
 	EventClass string `json:"event_class"`
-	Command string `json:"command"`
 	Status string `json:"status"`
 	Error string `json:"error"`
+	Data map[string]interface{} `json:"data"`
 }
 
 /*

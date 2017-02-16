@@ -39,7 +39,7 @@ func listenForCommands(channel_name string, done chan bool) (centrifuge.Centrifu
 	
 	onMessage := func(sub centrifuge.Sub, rawmsg centrifuge.Message) error {
 		//log.Println(fmt.Sprintf("New message received in channel %s: %#v", sub.Channel(), rawmsg))
-		payload, err := encoding.DecodeJsonRawMessage(rawmsg.Data)
+		payload, err := encoding.DecodeJsonIncomingRawMessage(rawmsg.Data)
 		var msg string
 		if err != nil {
 			msg = "Error decoding json raw message: "+err.Error()
@@ -125,7 +125,9 @@ func SendCommandFeedback(command *datatypes.Command) {
 	} else {
 		errstr = command.Error.Error()
 	}
-	eventstr := &datatypes.WsFeedbackMessage{"commands_feedback", command.Name, command.Status, errstr}
+	data := make(map[string]interface{})
+	data["command"] = command.Name
+	eventstr := &datatypes.WsFeedbackMessage{"command_feedback", command.Status, errstr, data}
 	event, err := json.Marshal(eventstr)
 	channel := "$"+Config["domain"].(string)+"_feedback"
 	_, err = client.Publish(channel, event)

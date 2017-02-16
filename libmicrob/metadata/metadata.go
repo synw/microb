@@ -25,7 +25,8 @@ func GetServer() *datatypes.Server {
 	http_port := Config["http_port"].(string)
 	websockets_host := Config["centrifugo_host"].(string)
 	websockets_port := Config["centrifugo_port"].(string)
-	server := &datatypes.Server{domain, http_host, http_port, websockets_host, websockets_port}
+	websockets_key := Config["centrifugo_secret_key"].(string)
+	server := &datatypes.Server{domain, http_host, http_port, websockets_host, websockets_port, websockets_key}
 	return server
 }
 

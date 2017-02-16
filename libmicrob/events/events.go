@@ -70,6 +70,12 @@ func Handle(event *datatypes.Event) {
 	}
 }
 
+func Print(event_class string, from string, message string) {
+	var d map[string]interface{}
+	event := &datatypes.Event{event_class, from, message, d}
+	printMsg(event_class, event)
+}
+
 func New(event_class string, from string, message string) {
 	var d map[string]interface{}
 	event := &datatypes.Event{event_class, from, message, d}
