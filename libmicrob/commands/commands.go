@@ -6,16 +6,14 @@ import (
 	"html/template"
 	"errors"
 	"time"
-	"github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/db"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/datatypes/encoding"
 	"github.com/synw/microb/libmicrob/events"
+	"github.com/synw/microb/libmicrob/metadata"
 	"github.com/synw/microb/libmicrob/commands/methods"
 )
 
-
-var Config = conf.GetConf()
 
 // commands
 func reparseTemplates() error {
@@ -59,6 +57,9 @@ func GetCommandFromPayload(message *datatypes.WsIncomingMessage, broker string) 
 	name := data["name"].(string)
 	reason := ""
 	from := broker
+	if data["from"] != nil {
+		from = data["from"].(string)
+	}
 	var command *datatypes.Command
 	if data["reason"].(string) != "" {
 		reason = data["reason"].(string)
@@ -76,21 +77,24 @@ func HandleCommandFeedback(command *datatypes.Command) {
 	if command.Status == "error" {
 		events.Error("command_execution", command.Error)
 	}
-	events.PrintCommandReport(command)
+	if metadata.GetVerbosity() > 0 {
+		events.PrintCommandReport(command)
+	}
 }
 
 // constructors
 func New(name string, from string, reason string) *datatypes.Command {
 	now := time.Now()
 	var args[]interface{}
-	var rv []string
+	var rv []interface{}
 	id := encoding.GenerateId()
 	cmd := &datatypes.Command{id, name, from, reason, now, args, "pending", nil, rv}
 	return cmd
 }
+
 func NewWithArgs(name string, from string, reason string, args []interface{}) *datatypes.Command {
 	now := time.Now()
-	var rv []string
+	var rv []interface{}
 	id := encoding.GenerateId()
 	cmd := &datatypes.Command{id, name, from, reason, now, args, "pending", nil, rv}
 	return cmd
@@ -147,8 +151,6 @@ func Run(command *datatypes.Command) {
 		case cmd := <- c:
 			close(c)
 			// process command results
-			if Config["verbosity"].(int) > 0 {
-				HandleCommandFeedback(cmd)
-			}
+			HandleCommandFeedback(cmd)
 	}
 }

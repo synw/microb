@@ -46,7 +46,7 @@ type Command struct {
 	Args []interface{}
 	Status string
 	Error error
-	ReturnValues []string
+	ReturnValues []interface{}
 }
 
 type WsIncomingMessage struct {

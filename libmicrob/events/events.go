@@ -6,16 +6,15 @@ import (
 	"strconv"
 	"github.com/acmacalister/skittles"
 	"github.com/synw/microb/libmicrob/datatypes"
-	"github.com/synw/microb/libmicrob/conf"
+	"github.com/synw/microb/libmicrob/metadata"
 )
 
 
-var Config = conf.GetConf()
-var Verbosity = Config["verbosity"].(int)
+var Verbosity = metadata.GetVerbosity()
 
 func getEventOutputFlags() map[string]string {
 	output_flags := make(map[string]string)
-	output_flags["info"] = "["+skittles.Green("info")+"]"
+	output_flags["info"] = "["+skittles.Cyan("info")+"]"
 	output_flags["event"] = "["+skittles.Yellow("event")+"]"
 	output_flags["command"] = "[=> "+skittles.Cyan("command")+"]"
 	output_flags["error"] = "["+skittles.BoldRed("error")+"]"
@@ -63,10 +62,10 @@ func Handle(event *datatypes.Event) {
 	}
 }
 
-func PrintCommandReport(command *datatypes.Command) {
+func GetCommandReportMsg(command *datatypes.Command) string {
 	var status string
 	var vals string
-	var msg string
+	msg := ""
 	if command.Status == "success" {
 		status = skittles.Green("ok")	
 	} else if command.Status == "error" {
@@ -76,12 +75,16 @@ func PrintCommandReport(command *datatypes.Command) {
 	}
 	if len(command.ReturnValues) > 0 {
 		for _, v := range(command.ReturnValues) {
-			vals = vals+v+" "
+			vals = vals+v.(string)+" "
 		}
 		msg = vals
 	}
-	msg = "["+command.Name+" ->] "+status+" "+msg
-	fmt.Println(getTime(), msg)
+	msg = "["+command.Name+" ->] "+status+" "+msg+"from "+command.From
+	return msg
+}
+
+func PrintCommandReport(command *datatypes.Command) {
+	fmt.Println(getTime(), GetCommandReportMsg(command))
 }
 
 func Print(event_class string, from string, message string) {

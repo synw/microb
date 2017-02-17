@@ -103,6 +103,9 @@ func sendCommandFeedback(command *datatypes.Command) {
 	}
 	data := make(map[string]interface{})
 	data["command"] = command.Name
+	data["id"] = command.Id
+	data["from"] = command.From
+	data["reason"] = command.Reason
 	if len(command.ReturnValues)  > 0 {
 		data["return_values"] = command.ReturnValues
 	}
