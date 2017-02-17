@@ -51,14 +51,8 @@ func listenForCommands(channel_name string, done chan bool) (centrifuge.Centrifu
 			msg = msg+". Reason: "+command.Reason
 		}
 		appevents.New("event", "websockets", msg)
-		c := make(chan *datatypes.Command)
-		go commands.Run(command, c)
-		select {
-			case cmd := <- c:
-				close(c)
-				// process command results
-				handleCommandResult(cmd)
-		}
+		commands.Run(command)
+		go sendCommandFeedback(command)
 		return nil
 	}
 	/*
@@ -91,13 +85,6 @@ func listenForCommands(channel_name string, done chan bool) (centrifuge.Centrifu
 	}
 	c := centrifuge.NewCentrifuge(wsURL, creds, events, centrifuge.DefaultConfig)
 	return c, subevents
-}
-
-func handleCommandResult(command *datatypes.Command) {
-	if Config["verbosity"].(int) > 0 {
-		commands.PrintCommandFeedback(command)
-	}
-	sendCommandFeedback(command)
 }
 
 func sendCommandFeedback(command *datatypes.Command) {

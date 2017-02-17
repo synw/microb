@@ -38,6 +38,9 @@ func updateRoutes() error {
         panic(err)
         return err
     }
+    // auto reparse templates if the routes change
+    cmd := New("reparse_templates", "commands.updateRoutes()", "Routes update")
+    go Run(cmd)
  	return nil
 }
 
@@ -70,19 +73,18 @@ func GetCommandFromPayload(message *datatypes.WsIncomingMessage, broker string) 
 }
 
 func PrintCommandFeedback(command *datatypes.Command) {
-	msg := "command "+command.Name
+	msg := ""
 	if command.Status == "error" {
 		events.Error("command_execution", command.Error)
 	}
 	if len(command.ReturnValues) > 0 {
-		msg = msg+" returned "
 		for _, v := range(command.ReturnValues) {
 			msg = msg+v
 		}
 	} else {
-		msg = msg+" reported: "+command.Status
+		msg = msg+command.Status
 	}
-	events.New("report", "command_feedback", msg)
+	events.PrintReport(command.Name, msg)
 }
 
 // constructors
@@ -109,8 +111,7 @@ func NewWithData(name string, from string, reason string, data []interface{}) *d
 }
 */
 // handlers
-func Run(command *datatypes.Command, c chan *datatypes.Command) {
-	
+func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 	events.New("command", "RunCommand()", command.Name)
 	if  commands_methods.IsValid(command) == false {
 		msg := "Unknown command: "+command.Name
@@ -145,4 +146,17 @@ func Run(command *datatypes.Command, c chan *datatypes.Command) {
 	// save in db
 	//go db.SaveCommand(command)
 	return
+}
+
+func Run(command *datatypes.Command) {
+	c := make(chan *datatypes.Command)
+	go runCommand(command, c)
+	select {
+		case cmd := <- c:
+			close(c)
+			// process command results
+			if Config["verbosity"].(int) > 0 {
+				PrintCommandFeedback(cmd)
+			}
+	}
 }

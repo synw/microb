@@ -1,3 +1,1 @@
-page('/p/page2/', function(ctx, next) { loadPage('/x/page2/') } );
-page('/p/page1/', function(ctx, next) { loadPage('/x/page1/') } );
-page('/p/page6/', function(ctx, next) { loadPage('/x/page6/') } );
+page('/page2/', function(ctx, next) { loadPage('/x/page2/') } );page('/', function(ctx, next) { loadPage('/x/') } );page('/page1/1/', function(ctx, next) { loadPage('/x/page1/1/') } );page('/page1/', function(ctx, next) { loadPage('/x/page1/') } );

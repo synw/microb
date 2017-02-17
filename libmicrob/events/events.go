@@ -20,7 +20,6 @@ func getEventOutputFlags() map[string]string {
 	output_flags["command"] = "[=> "+skittles.Cyan("command")+"]"
 	output_flags["error"] = "["+skittles.BoldRed("error")+"]"
 	output_flags["metric"] = "["+skittles.Cyan("metric")+"]"
-	output_flags["report"] = "[-> report]"
 	output_flags["request"] = ""
 	output_flags["request_error"] = ""
 	output_flags["runtime_info"] = ""
@@ -62,6 +61,11 @@ func Handle(event *datatypes.Event) {
 	if Verbosity > 0 {
 		printMsg(event.Class, event)
 	}
+}
+
+func PrintReport(command_name string, message string) {
+	msg := "["+command_name+" ->] "+message
+	fmt.Println(getTime(), msg)
 }
 
 func Print(event_class string, from string, message string) {
