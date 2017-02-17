@@ -5,23 +5,17 @@ import (
 	"io/ioutil"
 	"html/template"
 	"errors"
+	"time"
 	"github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/db"
 	"github.com/synw/microb/libmicrob/datatypes"
+	"github.com/synw/microb/libmicrob/datatypes/encoding"
 	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/commands/methods"
 )
 
 
 var Config = conf.GetConf()
-
-func PrintFeedback(command *datatypes.Command) {
-	msg := "Command "+command.Name+" reported: "+command.Status
-	defer events.New("report", "command_feedback", msg)
-	if command.Status == "error" {
-		events.Error("command_execution", command.Error)
-	}
-}
 
 // commands
 func reparseTemplates() error {
@@ -47,11 +41,7 @@ func updateRoutes() error {
  	return nil
 }
 
-func ping() error {
-	fmt.Println("PONG")
-	return nil
-}
-
+// utilities
 func handleCommandError(command *datatypes.Command, err error, c chan *datatypes.Command) {
 	if err != nil { 
 		command.Status = "error" 
@@ -61,8 +51,66 @@ func handleCommandError(command *datatypes.Command, err error, c chan *datatypes
 	return
 }
 
+func GetCommandFromPayload(message *datatypes.WsIncomingMessage, broker string) *datatypes.Command {
+	data := message.Data
+	name := data["name"].(string)
+	reason := ""
+	from := broker
+	var command *datatypes.Command
+	if data["reason"].(string) != "" {
+		reason = data["reason"].(string)
+	}
+	if data["args"] != nil {
+		args := data["args"].([]interface{})
+		command = NewWithArgs(name, from, reason, args)
+	} else {
+		command = New(name, from, reason)
+	}
+	return command
+}
+
+func PrintCommandFeedback(command *datatypes.Command) {
+	msg := "command "+command.Name
+	if command.Status == "error" {
+		events.Error("command_execution", command.Error)
+	}
+	if len(command.ReturnValues) > 0 {
+		msg = msg+" returned "
+		for _, v := range(command.ReturnValues) {
+			msg = msg+v
+		}
+	} else {
+		msg = msg+" reported: "+command.Status
+	}
+	events.New("report", "command_feedback", msg)
+}
+
+// constructors
+func New(name string, from string, reason string) *datatypes.Command {
+	now := time.Now()
+	var args[]interface{}
+	var rv []string
+	id := encoding.GenerateId()
+	cmd := &datatypes.Command{id, name, from, reason, now, args, "pending", nil, rv}
+	return cmd
+}
+func NewWithArgs(name string, from string, reason string, args []interface{}) *datatypes.Command {
+	now := time.Now()
+	var rv []string
+	id := encoding.GenerateId()
+	cmd := &datatypes.Command{id, name, from, reason, now, args, "pending", nil, rv}
+	return cmd
+}
+/*
+func NewWithData(name string, from string, reason string, data []interface{}) *datatypes.Command {
+	now := time.Now()
+	cmd := &datatypes.Command{name, from, reason, now, "pending", nil, data}
+	return cmd
+}
+*/
 // handlers
 func Run(command *datatypes.Command, c chan *datatypes.Command) {
+	
 	events.New("command", "RunCommand()", command.Name)
 	if  commands_methods.IsValid(command) == false {
 		msg := "Unknown command: "+command.Name
@@ -87,13 +135,8 @@ func Run(command *datatypes.Command, c chan *datatypes.Command) {
 			command.Status = "success"
 		}
 	} else if (command.Name == "ping") {
-		err := ping()
-		if err != nil { 
-			handleCommandError(command, err, c)
-			return
-		} else {
-			command.Status = "success"
-		}
+		command.ReturnValues = append(command.ReturnValues, "PONG")
+		command.Status = "success"
 	}
 	c <- command
 	/*else if (command.Name == "syncdb") {

@@ -1,11 +1,22 @@
 package encoding
 
 import (
-	"time"
+	"reflect"
 	"encoding/json"
+	"github.com/ventu-io/go-shortid"
 	"github.com/synw/microb/libmicrob/datatypes"
 )
 
+
+func GetType(data interface{}) string {
+	t := reflect.TypeOf(data).String()
+	return t
+}
+
+func GenerateId() string {
+	id, _ := shortid.Generate()
+	return id
+}
 
 func DecodeJsonFeedbackRawMessage(raw *json.RawMessage) (*datatypes.WsFeedbackMessage, error) {
 	var message *datatypes.WsFeedbackMessage
@@ -31,18 +42,4 @@ func DecodeJsonIncomingRawMessage(raw *json.RawMessage) (*datatypes.WsIncomingMe
 		return message, err
 	}
 	return message, nil
-}
-
-func GetCommandFromPayload(message *datatypes.WsIncomingMessage) *datatypes.Command {
-	data := message.Data
-	name := data["name"].(string)
-	reason := ""
-	if data["reason"].(string) != "" {
-		reason = data["reason"].(string)
-	}
-	from := "websockets"
-	now := time.Now()
-	status := "pending"
-	command := &datatypes.Command{name, from, reason, now, status, nil}
-	return command
 }

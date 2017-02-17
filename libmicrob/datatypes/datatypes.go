@@ -38,12 +38,15 @@ type Event struct {
 }
 
 type Command struct {
+	Id string
 	Name string
 	From string
 	Reason string
 	Date time.Time
+	Args []interface{}
 	Status string
 	Error error
+	ReturnValues []string
 }
 
 type WsIncomingMessage struct {
