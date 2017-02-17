@@ -63,8 +63,24 @@ func Handle(event *datatypes.Event) {
 	}
 }
 
-func PrintReport(command_name string, message string) {
-	msg := "["+command_name+" ->] "+message
+func PrintCommandReport(command *datatypes.Command) {
+	var status string
+	var vals string
+	var msg string
+	if command.Status == "success" {
+		status = skittles.Green("ok")	
+	} else if command.Status == "error" {
+		status = skittles.Red("error")
+	} else {
+		status = command.Status
+	}
+	if len(command.ReturnValues) > 0 {
+		for _, v := range(command.ReturnValues) {
+			vals = vals+v+" "
+		}
+		msg = vals
+	}
+	msg = "["+command.Name+" ->] "+status+" "+msg
 	fmt.Println(getTime(), msg)
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/centrifugal/centrifugo/libcentrifugo/auth"
 	"github.com/centrifugal/gocent"
+	"github.com/acmacalister/skittles"
 	"github.com/synw/microb/libmicrob/conf"
 	appevents "github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/datatypes/encoding"
@@ -46,7 +47,7 @@ func listenForCommands(channel_name string, done chan bool) (centrifuge.Centrifu
 			appevents.New("error", "websockets.listenForCommands()", msg)
 		}
 		command := commands.GetCommandFromPayload(payload, "websockets")
-		msg  = "Command received from websockets: "+command.Name
+		msg  = "Command "+skittles.BoldWhite(command.Name)+" received via websockets"
 		if command.Reason != "" {
 			msg = msg+". Reason: "+command.Reason
 		}

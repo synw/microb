@@ -72,19 +72,11 @@ func GetCommandFromPayload(message *datatypes.WsIncomingMessage, broker string) 
 	return command
 }
 
-func PrintCommandFeedback(command *datatypes.Command) {
-	msg := ""
+func HandleCommandFeedback(command *datatypes.Command) {
 	if command.Status == "error" {
 		events.Error("command_execution", command.Error)
 	}
-	if len(command.ReturnValues) > 0 {
-		for _, v := range(command.ReturnValues) {
-			msg = msg+v
-		}
-	} else {
-		msg = msg+command.Status
-	}
-	events.PrintReport(command.Name, msg)
+	events.PrintCommandReport(command)
 }
 
 // constructors
@@ -156,7 +148,7 @@ func Run(command *datatypes.Command) {
 			close(c)
 			// process command results
 			if Config["verbosity"].(int) > 0 {
-				PrintCommandFeedback(cmd)
+				HandleCommandFeedback(cmd)
 			}
 	}
 }
