@@ -50,7 +50,7 @@ func listenForCommands(channel_name string, done chan bool) (centrifuge.Centrifu
 			appevents.New("error", "websockets.listenForCommands()", msg)
 		}
 		command := commands.GetCommandFromPayload(payload, "websockets")
-		msg  = "Command "+skittles.BoldWhite(command.Name)+" received via websockets"
+		msg  = "Command "+skittles.BoldWhite(command.Name)+" received from "+command.From+" via websockets"
 		if command.Reason != "" {
 			msg = msg+". Reason: "+command.Reason
 		}

@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"errors"
 	"time"
+	"strconv"
 	"github.com/synw/microb/libmicrob/db"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/datatypes/encoding"
@@ -42,6 +43,14 @@ func updateRoutes() error {
  	return nil
 }
 
+func dbStatus() (map[string]interface{}, error) {
+	status, err := db.ReportStatus()
+	if err != nil {
+		return status, err
+	}
+	return status, nil
+}
+
 // utilities
 func handleCommandError(command *datatypes.Command, err error, c chan *datatypes.Command) {
 	if err != nil { 
@@ -50,6 +59,15 @@ func handleCommandError(command *datatypes.Command, err error, c chan *datatypes
 		c <- command
 	}
 	return
+}
+
+func HandleCommandFeedback(command *datatypes.Command) {
+	if command.Status == "error" {
+		events.Error("command_execution", command.Error)
+	}
+	if metadata.GetVerbosity() > 0 {
+		events.PrintCommandReport(command)
+	}
 }
 
 func GetCommandFromPayload(message *datatypes.WsIncomingMessage, broker string) *datatypes.Command {
@@ -71,15 +89,6 @@ func GetCommandFromPayload(message *datatypes.WsIncomingMessage, broker string) 
 		command = New(name, from, reason)
 	}
 	return command
-}
-
-func HandleCommandFeedback(command *datatypes.Command) {
-	if command.Status == "error" {
-		events.Error("command_execution", command.Error)
-	}
-	if metadata.GetVerbosity() > 0 {
-		events.PrintCommandReport(command)
-	}
 }
 
 // constructors
@@ -133,6 +142,20 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 		}
 	} else if (command.Name == "ping") {
 		command.ReturnValues = append(command.ReturnValues, "PONG")
+		command.Status = "success"
+	} else if (command.Name == "db_status") {
+		status, err := db.ReportStatus()
+		if err != nil { 
+			handleCommandError(command, err, c)
+			return
+		}
+		line := "------------------------------"
+		version := "\n "+line+"\n - Version: "+status["version"].(string)+"\n"
+		cache_size_mb := "- Cache size: "+strconv.FormatFloat(status["cache_size_mb"].(float64), 'f', 2, 64)+" Mb\n"
+		time_started := line+"\nStarted since "+metadata.FormatTime(status["time_started"].(time.Time))
+		command.ReturnValues = append(command.ReturnValues, version)
+		command.ReturnValues = append(command.ReturnValues, cache_size_mb)
+		command.ReturnValues = append(command.ReturnValues, time_started)
 		command.Status = "success"
 	}
 	c <- command

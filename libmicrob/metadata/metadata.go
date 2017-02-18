@@ -2,6 +2,7 @@ package metadata
 
 import (
 	//"fmt"
+	"time"
 	"github.com/synw/microb/libmicrob/conf"
     "github.com/synw/microb/libmicrob/datatypes"
 )
@@ -22,6 +23,10 @@ func GetVerbosity() int {
 func IsDebug() bool {
 	d := Config["debug"].(bool)
 	return d
+}
+
+func FormatTime(t time.Time) string {
+	return t.Format("15:04:05")
 }
 
 func GetServer() *datatypes.Server {

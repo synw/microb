@@ -18,6 +18,18 @@ var MainDb *datatypes.Database = metadata.GetMainDatabase()
 var Backend = MainDb.Type
 
 
+func ReportStatus() (map[string]interface{}, error) {
+	var err error
+	status := make(map[string]interface{})
+	if Backend == "rethinkdb" {
+		status, err = rethinkdb.ReportStatus()
+	}
+	if err != nil {
+		return status, err
+	}
+	return status, nil
+}
+
 func GetFromUrl(url string)  (map[string]interface{}, bool) {
 	res := make(map[string]interface{})
 	ok := false

@@ -42,7 +42,7 @@ func formatStatusCode(sc int) string {
 	return sc_str
 }
 
-func printMsg(event_class string, event *datatypes.Event) {
+func getFormatedMsg(event_class string, event *datatypes.Event) string {
 	t := getTime()
 	out := t+" "
 	msg := event.Message
@@ -53,7 +53,12 @@ func printMsg(event_class string, event *datatypes.Event) {
 		out = out+formatStatusCode(sc)
 	}
 	out = out+" "+msg
-	fmt.Println(out)
+	return out
+}
+
+func printMsg(event_class string, event *datatypes.Event) {
+	msg := getFormatedMsg(event_class, event)
+	fmt.Println(msg)
 }
 
 func Handle(event *datatypes.Event) {
@@ -62,10 +67,10 @@ func Handle(event *datatypes.Event) {
 	}
 }
 
-func GetCommandReportMsg(command *datatypes.Command) string {
+func getCommandReportMsg(command *datatypes.Command, from bool) string {
 	var status string
 	var vals string
-	msg := ""
+	var msg string
 	if command.Status == "success" {
 		status = skittles.Green("ok")	
 	} else if command.Status == "error" {
@@ -74,13 +79,43 @@ func GetCommandReportMsg(command *datatypes.Command) string {
 		status = command.Status
 	}
 	if len(command.ReturnValues) > 0 {
-		for _, v := range(command.ReturnValues) {
+		for i, v := range(command.ReturnValues) {
 			vals = vals+v.(string)
+			if i < len(vals) {
+				vals=vals+" "
+			}
 		}
 		msg = vals
 	}
-	msg = "["+command.Name+" ->] "+status+" "+msg+" ("+command.From+")"
+	msg = "["+command.Name+" ->] "+status+" "+msg
+	if from == true {
+		msg = msg+"(from "+command.From+")"
+	}
 	return msg
+}
+
+func GetCommandReportMsg(command *datatypes.Command) string {
+	report := getCommandReportMsg(command, true)
+	return report
+}
+
+func GetFormatedCommandReportMsg(command *datatypes.Command) string {
+	report := getCommandReportMsg(command, true)
+	now := getTime()
+	msg := now+" "+report
+	return msg
+}
+
+func GetFormatedCommandReportMsgSimple(command *datatypes.Command) string {
+	report := getCommandReportMsg(command, false)
+	now := getTime()
+	msg := now+" "+report
+	return msg
+}
+
+func GetCommandReportMsgSimple(command *datatypes.Command) string {
+	report := getCommandReportMsg(command, false)
+	return report
 }
 
 func PrintCommandReport(command *datatypes.Command) {
@@ -97,6 +132,15 @@ func New(event_class string, from string, message string) {
 	var d map[string]interface{}
 	event := &datatypes.Event{event_class, from, message, d}
 	Handle(event)
+}
+
+func ErrorFormated(err error) string {
+	var d map[string]interface{}
+	from := ""
+	event := &datatypes.Event{"error", from, err.Error(), d}
+	fm := getFormatedMsg("error", event)
+	return fm
+	
 }
 
 func Error(from string, err error) {
