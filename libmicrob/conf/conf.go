@@ -8,7 +8,7 @@ import (
 
 func GetConf() map[string]interface{} {
 	// set some defaults for conf
-	viper.SetConfigName("dev_config")
+	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
 	viper.SetDefault("http_host", "")
 	viper.SetDefault("http_port", "8080")
@@ -19,6 +19,7 @@ func GetConf() map[string]interface{} {
 	hits_channels := []string{"$microb_hits"}
 	viper.SetDefault("hits_channels", hits_channels)
 	viper.SetDefault("verbosity", 1)
+	viper.SetDefault("debug", false)
 	brockers := [0]string{}
 	viper.SetDefault("commands_brokers", brockers)
 	// get the actual conf
@@ -41,5 +42,6 @@ func GetConf() map[string]interface{} {
 	conf["hits_channels"] = viper.Get("hits_channels")
 	conf["verbosity"] = viper.Get("verbosity")
 	conf["commands_brokers"] = viper.Get("commands_brokers")
+	conf["debug"] = viper.Get("debug")
 	return conf
 }

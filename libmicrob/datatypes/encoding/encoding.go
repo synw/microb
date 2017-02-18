@@ -43,3 +43,14 @@ func DecodeJsonIncomingRawMessage(raw *json.RawMessage) (*datatypes.WsIncomingMe
 	}
 	return message, nil
 }
+
+func MakeWsMsg(command *datatypes.Command) *datatypes.WsMessage {
+	data := make(map[string]interface{})
+	data["name"] = command.Name
+	data["id"] = command.Id
+	data["from"] = command.From
+	data["reason"] = command.Reason
+	data["args"] = command.Args
+	ws_msg := &datatypes.WsMessage{"command", "incoming command", data}
+	return ws_msg
+}

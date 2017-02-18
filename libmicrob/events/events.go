@@ -75,11 +75,11 @@ func GetCommandReportMsg(command *datatypes.Command) string {
 	}
 	if len(command.ReturnValues) > 0 {
 		for _, v := range(command.ReturnValues) {
-			vals = vals+v.(string)+" "
+			vals = vals+v.(string)
 		}
 		msg = vals
 	}
-	msg = "["+command.Name+" ->] "+status+" "+msg+"from "+command.From
+	msg = "["+command.Name+" ->] "+status+" "+msg+" ("+command.From+")"
 	return msg
 }
 

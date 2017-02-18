@@ -19,6 +19,11 @@ func GetVerbosity() int {
 	return v
 }
 
+func IsDebug() bool {
+	d := Config["debug"].(bool)
+	return d
+}
+
 func GetServer() *datatypes.Server {
 	domain := Config["domain"].(string)
 	http_host :=  Config["http_host"].(string)

@@ -49,6 +49,12 @@ type Command struct {
 	ReturnValues []interface{}
 }
 
+type WsMessage struct { 
+	EventClass string `json:"event_class"`
+	Message string `json:"message"`
+	Data map[string]interface{} `json:"data"`
+}
+
 type WsIncomingMessage struct {
 	RawMessage  json.RawMessage 
 	EventClass string `json:"event_class"`

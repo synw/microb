@@ -19,6 +19,7 @@ import (
 
 var Config = conf.GetConf()
 var SecretKey string = Config["centrifugo_secret_key"].(string)
+var Debug bool = Config["debug"].(bool)
 
 func credentials() *centrifuge.Credentials {
 	secret := SecretKey
@@ -39,7 +40,9 @@ func listenForCommands(channel_name string, done chan bool) (centrifuge.Centrifu
 	wsURL := "ws://"+Config["centrifugo_host"].(string)+":"+Config["centrifugo_port"].(string)+"/connection/websocket"
 	
 	onMessage := func(sub centrifuge.Sub, rawmsg centrifuge.Message) error {
-		//log.Println(fmt.Sprintf("New message received in channel %s: %#v", sub.Channel(), rawmsg))
+		if (Debug == true) {
+			fmt.Println(fmt.Sprintf("New message received in channel %s: %#v", sub.Channel(), rawmsg))
+		}
 		payload, err := encoding.DecodeJsonIncomingRawMessage(rawmsg.Data)
 		var msg string
 		if err != nil {
@@ -112,6 +115,9 @@ func sendCommandFeedback(command *datatypes.Command) {
 	eventstr := &datatypes.WsFeedbackMessage{"command_feedback", command.Status, errstr, data}
 	event, err := json.Marshal(eventstr)
 	channel := "$"+Config["domain"].(string)+"_feedback"
+	if (Debug == true) {
+		fmt.Println("Sending feedback message to", channel, eventstr, "\nDATA:", data)
+	}
 	_, err = client.Publish(channel, event)
 	if err != nil {
 		appevents.Error("websockets.SendCommandFeedback()", err)
