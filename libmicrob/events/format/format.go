@@ -2,9 +2,9 @@ package format
 
 import (
 	"time"
-	"strconv"
 	"github.com/acmacalister/skittles"
 	"github.com/synw/microb/libmicrob/datatypes"
+	"github.com/synw/microb/libmicrob/events/format/methods"
 )
 
 
@@ -51,7 +51,6 @@ func GetTime() string {
 	return t.Format("15:04:05")
 }
 
-
 func getEventOutputFlags() map[string]string {
 	output_flags := make(map[string]string)
 	output_flags["info"] = "["+skittles.Cyan("info")+"]"
@@ -65,18 +64,6 @@ func getEventOutputFlags() map[string]string {
 	return output_flags
 }
 
-func formatStatusCode(sc int) string {
-	var sc_str string
-	if sc == 404 {
-		sc_str = skittles.Red(strconv.Itoa(sc))
-	} else if sc == 200 {
-		sc_str = skittles.Green(strconv.Itoa(sc))
-	} else if sc == 500 {
-		sc_str = skittles.BoldRed(strconv.Itoa(sc))
-	}
-	return sc_str
-}
-
 func getFormatedMsgNoTime(event_class string, event *datatypes.Event) string {
 	var out string
 	msg := event.Message
@@ -84,7 +71,7 @@ func getFormatedMsgNoTime(event_class string, event *datatypes.Event) string {
 	out = out+output_flags[event_class]
 	if (event_class == "request" || event_class == "request_error") {
 		sc := event.Data["status_code"].(int)
-		out = out+formatStatusCode(sc)
+		out = out+methods.FormatStatusCode(sc)
 	}
 	out = out+" "+msg
 	return out

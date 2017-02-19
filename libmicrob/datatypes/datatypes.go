@@ -2,7 +2,9 @@ package datatypes
 
 import (
 	"time"
+	"strconv"
 	"encoding/json"
+	format "github.com/synw/microb/libmicrob/events/format/methods"
 )
 
 
@@ -67,6 +69,60 @@ type WsFeedbackMessage struct {
 	Status string `json:"status"`
 	Error string `json:"error"`
 	Data map[string]interface{} `json:"data"`
+}
+
+type HttpResponse struct {
+	*Server
+	Url string
+	Content string
+	Size int
+	StatusCode int
+	Duration time.Duration
+}
+
+func (r HttpResponse) Format() string {
+	msg := r.Content+"\n"
+	msg = msg+format.FormatStatusCode(r.StatusCode)+" "+r.Url+"\n"
+	h := float64(r.Size)/1000
+	f := strconv.FormatFloat(h, 'f', 2, 64)
+	msg = msg+"Size: "+f+" Ko - "
+	d := r.Duration.String()
+	msg = msg+d
+	return msg
+}
+
+type HttpRequestMetric struct {
+	*Server
+	Url string
+	ProcessingTime int
+	TransportTime int
+	TotalTime int
+	StatusCode int
+}
+
+func (m HttpRequestMetric) Format() string {
+	msg := format.FormatStatusCode(m.StatusCode)+" "+m.Url+"\n"
+	msg = msg+" - Server processing time: "+strconv.Itoa(m.ProcessingTime)+" ms"+"\n"
+	msg = msg+" - Transport time: "+strconv.Itoa(m.TransportTime)+" ms\n"
+	msg = msg+" - Total time: "+strconv.Itoa(m.TotalTime)+" ms"
+	return msg
+}
+
+type HttpStressReport struct {
+	*Server
+	NumRequests int
+	Size int
+	Duration time.Duration
+}
+
+func (r HttpStressReport) Format() string {
+	msg := "Stressing server "+r.Domain+" with "+strconv.Itoa(r.NumRequests)+" requests\n"
+	h := float64(r.Size)/1000
+	f := strconv.FormatFloat(h, 'f', 2, 64)
+	msg = msg+" - Total size: "+f+" Ko\n"
+	d := r.Duration.String()
+	msg = msg+" - Total duration: "+d
+	return msg
 }
 
 /*
