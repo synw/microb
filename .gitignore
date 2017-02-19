@@ -8,6 +8,7 @@ dev_config.json
 _obj
 _test
 .project
+.metadata
 
 # Architecture specific extensions/prefixes
 *.[568vq]
