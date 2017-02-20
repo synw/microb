@@ -88,6 +88,10 @@ func ServeApi(response http.ResponseWriter, request *http.Request) {
 	fmt.Fprintf(response, "%s\n", json_bytes)
 }
 
+func ReparseTemplates() {
+	View = template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/head.html", "templates/header.html", "templates/navbar.html", "templates/footer.html", "templates/routes.js"))
+}
+
 func renderTemplate(response http.ResponseWriter, page *datatypes.Page) {
     err := View.Execute(response, page)
     if err != nil {

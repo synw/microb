@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"io/ioutil"
-	"html/template"
 	"errors"
 	"time"
 	"strconv"
@@ -16,6 +15,8 @@ import (
 	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/metadata"
 	"github.com/synw/microb/libmicrob/commands/methods"
+	"github.com/synw/microb/libmicrob/http_handlers"
+	
 )
 
 
@@ -23,12 +24,13 @@ import (
 func reparseTemplates() error {
 	path, err := filepath.Abs(filepath.Dir(os.Args[0]))
     if err != nil {
-    	events.Error("commands.reparseTemplates()", err)
+    	events.Error("commands.reparseTemplates", err)
+    	return err
     }
     if metadata.GetVerbosity() > 0 {
 		fmt.Println("Reparsing templates at", path)
 	}
-	template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/head.html", "templates/header.html", "templates/navbar.html", "templates/footer.html", "templates/routes.js"))
+	http_handlers.ReparseTemplates()
 	return nil
 }
 
@@ -44,7 +46,7 @@ func updateRoutes() error {
     str := []byte(routestr)
     err := ioutil.WriteFile("templates/routes.js", str, 0644)
     if err != nil {
-        panic(err)
+        events.Error("commands.updateRoutes", err)
         return err
     }
     // auto reparse templates if the routes change
@@ -145,6 +147,7 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 			handleCommandError(command, err, c)
 			return
 		} else {
+			go updateRoutes()
 			command.Status = "success"
 		}
 	} else if (command.Name == "reparse_templates") {
@@ -153,6 +156,7 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 			handleCommandError(command, err, c)
 			return
 		} else {
+			go reparseTemplates()
 			command.Status = "success"
 		}
 	} else if (command.Name == "ping") {
