@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"encoding/json"
     "html/template"
-    "github.com/julienschmidt/httprouter"
+    "github.com/pressly/chi"
     "github.com/synw/microb/libmicrob/events"
     "github.com/synw/microb/libmicrob/datatypes"
     "github.com/synw/microb/libmicrob/db"
@@ -14,9 +14,62 @@ import (
 
 
 var Routes = db.GetRoutes()
-var View = template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/routes.js"))
-var V404 = template.Must(template.New("404.html").ParseFiles("templates/404.html", "templates/routes.js"))
-var V500 = template.Must(template.New("500.html").ParseFiles("templates/500.html", "templates/routes.js"))
+var View = template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/head.html", "templates/header.html", "templates/footer.html", "templates/routes.js"))
+var V404 = template.Must(template.New("404.html").ParseFiles("templates/404.html", "templates/head.html", "templates/header.html", "templates/footer.html", "templates/routes.js"))
+var V500 = template.Must(template.New("500.html").ParseFiles("templates/500.html", "templates/head.html", "templates/header.html", "templates/footer.html", "templates/routes.js"))
+
+func Handle500(response http.ResponseWriter, request *http.Request, params interface{}) {
+	msg := "Error 500"
+	d := make(map[string]interface{})
+	d["status_code"] = http.StatusInternalServerError
+	event := &datatypes.Event{"request_error", "http_server", msg, d}
+	events.Handle(event)
+	page := &datatypes.Page{Url: "/error/", Title: "", Content: ""}
+	status := http.StatusInternalServerError
+	response = httpResponseWriter{response, &status}
+	render500(response, page)
+}
+
+func ServeRequest(response http.ResponseWriter, request *http.Request) {
+	url := chi.URLParam(request, "url")
+	if url == "" {url = "/"}
+	if isValidRoute(url) == false {
+		fmt.Println("invalid route", url)
+		handle404(response, request, url, false)
+		return
+	}
+	msg := "PAGE "+url
+	d := make(map[string]interface{})
+	d["status_code"] = http.StatusOK
+	status := http.StatusOK
+	event := &datatypes.Event{"request", "http_server", msg, d}
+    events.Handle(event)
+    page := &datatypes.Page{Url: url, Title: "", Content: ""}
+    response = httpResponseWriter{response, &status}
+    renderTemplate(response, page)
+}
+
+func ServeApi(response http.ResponseWriter, request *http.Request) {
+	url := chi.URLParam(request, "url")
+	page := getPage(url)
+	if isValidRoute(url) == false {
+		handle404(response, request, url, true)
+		return
+	}
+	if (page.Url == "404") {
+    	handle404(response, request, url, true)
+    	return
+    }
+	msg := "API "+url
+	d := make(map[string]interface{})
+	d["status_code"] = http.StatusOK
+	event := &datatypes.Event{"request", "http_server", msg, d}
+    events.Handle(event)
+    status := http.StatusOK
+	json_bytes, _ := json.Marshal(page)
+	response = httpResponseWriter{response, &status}
+	fmt.Fprintf(response, "%s\n", json_bytes)
+}
 
 func renderTemplate(response http.ResponseWriter, page *datatypes.Page) {
     err := View.Execute(response, page)
@@ -73,61 +126,9 @@ func getPage(url string) *datatypes.Page {
 	return page
 }
 
-func ServeRequest(response http.ResponseWriter, request *http.Request, ps httprouter.Params) {
-	url := ps.ByName("url")
-	if url == "" {url = "/"}
-	if isValidRoute(url) == false {
-		handle404(response, request, url, false)
-		return
-	}
-	msg := "PAGE "+url
-	d := make(map[string]interface{})
-	d["status_code"] = http.StatusOK
-	status := http.StatusOK
-	event := &datatypes.Event{"request", "http_server", msg, d}
-    events.Handle(event)
-    page := &datatypes.Page{Url: url, Title: "", Content: ""}
-    response = httpResponseWriter{response, &status}
-    renderTemplate(response, page)
-}
-
 type httpResponseWriter struct {
 	http.ResponseWriter
 	status *int
-}
-
-func ServeApi(response http.ResponseWriter, request *http.Request, ps httprouter.Params) {
-	url := ps.ByName("url")
-	page := getPage(url)
-	if isValidRoute(url) == false {
-		handle404(response, request, url, true)
-		return
-	}
-	if (page.Url == "404") {
-    	handle404(response, request, url, true)
-    	return
-    }
-	msg := "API "+url
-	d := make(map[string]interface{})
-	d["status_code"] = http.StatusOK
-	event := &datatypes.Event{"request", "http_server", msg, d}
-    events.Handle(event)
-    status := http.StatusOK
-	json_bytes, _ := json.Marshal(page)
-	response = httpResponseWriter{response, &status}
-	fmt.Fprintf(response, "%s\n", json_bytes)
-}
-
-func Handle500(response http.ResponseWriter, request *http.Request, params interface{}) {
-	msg := "Error 500"
-	d := make(map[string]interface{})
-	d["status_code"] = http.StatusInternalServerError
-	event := &datatypes.Event{"request_error", "http_server", msg, d}
-	events.Handle(event)
-	page := &datatypes.Page{Url: "/error/", Title: "", Content: ""}
-	status := http.StatusInternalServerError
-	response = httpResponseWriter{response, &status}
-	render500(response, page)
 }
 
 func handle404(response http.ResponseWriter, request *http.Request, url string, api bool) {

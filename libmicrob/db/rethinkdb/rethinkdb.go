@@ -2,12 +2,12 @@ package rethinkdb
 
 import (
 	"fmt"
-	"log"
 	"time"
 	 r "gopkg.in/dancannon/gorethink.v2"
 	 "github.com/synw/microb/libmicrob/conf"
 	 "github.com/synw/microb/libmicrob/datatypes"
 	 "github.com/synw/microb/libmicrob/metadata"
+	 "github.com/synw/microb/libmicrob/events"
 )
 
 var Config = conf.GetConf()
@@ -36,7 +36,7 @@ func connectToDb(database *datatypes.Database) (*r.Session) {
         MaxOpen:    10,
 	})
     if err != nil {
-        log.Fatalln(err.Error())
+        events.Error("db.rethinkdb.connectToDb()", err)
     }
     return session
 }
@@ -87,7 +87,11 @@ func ReportStatus()( map[string]interface{}, error) {
 func GetRoutes() []string {
 	session := Conn
 	db := Config["domain"].(string)
+	
 	res, err := r.DB(db).Table("pages").Pluck("uri").Run(session)
+	if err != nil && err != r.ErrEmptyResult {
+		events.Error("db.rethinkdb.GetRoutes()", err)
+	}
 	defer res.Close()
 	var row map[string]interface{}
 	var routes []string
@@ -95,9 +99,25 @@ func GetRoutes() []string {
 		url := row["uri"].(string)
 	    routes = append(routes, url)
 	}
+	/*
+	filters := map[string]interface{}{"type":"routes"}
+	res, err := r.DB(db).table("metadata").Filter(filters).Run(session)
 	if err != nil {
-		fmt.Printf("Rethinkdb: error scanning database results: %s\n", err)
+		events.Error("db.rethinkdb.GetRoutes()", err)
 	}
+	if err == r.ErrEmptyResult {
+		msg := errors.New("Routes not found in database: "+err.Error())
+	    events.Error("db.rethinkdb.GetRoutes()", msg)
+	} else {
+		var row map[string]interface{}
+		err = res.One(&row)
+		if err != nil && err != r.ErrEmptyResult {
+			events.Error("db.rethinkdb.GetRoutes()", err)
+		} else {
+			
+		}
+		
+	}*/
 	return routes
 }
 
@@ -109,12 +129,12 @@ func GetFromDb(url string)  (map[string]interface{}, bool)  {
 	res, err := r.DB(db).Table("pages").Filter(filters).Pluck("fields").Run(session)
 	defer res.Close()
 	if err != nil {
-		log.Fatalln(err.Error())
+		events.Error("db.rethinkdb.GetFromDb()", err)
 	}
 	var rescol map[string]interface{}
 	err = res.One(&rescol)
 	if err != nil && err != r.ErrEmptyResult {
-		fmt.Printf("Rethinkdb: error scanning database results: %s\n", err)
+		events.Error("db.rethinkdb.GetFromDb()", err)
 	}
 	var page_served map[string]interface{}
 	if err == r.ErrEmptyResult {

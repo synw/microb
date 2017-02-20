@@ -79,7 +79,6 @@ func getFormatedMsgNoTime(event_class string, event *datatypes.Event) string {
 
 func getCommandReportMsg(command *datatypes.Command, from bool) string {
 	var status string
-	var vals string
 	var msg string
 	if command.Status == "success" {
 		status = skittles.Green("ok")	
@@ -89,13 +88,9 @@ func getCommandReportMsg(command *datatypes.Command, from bool) string {
 		status = command.Status
 	}
 	if len(command.ReturnValues) > 0 {
-		for i, v := range(command.ReturnValues) {
-			vals = vals+v.(string)
-			if i < len(vals) {
-				vals=vals+" "
-			}
+		for _, v := range(command.ReturnValues) {
+			msg = msg+"\n"+v.(string)
 		}
-		msg = vals
 	}
 	msg = "["+command.Name+" ->] "+status+" "+msg
 	if from == true {

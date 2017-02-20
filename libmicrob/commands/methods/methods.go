@@ -7,7 +7,7 @@ import (
 
 
 func IsValid(command *datatypes.Command) bool {
-	valid_commands := []string{"update_routes", "reparse_templates", "ping", "db_status"}
+	valid_commands := []string{"update_routes", "reparse_templates", "ping", "db_status", "routes"}
 	is_valid := false
 	for _, com := range(valid_commands) {
 		if (com == command.Name) {

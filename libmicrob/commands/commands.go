@@ -7,6 +7,9 @@ import (
 	"errors"
 	"time"
 	"strconv"
+	"os"
+	"path/filepath"
+	//"github.com/shirou/gopsutil/mem"
 	"github.com/synw/microb/libmicrob/db"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/datatypes/encoding"
@@ -18,7 +21,14 @@ import (
 
 // commands
 func reparseTemplates() error {
-	template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/routes.js"))
+	path, err := filepath.Abs(filepath.Dir(os.Args[0]))
+    if err != nil {
+    	events.Error("commands.reparseTemplates()", err)
+    }
+    if metadata.GetVerbosity() > 0 {
+		fmt.Println("Reparsing templates at", path)
+	}
+	template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/head.html", "templates/header.html", "templates/footer.html", "templates/routes.js"))
 	return nil
 }
 
@@ -50,6 +60,11 @@ func dbStatus() (map[string]interface{}, error) {
 	}
 	return status, nil
 }
+/*
+func sysInfo(*datatypes.Command) *datatypes.Command {
+	v, _ := mem.VirtualMemory()
+	
+}*/
 
 // utilities
 func handleCommandError(command *datatypes.Command, err error, c chan *datatypes.Command) {
@@ -156,6 +171,14 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 		command.ReturnValues = append(command.ReturnValues, version)
 		command.ReturnValues = append(command.ReturnValues, cache_size_mb)
 		command.ReturnValues = append(command.ReturnValues, time_started)
+		command.Status = "success"
+	} else if (command.Name == "routes") {
+		routes := db.GetRoutes()
+		var rvs []interface{}
+		for _, route := range(routes) {
+			rvs = append(rvs, route)
+		} 
+		command.ReturnValues = rvs
 		command.Status = "success"
 	}
 	c <- command

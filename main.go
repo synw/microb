@@ -3,8 +3,10 @@ package main
 import (
 	"time"
     "net/http"
-    "log"
-    "github.com/julienschmidt/httprouter"
+    "github.com/pressly/chi"
+	//"github.com/pressly/chi/docgen"
+	"github.com/pressly/chi/middleware"
+	//"github.com/pressly/chi/render"
     "github.com/acmacalister/skittles"
     "github.com/synw/microb/libmicrob/events"
     "github.com/synw/microb/libmicrob/metadata"
@@ -18,12 +20,15 @@ func init() {
 }
 
 func main() {
-    router := httprouter.New()
-    router.GET("/", http_handlers.ServeRequest)
-    router.GET("/p/*url", http_handlers.ServeRequest)
-    router.GET("/x/*url", http_handlers.ServeApi)
-    router.ServeFiles("/static/*filepath", http.Dir("static"))
-    router.PanicHandler = http_handlers.Handle500
+	// routing
+	r := chi.NewRouter()
+	r.Use(middleware.RequestID)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Get("/x/:url*", http_handlers.ServeApi)
+	r.Get("/:url*", http_handlers.ServeRequest)
+	r.Get("/", http_handlers.ServeRequest)
+    // welcome msg
     server := metadata.GetServer()
     database := metadata.GetMainDatabase()
     loc := server.Host+":"+server.Port
@@ -33,11 +38,12 @@ func main() {
 		msg = msg+" ("+database.Host+")"
 		events.New("runtime_info", "http_server", msg)
 	}
+	// http server
 	httpServer := &http.Server{
 		Addr: loc,
 	    ReadTimeout: 5 * time.Second,
 	    WriteTimeout: 10 * time.Second,
-	    Handler: router,
+	    Handler: r,
 	}
-    log.Fatal(httpServer.ListenAndServe())
+    httpServer.ListenAndServe()
 }
