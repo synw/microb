@@ -146,5 +146,6 @@ func GetFromUrl(url string)  (*datatypes.Page, bool, error)  {
 		page.Content = content
 		return &page, true, err
 	}
+	fmt.Println(page)
 	return &page, false, nil
 }

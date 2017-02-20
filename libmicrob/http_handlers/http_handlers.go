@@ -56,8 +56,10 @@ func ServeApi(response http.ResponseWriter, request *http.Request) {
 	doc, err := getDocument(url)
 	if isValidRoute(url) == false {
 		if Debug == true {
-			fmt.Println("http.handlers.ServeApi() error: invalid route "+url+" from isValidRoute()")
-			fmt.Println(doc.Format())
+			msg := "Invalid route "+url
+			msg = msg+doc.Format()
+			err = errors.New(msg)
+			events.Error("http.handlers.ServeApi", err)
 		}
 		handle404(response, request, url, true)
 		return
