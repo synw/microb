@@ -3,6 +3,7 @@ package http_handlers
 import (
 	"fmt"
 	"strings"
+	"errors"
 	"net/http"
 	"encoding/json"
     "html/template"
@@ -10,13 +11,15 @@ import (
     "github.com/synw/microb/libmicrob/events"
     "github.com/synw/microb/libmicrob/datatypes"
     "github.com/synw/microb/libmicrob/db"
+    "github.com/synw/microb/libmicrob/metadata"
 )
 
 
 var Routes = db.GetRoutes()
-var View = template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/head.html", "templates/header.html", "templates/footer.html", "templates/routes.js"))
-var V404 = template.Must(template.New("404.html").ParseFiles("templates/404.html", "templates/head.html", "templates/header.html", "templates/footer.html", "templates/routes.js"))
-var V500 = template.Must(template.New("500.html").ParseFiles("templates/500.html", "templates/head.html", "templates/header.html", "templates/footer.html", "templates/routes.js"))
+var View = template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/head.html", "templates/header.html", "templates/navbar.html", "templates/footer.html", "templates/routes.js"))
+var V404 = template.Must(template.New("404.html").ParseFiles("templates/404.html", "templates/head.html", "templates/header.html", "templates/navbar.html", "templates/footer.html", "templates/routes.js"))
+var V500 = template.Must(template.New("500.html").ParseFiles("templates/500.html", "templates/head.html", "templates/header.html", "templates/navbar.html", "templates/footer.html", "templates/routes.js"))
+var Debug = metadata.IsDebug()
 
 func Handle500(response http.ResponseWriter, request *http.Request, params interface{}) {
 	msg := "Error 500"
@@ -31,8 +34,7 @@ func Handle500(response http.ResponseWriter, request *http.Request, params inter
 }
 
 func ServeRequest(response http.ResponseWriter, request *http.Request) {
-	url := chi.URLParam(request, "url")
-	if url == "" {url = "/"}
+	url := formatUrl(chi.URLParam(request, "url"))
 	if isValidRoute(url) == false {
 		fmt.Println("invalid route", url)
 		handle404(response, request, url, false)
@@ -50,16 +52,27 @@ func ServeRequest(response http.ResponseWriter, request *http.Request) {
 }
 
 func ServeApi(response http.ResponseWriter, request *http.Request) {
-	url := chi.URLParam(request, "url")
-	page := getPage(url)
+	url := formatUrl(chi.URLParam(request, "path"))
+	doc, err := getDocument(url)
 	if isValidRoute(url) == false {
+		if Debug == true {
+			fmt.Println("http.handlers.ServeApi() error: invalid route "+url+" from isValidRoute()")
+			fmt.Println(doc.Format())
+		}
 		handle404(response, request, url, true)
 		return
 	}
-	if (page.Url == "404") {
+	if err != nil {
+		events.Error("http_handlers.ServeApi()", err)
+	}
+	if (doc == nil) {
+		if Debug == true {
+			fmt.Println("http.handlers.ServeApi() error: route "+url+" not found from database")
+		}
     	handle404(response, request, url, true)
     	return
     }
+	/*
 	msg := "API "+url
 	d := make(map[string]interface{})
 	d["status_code"] = http.StatusOK
@@ -68,6 +81,8 @@ func ServeApi(response http.ResponseWriter, request *http.Request) {
     status := http.StatusOK
 	json_bytes, _ := json.Marshal(page)
 	response = httpResponseWriter{response, &status}
+	*/
+	json_bytes, _ := json.Marshal(doc)
 	fmt.Fprintf(response, "%s\n", json_bytes)
 }
 
@@ -103,27 +118,23 @@ func isValidRoute(url string) bool {
 	return is_valid
 }
 
-func getPage(url string) *datatypes.Page {
-	hasSlash := strings.HasSuffix(url, "/")
+func getDocument(url string) (*datatypes.Page, error) {
 	index_url := url
 	found := false
-	var data map[string]interface{}
-	page := &datatypes.Page{Url:"404", Title:"404", Content:"404 Page not found"}
-	if (hasSlash == false) {
-		index_url = url+"/"
-	}
 	// remove url mask
 	index_url = strings.Replace(index_url,"/x","",-1)
 	// hit db
-	data, found = db.GetFromUrl(index_url)
-	if (found == false) {
-		return page
+	doc, found, err := db.GetFromUrl(index_url)
+	if err != nil {
+		events.Error("http_handlers.getDocument", err)
+		return doc, err
 	}
-	fields := data["fields"].(map[string]interface{})
-	content := fields["content"].(string)
-	title := fields["title"].(string)
-	page = &datatypes.Page{Url: url, Title: title, Content: content}
-	return page
+	if (found == false) {
+		msg := "Document "+url+" not found"
+		err = errors.New(msg)
+		events.Error("http_handlers.getDocument", err)
+	}
+	return doc, nil
 }
 
 type httpResponseWriter struct {
@@ -152,4 +163,11 @@ func handle404(response http.ResponseWriter, request *http.Request, url string, 
 	} else {
 		render404(response, page)
 	}
+}
+
+func formatUrl(url string) string {
+	if strings.HasPrefix(url, "/") == false {
+		url = "/"+url
+	}
+	return url
 }

@@ -22,7 +22,7 @@ function loadPage(resturl){
 	});
 	return
 }
-page('/', function(ctx, next) { loadPage('/x/') } );
+page('/', function(ctx, next) { loadPage('/x') } );
 {{ template "routes.js" . }}
 page();
 </script>

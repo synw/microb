@@ -3,6 +3,7 @@ package datatypes
 import (
 	"time"
 	"strconv"
+	//"errors"
 	"encoding/json"
 	format "github.com/synw/microb/libmicrob/events/format/methods"
 )
@@ -30,6 +31,14 @@ type Page struct {
     Url string
     Title string
     Content  string
+}
+
+func (p Page) Format() string {
+	var msg string
+	msg = msg+" - Url: "+p.Url+"\n"
+	msg = msg+" - Title: "+p.Title+"\n"
+	msg = msg+" - Content: "+p.Content
+	return msg
 }
 
 type Event struct {
@@ -89,6 +98,13 @@ func (r HttpResponse) Format() string {
 	d := r.Duration.String()
 	msg = msg+d
 	return msg
+}
+
+type HttpRequest struct {
+	*Server
+	*Page
+	StatusCode int
+	//Error errors.Err
 }
 
 type HttpRequestMetric struct {

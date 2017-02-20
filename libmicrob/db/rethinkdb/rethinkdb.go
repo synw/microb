@@ -3,7 +3,8 @@ package rethinkdb
 import (
 	"fmt"
 	"time"
-	 r "gopkg.in/dancannon/gorethink.v2"
+	//"errors"
+	 r "gopkg.in/dancannon/gorethink.v3"
 	 "github.com/synw/microb/libmicrob/conf"
 	 "github.com/synw/microb/libmicrob/datatypes"
 	 "github.com/synw/microb/libmicrob/metadata"
@@ -13,6 +14,7 @@ import (
 var Config = conf.GetConf()
 var Conn *r.Session
 var MainDb *datatypes.Database = metadata.GetMainDatabase()
+var Debug = metadata.IsDebug()
 
 func init() {
 	if MainDb.Type == "rethinkdb" {
@@ -26,10 +28,11 @@ func connectToDb(database *datatypes.Database) (*r.Session) {
 	user := database.User
 	pwd := database.Password
 	addr := host+":"+port
+	db_name := Config["domain"].(string)
 	// connect to Rethinkdb
 	session, err := r.Connect(r.ConnectOpts{
 		Address: addr,
-		//Database: db,
+		Database: db_name,
 		Username: user,
 		Password: pwd,
 		InitialCap: 10,
@@ -37,6 +40,9 @@ func connectToDb(database *datatypes.Database) (*r.Session) {
 	})
     if err != nil {
         events.Error("db.rethinkdb.connectToDb()", err)
+    }
+    if Debug {
+    	fmt.Println("Connecting to database", db_name, " at ", addr)
     }
     return session
 }
@@ -59,7 +65,7 @@ func ReportIssues() []*datatypes.DatabaseIssue {
 	return issues
 }
 */
-func ReportStatus()( map[string]interface{}, error) {
+func ReportStatus()(map[string]interface{}, error) {
 	session := Conn
 	res, err := r.DB("rethinkdb").Table("server_status").Run(session)
 	defer res.Close()
@@ -70,7 +76,7 @@ func ReportStatus()( map[string]interface{}, error) {
 	var row map[string]interface{}
 	err = res.One(&row)
 	if err != nil && err != r.ErrEmptyResult {
-		fmt.Printf("Rethinkdb: error scanning database results: %s\n", err)
+		events.Error("db.rethinkdb.ReportStatus", err)
 	}
 	process := row["process"].(map[string]interface{})
 	//network := row["network"].(map[string]interface{})
@@ -86,11 +92,9 @@ func ReportStatus()( map[string]interface{}, error) {
 
 func GetRoutes() []string {
 	session := Conn
-	db := Config["domain"].(string)
-	
-	res, err := r.DB(db).Table("pages").Pluck("uri").Run(session)
+	res, err := r.Table("pages").Pluck("uri").Run(session)
 	if err != nil && err != r.ErrEmptyResult {
-		events.Error("db.rethinkdb.GetRoutes()", err)
+		events.Error("db.rethinkdb.GetRoutes", err)
 	}
 	defer res.Close()
 	var row map[string]interface{}
@@ -121,28 +125,26 @@ func GetRoutes() []string {
 	return routes
 }
 
-func GetFromDb(url string)  (map[string]interface{}, bool)  {
+func GetFromUrl(url string)  (*datatypes.Page, bool, error)  {
 	session := Conn
-	found := false
-	db := Config["domain"].(string)
+	var page datatypes.Page
 	filters := map[string]interface{}{"uri":url}
-	res, err := r.DB(db).Table("pages").Filter(filters).Pluck("fields").Run(session)
+	res, err := r.Table("pages").Filter(filters).Pluck("fields").Run(session)
 	defer res.Close()
+	var row map[string]interface{}
+	err = res.One(&row)
 	if err != nil {
-		events.Error("db.rethinkdb.GetFromDb()", err)
+		events.Error("db.rethinkdb.GetFromUrl", err)
+		return &page, false, err
 	}
-	var rescol map[string]interface{}
-	err = res.One(&rescol)
-	if err != nil && err != r.ErrEmptyResult {
-		events.Error("db.rethinkdb.GetFromDb()", err)
+	if err != r.ErrEmptyResult {
+		fields := row["fields"].(map[string]interface{})
+		title := fields["title"].(string)
+		content := fields["content"].(string)
+		page.Url = url
+		page.Title = title
+		page.Content = content
+		return &page, true, err
 	}
-	var page_served map[string]interface{}
-	if err == r.ErrEmptyResult {
-	    //fmt.Printf("Rethinkdb: no results: %s\n", err)
-	    page_served = make(map[string]interface{})
-	} else {
-		found = true
-		page_served = rescol
-	}
-	return page_served, found
+	return &page, false, nil
 }

@@ -25,8 +25,17 @@ func main() {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.Get("/x/:url*", http_handlers.ServeApi)
-	r.Get("/:url*", http_handlers.ServeRequest)
+	r.Get("/x/", http_handlers.ServeApi)
+	//r.Get("/x/:path", http_handlers.ServeApi)
+	
+	r.Route("/x", func(r chi.Router) {
+		r.Get("/", http_handlers.ServeApi)
+	    r.Route("/:path", func(r chi.Router) {
+	      	r.Get("/", http_handlers.ServeApi)
+		})
+	  })
+	
+	r.Get("/:url", http_handlers.ServeRequest)
 	r.Get("/", http_handlers.ServeRequest)
     // welcome msg
     server := metadata.GetServer()

@@ -12,6 +12,9 @@ var Verbosity = metadata.GetVerbosity()
 
 func printMsg(event_class string, event *datatypes.Event) {
 	msg := format.GetFormatedMsg(event_class, event)
+	if event_class == "error" {
+		msg = msg+" (from "+event.From+")"
+	}
 	fmt.Println(msg)
 }
 

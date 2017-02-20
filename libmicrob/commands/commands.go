@@ -28,7 +28,7 @@ func reparseTemplates() error {
     if metadata.GetVerbosity() > 0 {
 		fmt.Println("Reparsing templates at", path)
 	}
-	template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/head.html", "templates/header.html", "templates/footer.html", "templates/routes.js"))
+	template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/head.html", "templates/header.html", "templates/navbar.html", "templates/footer.html", "templates/routes.js"))
 	return nil
 }
 

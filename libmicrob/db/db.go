@@ -5,11 +5,12 @@ import (
 	"sync"
 	r "gopkg.in/dancannon/gorethink.v2"
 	postgresql "github.com/synw/microb/db/postgresql"*/
+	"errors"
 	"github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/db/rethinkdb"
-	//"github.com/synw/microb/utils"
 	"github.com/synw/microb/libmicrob/metadata"
+	"github.com/synw/microb/libmicrob/events"
 	
 )
 
@@ -30,13 +31,20 @@ func ReportStatus() (map[string]interface{}, error) {
 	return status, nil
 }
 
-func GetFromUrl(url string)  (map[string]interface{}, bool) {
-	res := make(map[string]interface{})
-	ok := false
+func GetFromUrl(url string)  (*datatypes.Page, bool, error) {
+	var r *datatypes.Page
+	f := false
 	if Backend == "rethinkdb" {
-		res, ok = rethinkdb.GetFromDb(url)
+		res, found, err := rethinkdb.GetFromUrl(url)
+		if err != nil {
+			events.Error("db.GetFromUrl", err)
+			return r, f, nil
+		}
+		return res, found, nil
 	}
-	return res, ok
+	err := errors.New("The database did not return any result")
+	events.Error("db.GetFromUrl", err)
+	return r, f, nil
 }
 
 func GetRoutes() []string {

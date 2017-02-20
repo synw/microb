@@ -1,5 +1,5 @@
 # Microb
 
-Http server and single page app engine
+Http server and API server
 
-A complete rewrite with http_router is in progress
+A complete rewrite is in progress

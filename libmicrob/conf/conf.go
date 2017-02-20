@@ -35,7 +35,7 @@ func GetConf() map[string]interface{} {
 	conf["centrifugo_port"] = viper.Get("centrifugo_port")
 	conf["centrifugo_secret_key"] = viper.Get("centrifugo_secret_key")
 	conf["databases"] = viper.Get("databases")
-	conf["default_database"] = viper.Get("databases.default")
+	conf["default_database"] = viper.Get("databases.main")
 	conf["staticfiles_host"] = viper.Get("staticfiles_host")
 	conf["hits_log"] = viper.Get("hits_log")
 	conf["hits_monitor"] = viper.Get("hits_monitor")
