@@ -8,7 +8,8 @@ An API server that is:
 - **Mutable**: ability to change the server's state at runtime. A [terminal client](https://github.com/synw/microb-cli)
 is available
 
-- **Decoupled**: the databases, the static files server and the Api server can be located anywhere. 
+- **Decoupled**: the databases, the static files server, the websockets server and the Api server 
+can be located anywhere. 
 
 External servers used
 ---------------------
