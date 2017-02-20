@@ -1,5 +1,27 @@
-# Microb
+Microb
+======
 
-Http server and API server
+An API server that is:
 
-A complete rewrite is in progress
+- **Observable**: the server can stream runtime info, and send introspections results
+
+- **Mutable**: ability to change the server's state at runtime. A [terminal client](https://github.com/synw/microb-cli)
+is available
+
+- **Decoupled**: the databases, the static files server and the Api server can be located anywhere. 
+
+External servers used
+---------------------
+
+- Static files: [Caddy](https://github.com/mholt/caddy)
+
+- Websockets: [Centrifugo](https://github.com/centrifugal/centrifugo)
+
+Supported databases
+-------------------
+
+- Rethinkdb
+
+- Postgresql
+
+- Sqlite

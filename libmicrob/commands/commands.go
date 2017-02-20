@@ -6,8 +6,6 @@ import (
 	"errors"
 	"time"
 	"strconv"
-	"os"
-	"path/filepath"
 	//"github.com/shirou/gopsutil/mem"
 	"github.com/synw/microb/libmicrob/db"
 	"github.com/synw/microb/libmicrob/datatypes"
@@ -22,14 +20,6 @@ import (
 
 // commands
 func reparseTemplates() error {
-	path, err := filepath.Abs(filepath.Dir(os.Args[0]))
-    if err != nil {
-    	events.Error("commands.reparseTemplates", err)
-    	return err
-    }
-    if metadata.GetVerbosity() > 0 {
-		fmt.Println("Reparsing templates at", path)
-	}
 	http_handlers.ReparseTemplates()
 	return nil
 }
@@ -50,7 +40,7 @@ func updateRoutes() error {
         return err
     }
     // auto reparse templates if the routes change
-    cmd := New("reparse_templates", "commands.updateRoutes()", "Routes update")
+   	cmd := New("reparse_templates", "commands.updateRoutes()", "Routes update")
     go Run(cmd)
  	return nil
 }
