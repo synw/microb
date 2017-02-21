@@ -11,7 +11,8 @@ import (
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/datatypes/encoding"
 	"github.com/synw/microb/libmicrob/events"
-	"github.com/synw/microb/libmicrob/metadata"
+	"github.com/synw/microb/libmicrob/events/format"
+	"github.com/synw/microb/libmicrob/state"
 	"github.com/synw/microb/libmicrob/commands/methods"
 	"github.com/synw/microb/libmicrob/http_handlers"
 	
@@ -26,7 +27,10 @@ func reparseTemplates() error {
 
 func updateRoutes() error {
 	// hit db
-	routestab := db.GetRoutes()
+	routestab, err := db.GetRoutes()
+	if err != nil {
+		events.Error("commands.updateRoutes", err)
+	}
 	var routestr string
 	var route string
 	for i := range(routestab) {
@@ -34,7 +38,7 @@ func updateRoutes() error {
 		routestr = routestr+fmt.Sprintf("page('%s', function(ctx, next) { loadPage('/x%s') } );", route, route)
 	}
     str := []byte(routestr)
-    err := ioutil.WriteFile("templates/routes.js", str, 0644)
+    err = ioutil.WriteFile("templates/routes.js", str, 0644)
     if err != nil {
         events.Error("commands.updateRoutes", err)
         return err
@@ -72,7 +76,7 @@ func HandleCommandFeedback(command *datatypes.Command) {
 	if command.Status == "error" {
 		events.Error("command_execution", command.Error)
 	}
-	if metadata.GetVerbosity() > 0 {
+	if state.Verbosity > 0 {
 		events.PrintCommandReport(command)
 	}
 }
@@ -161,20 +165,30 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 		line := "------------------------------"
 		version := "\n "+line+"\n - Version: "+status["version"].(string)+"\n"
 		cache_size_mb := "- Cache size: "+strconv.FormatFloat(status["cache_size_mb"].(float64), 'f', 2, 64)+" Mb\n"
-		time_started := line+"\nStarted since "+metadata.FormatTime(status["time_started"].(time.Time))
+		time_started := line+"\nStarted since "+format.FormatTime(status["time_started"].(time.Time))
 		command.ReturnValues = append(command.ReturnValues, version)
 		command.ReturnValues = append(command.ReturnValues, cache_size_mb)
 		command.ReturnValues = append(command.ReturnValues, time_started)
 		command.Status = "success"
 	} else if (command.Name == "routes") {
-		routes := db.GetRoutes()
+		routes, err := db.GetRoutes()
+		if err != nil {
+			handleCommandError(command, err, c)
+			return
+		}
 		var rvs []interface{}
 		for _, route := range(routes) {
 			rvs = append(rvs, route)
-		} 
+		}
 		command.ReturnValues = rvs
 		command.Status = "success"
-	}
+	} /*else if (command.Name == "db_list") {
+		for role, db := range metadata.GetDatabasesAndRoles() {
+			msg := database.Name
+			command.ReturnValues = append(command.ReturnValues, )
+		}
+		command.Status = "success"
+	}*/
 	c <- command
 	/*else if (command.Name == "syncdb") {
 		go db.ImportPagesFromMainDb(command.Values.(string))

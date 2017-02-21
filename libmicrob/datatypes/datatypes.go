@@ -16,6 +16,10 @@ type Server struct {
 	WebsocketsHost string
 	WebsocketsPort string
 	WebsocketsKey string
+	PagesDb *Database
+	HitsDb *Database
+	CommandsDb *Database
+	Runing bool
 }
 
 type Database struct {
@@ -25,6 +29,7 @@ type Database struct {
 	Port string
 	User string
 	Password string
+	Roles []string
 }
 
 type Page struct {

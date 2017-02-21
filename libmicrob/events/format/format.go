@@ -51,6 +51,10 @@ func GetTime() string {
 	return t.Format("15:04:05")
 }
 
+func FormatTime(t time.Time) string {
+	return t.Format("15:04:05")
+}
+
 func getEventOutputFlags() map[string]string {
 	output_flags := make(map[string]string)
 	output_flags["info"] = "["+skittles.Cyan("info")+"]"
@@ -58,6 +62,8 @@ func getEventOutputFlags() map[string]string {
 	output_flags["command"] = "[=> "+skittles.Cyan("command")+"]"
 	output_flags["error"] = "["+skittles.BoldRed("error")+"]"
 	output_flags["metric"] = "["+skittles.Cyan("metric")+"]"
+	output_flags["state"] = "["+skittles.Yellow("state")+"]"
+	output_flags["debug"] = "["+skittles.Yellow("debug")+"]"
 	output_flags["request"] = ""
 	output_flags["request_error"] = ""
 	output_flags["runtime_info"] = ""
@@ -91,6 +97,9 @@ func getCommandReportMsg(command *datatypes.Command, from bool) string {
 		for _, v := range(command.ReturnValues) {
 			msg = msg+"\n"+v.(string)
 		}
+	}
+	if command.Status == "error" {
+		msg = msg+command.Error.Error()
 	}
 	msg = "["+command.Name+" ->] "+status+" "+msg
 	if from == true {

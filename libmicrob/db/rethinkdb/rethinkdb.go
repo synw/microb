@@ -7,22 +7,22 @@ import (
 	 r "gopkg.in/dancannon/gorethink.v3"
 	 "github.com/synw/microb/libmicrob/conf"
 	 "github.com/synw/microb/libmicrob/datatypes"
-	 "github.com/synw/microb/libmicrob/metadata"
 	 "github.com/synw/microb/libmicrob/events"
+	 "github.com/synw/microb/libmicrob/state"
 )
 
 var Config = conf.GetConf()
-var Conn *r.Session
-var MainDb *datatypes.Database = metadata.GetMainDatabase()
-var Debug = metadata.IsDebug()
+var conn *r.Session
 
 func init() {
-	if MainDb.Type == "rethinkdb" {
-		Conn = connectToDb(MainDb)
+	if state.Server.PagesDb != nil {
+		if state.Server.PagesDb.Type == "rethinkdb" {
+			conn = connect(state.Server.PagesDb)
+		}
 	}
 }
 
-func connectToDb(database *datatypes.Database) (*r.Session) {
+func connect(database *datatypes.Database) (*r.Session) {
 	host := database.Host
 	port := database.Port
 	user := database.User
@@ -41,14 +41,14 @@ func connectToDb(database *datatypes.Database) (*r.Session) {
     if err != nil {
         events.Error("db.rethinkdb.connectToDb()", err)
     }
-    if Debug {
+    if state.Debug {
     	fmt.Println("Connecting to database", db_name, " at ", addr)
     }
     return session
 }
 /*
 func ReportIssues() []*datatypes.DatabaseIssue {
-	session := Conn
+	session := conn
 	res, err := r.Db("rethinkdb").Table("current_issues").Run(session)
 	defer res.Close()
 	if err != nil {
@@ -66,7 +66,7 @@ func ReportIssues() []*datatypes.DatabaseIssue {
 }
 */
 func ReportStatus()(map[string]interface{}, error) {
-	session := Conn
+	session := conn
 	res, err := r.DB("rethinkdb").Table("server_status").Run(session)
 	defer res.Close()
 	status := make(map[string]interface{})
@@ -91,7 +91,7 @@ func ReportStatus()(map[string]interface{}, error) {
 }
 
 func GetRoutes() []string {
-	session := Conn
+	session := conn
 	res, err := r.Table("pages").Pluck("uri").Run(session)
 	if err != nil && err != r.ErrEmptyResult {
 		events.Error("db.rethinkdb.GetRoutes", err)
@@ -126,7 +126,7 @@ func GetRoutes() []string {
 }
 
 func GetFromUrl(url string)  (*datatypes.Page, bool, error)  {
-	session := Conn
+	session := conn
 	var page datatypes.Page
 	filters := map[string]interface{}{"uri":url}
 	res, err := r.Table("pages").Filter(filters).Pluck("fields").Run(session)

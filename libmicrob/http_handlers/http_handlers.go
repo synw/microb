@@ -8,35 +8,28 @@ import (
 	"encoding/json"
     "html/template"
     "github.com/pressly/chi"
+    "github.com/acmacalister/skittles"
     "github.com/synw/microb/libmicrob/events"
     "github.com/synw/microb/libmicrob/datatypes"
     "github.com/synw/microb/libmicrob/db"
-    "github.com/synw/microb/libmicrob/metadata"
+    "github.com/synw/microb/libmicrob/state"
 )
 
 
-var Routes = db.GetRoutes()
+var Routes, _ = db.GetRoutes()
 var View = template.Must(template.New("view.html").ParseFiles("templates/view.html", "templates/head.html", "templates/header.html", "templates/navbar.html", "templates/footer.html", "templates/routes.js"))
 var V404 = template.Must(template.New("404.html").ParseFiles("templates/404.html", "templates/head.html", "templates/header.html", "templates/navbar.html", "templates/footer.html", "templates/routes.js"))
 var V500 = template.Must(template.New("500.html").ParseFiles("templates/500.html", "templates/head.html", "templates/header.html", "templates/navbar.html", "templates/footer.html", "templates/routes.js"))
-var Debug = metadata.IsDebug()
 
-func Handle500(response http.ResponseWriter, request *http.Request, params interface{}) {
-	msg := "Error 500"
-	d := make(map[string]interface{})
-	d["status_code"] = http.StatusInternalServerError
-	event := &datatypes.Event{"request_error", "http_server", msg, d}
-	events.Handle(event)
-	page := &datatypes.Page{Url: "/error/", Title: "", Content: ""}
-	status := http.StatusInternalServerError
-	response = httpResponseWriter{response, &status}
-	render500(response, page)
+
+func StartMsg() string {
+	return startMsg()
 }
 
 func ServeRequest(response http.ResponseWriter, request *http.Request) {
 	url := formatUrl(chi.URLParam(request, "url"))
 	if isValidRoute(url) == false {
-		fmt.Println("invalid route", url)
+		//fmt.Println("invalid route", url)
 		handle404(response, request, url, false)
 		return
 	}
@@ -55,7 +48,7 @@ func ServeApi(response http.ResponseWriter, request *http.Request) {
 	url := formatUrl(chi.URLParam(request, "path"))
 	doc, err := getDocument(url)
 	if isValidRoute(url) == false {
-		if Debug == true {
+		if state.Debug == true {
 			msg := "Invalid route "+url
 			msg = msg+doc.Format()
 			err = errors.New(msg)
@@ -68,7 +61,7 @@ func ServeApi(response http.ResponseWriter, request *http.Request) {
 		events.Error("http_handlers.ServeApi()", err)
 	}
 	if (doc == nil) {
-		if Debug == true {
+		if state.Debug == true {
 			fmt.Println("http.handlers.ServeApi() error: route "+url+" not found from database")
 		}
     	handle404(response, request, url, true)
@@ -169,6 +162,39 @@ func handle404(response http.ResponseWriter, request *http.Request, url string, 
 	} else {
 		render404(response, page)
 	}
+}
+
+/*
+func handle500(response http.ResponseWriter, request *http.Request, params interface{}) {
+	msg := "Error 500"
+	d := make(map[string]interface{})
+	d["status_code"] = http.StatusInternalServerError
+	event := &datatypes.Event{"request_error", "http_server", msg, d}
+	events.Handle(event)
+	page := &datatypes.Page{Url: "/error/", Title: "", Content: ""}
+	status := http.StatusInternalServerError
+	response = httpResponseWriter{response, &status}
+	render500(response, page)
+}
+*/
+
+func startMsg() string {
+	// welcome msg
+	var msg string
+	if state.Server.PagesDb != nil {
+		database := state.Server.PagesDb
+		server := state.Server
+	    loc := server.Host+":"+server.Port
+	    if (state.Verbosity > 0) {
+			msg = "Server started on "+loc+" for domain "+skittles.BoldWhite(server.Domain)
+			msg = msg+" with "+database.Type
+			msg = msg+" ("+database.Host+")"
+			events.New("runtime_info", "http_server", msg)
+		}
+	} else {
+		events.State("server", "No pages database configured. Http server is not runing")	
+	}
+	return msg
 }
 
 func formatUrl(url string) string {

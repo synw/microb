@@ -11,18 +11,18 @@
 						"host":"localhost",
 						"port":"28015",
 						"user":"admin",
-						"password":"pwd"
+						"password":"pwd",
+						"roles": ["pages", "hits", "commands"]
 					},
 					"local_pg": {
 						"type":"postgresql",
 						"host":"localhost",
 						"port":"",
 						"user":"admin",
-						"password":"pwd"
+						"password":"pwd",
+						"roles":[]
 					}
 				},
-	"hits_log": true,
-	"hits_monitor":true,
 	"hits_channels":["$microb_hits"],
 	"commands_brokers": ["changefeeds", "websockets"]
 }
