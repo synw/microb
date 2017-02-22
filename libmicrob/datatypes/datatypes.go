@@ -181,10 +181,4 @@ type Hit struct {
 	User_agent string
 	Referer string
 	Date time.Time
-}
-
-type DataChanges struct {
-	Msg string
-	Type string
-	Values map[string]interface{}
 }*/

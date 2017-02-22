@@ -19,6 +19,7 @@ var Debug bool = false
 var DevMode bool = false
 var ListenWs bool = false
 var Routes []string
+var DbIsOk bool
 
 func InitState(dev_mode bool) {
 	setDevMode(dev_mode)
@@ -35,13 +36,6 @@ func InitState(dev_mode bool) {
 
 func SetRoutes(routes []string) {
 	Routes = routes
-}  
-
-func ServerCanRun() bool {
-	if Server.PagesDb.Name != "" {
-		return true
-	}
-	return false
 }
 
 func initState() {

@@ -1,7 +1,7 @@
 package rethinkdb
 
 import (
-	"fmt"
+	//"fmt"
 	"time"
 	//"errors"
 	 r "gopkg.in/dancannon/gorethink.v3"
@@ -12,15 +12,21 @@ import (
 
 var conn *r.Session
 
-func InitDb() {
+func InitDb() error {
 	if state.Server.PagesDb != nil {
 		if state.Server.PagesDb.Type == "rethinkdb" {
-			conn = connect(state.Server.PagesDb)
+			cn, err := connect(state.Server.PagesDb)
+			conn = cn
+			if err != nil {
+				events.Err("db.rethinkdb.InitDb", "Impossible to connect to database", err)
+				return err
+			}
 		}
 	}
+	return nil
 }
 
-func connect(database *datatypes.Database) (*r.Session) {
+func connect(database *datatypes.Database) (*r.Session, error) {
 	host := database.Host
 	port := database.Port
 	user := database.User
@@ -39,10 +45,7 @@ func connect(database *datatypes.Database) (*r.Session) {
     if err != nil {
         events.Error("db.rethinkdb.connectToDb()", err)
     }
-    if state.Debug {
-    	fmt.Println("Connecting to database", db_name, " at ", addr)
-    }
-    return session
+    return session, err
 }
 /*
 func ReportIssues() []*datatypes.DatabaseIssue {

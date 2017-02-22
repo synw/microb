@@ -22,11 +22,14 @@ func init() {
 	flag.Parse()
 	state.InitState(*dev_mode)
 	db.InitDb()
-	routes, err := db.GetRoutes()
-	if err != nil {
-		events.Err("init", "Can't get the routes out of the database", err)
+	if state.DbIsOk {
+		routes, err := db.GetRoutes()
+		if err != nil {
+			events.Err("init", "Can't get the routes out of the database", err)
+		} else {
+			state.SetRoutes(routes)
+		}
 	}
-	state.SetRoutes(routes)
 }
 
 func main() {
@@ -55,7 +58,7 @@ func main() {
 	r.NotFound(http_handlers.Handle404)
 	// http server
 	loc := state.Server.Host+":"+state.Server.Port
-    if state.ServerCanRun() == true {
+    if state.DbIsOk == true {
     	httpServer := &http.Server{
 			Addr: loc,
 		    ReadTimeout: 5 * time.Second,
@@ -63,21 +66,29 @@ func main() {
 		    Handler: r,
 		}
 		state.Server.RuningServer = httpServer
-	    http_handlers.StartMsg()
+		state.Server.Runing= true
     } else {
     	events.State("main", "Http server is not running. Please check your configuration")
-    	// wait for all init checks to proceed (are we connected to a websockets server?)
-		wg.Wait()
+    }
+	// wait for all init checks to proceed (are we connected to a websockets server?)
+	wg.Wait()
+	if state.ListenWs == false {
+		msg := "The server is not listening for commands. Please configure your websockets server"
+		events.State("runtime", msg)
+	}
+	if (state.DbIsOk == false && state.ListenWs == false) {
+		fmt.Println("Nothing to do: going to sleep")
+		return
+	}
+	if state.DbIsOk == true {
+		http_handlers.StartMsg()
+		state.Server.Runing = true
+		state.Server.RuningServer.ListenAndServe()
+	} else {
 		if state.ListenWs == true {
 			// sit and listen
 			run := make(chan bool)
 			<- run
-		} else {
-			msg := "The server is not listening for commands. Please configure your websockets server"
-			events.State("runtime", msg)
-			fmt.Println("Nothing to do: going to sleep")
 		}
-	}
-	state.Server.Runing = true
-	state.Server.RuningServer.ListenAndServe()
+	} 
 }

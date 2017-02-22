@@ -17,9 +17,18 @@ var db_type string
 var misconf = errors.New("Database for pages is not configurated")
 
 func InitDb() {
-	setPagesDb()
+	if state.Server.PagesDb != nil {
+		db_type = state.Server.PagesDb.Type
+	}
 	if db_type == "rethinkdb" {
-		rethinkdb.InitDb()
+		err := rethinkdb.InitDb()
+		if err != nil {
+			state.Server.PagesDb = nil
+			state.DbIsOk = false
+			events.ErrMsg("db.InitDb", "Disabling http server: no database connection for pages")
+		} else {
+			state.DbIsOk = true
+		}
 	}
 }
 
@@ -66,12 +75,6 @@ func GetRoutes() ([]string, error) {
 		routes = rethinkdb.GetRoutes()
 	}
 	return routes, nil
-}
-
-func setPagesDb() {
-	if state.Server.PagesDb != nil {
-		db_type = state.Server.PagesDb.Type
-	}
 }
 
 /*
