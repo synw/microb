@@ -6,6 +6,7 @@ import (
 	"time"
 	"strconv"
 	"net/http"
+	"github.com/acmacalister/skittles"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/conf"
@@ -37,6 +38,35 @@ func InitState(dev_mode bool) {
 
 func SetRoutes(routes []string) {
 	Routes = routes
+}
+
+func FormatState() string {
+	var msg string
+	d := "off"
+	if Debug == true {
+		d = "on"
+	}
+	db := skittles.Red("down")
+	if DbIsOk == true {
+		db = "up"
+	}
+	up := skittles.Red("down")
+	if Server.Runing == true {
+		up = "up"
+	}
+	cc := "down"
+	if ListenWs == true {
+		cc = "up"
+	}
+	msg = msg+" - Server is "+up+"\n"
+	msg = msg+" - Database is "+db+"\n"
+	msg = msg+" - Commands channel is "+cc+"\n"
+	msg = msg+" - Verbosity is set to "+strconv.Itoa(Verbosity)+"\n"
+	msg = msg+" - Debug is "+d+"\n"
+	if DevMode == true {
+		msg = msg+" - Dev mode is on"
+	}
+	return msg
 }
 
 func initState() {
@@ -178,19 +208,4 @@ func newDbFromConf(name string) (*datatypes.Database, error) {
 		return db, err
 	}
 	return db, nil
-}
-
-func FormatState() string {
-	dm := "off"
-	if DevMode == true {
-		dm = "on"
-	}
-	msg := " - Dev mode is "+dm+"\n"
-	d := "off"
-	if Debug == true {
-		d = "on"
-	}
-	msg = msg+" - Debug is "+d+"\n"
-	msg = msg+" - Verbosity is "+strconv.Itoa(Verbosity)
-	return msg
 }
