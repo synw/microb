@@ -2,8 +2,8 @@ package datatypes
 
 import (
 	"time"
+	"net/http"
 	"strconv"
-	//"errors"
 	"encoding/json"
 	format "github.com/synw/microb/libmicrob/events/format/methods"
 )
@@ -20,6 +20,7 @@ type Server struct {
 	HitsDb *Database
 	CommandsDb *Database
 	Runing bool
+	RuningServer *http.Server
 }
 
 func (s Server) Format() string {

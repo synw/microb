@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 	"strconv"
+	"net/http"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/conf"
@@ -14,8 +15,10 @@ import (
 var config = conf.GetConf("default")
 var Server = &datatypes.Server{Runing:false}
 var Verbosity int = getVerbosity()
-var Debug bool
-var DevMode bool
+var Debug bool = false
+var DevMode bool = false
+var ListenWs bool = false
+var Routes []string
 
 func InitState(dev_mode bool) {
 	setDevMode(dev_mode)
@@ -28,6 +31,17 @@ func InitState(dev_mode bool) {
 			events.Debug("Server:", "\n", Server.Format())
 		}()
 	}
+}
+
+func SetRoutes(routes []string) {
+	Routes = routes
+}  
+
+func ServerCanRun() bool {
+	if Server.PagesDb.Name != "" {
+		return true
+	}
+	return false
 }
 
 func initState() {
@@ -53,7 +67,8 @@ func setServer() (error) {
 	pages_db := Server.PagesDb
 	hits_db := Server.HitsDb
 	commands_db := Server.CommandsDb
-	server := &datatypes.Server{domain, http_host, http_port, websockets_host, websockets_port, websockets_key, pages_db, hits_db, commands_db, false}
+	var srv *http.Server
+	server := &datatypes.Server{domain, http_host, http_port, websockets_host, websockets_port, websockets_key, pages_db, hits_db, commands_db, false, srv}
 	Server = server
 	return nil
 }

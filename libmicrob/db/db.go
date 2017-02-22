@@ -16,8 +16,11 @@ import (
 var db_type string
 var misconf = errors.New("Database for pages is not configurated")
 
-func init() {
+func InitDb() {
 	setPagesDb()
+	if db_type == "rethinkdb" {
+		rethinkdb.InitDb()
+	}
 }
 
 func ReportStatus() (map[string]interface{}, error) {

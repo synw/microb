@@ -12,7 +12,7 @@ import (
 
 var conn *r.Session
 
-func init() {
+func InitDb() {
 	if state.Server.PagesDb != nil {
 		if state.Server.PagesDb.Type == "rethinkdb" {
 			conn = connect(state.Server.PagesDb)
@@ -26,7 +26,7 @@ func connect(database *datatypes.Database) (*r.Session) {
 	user := database.User
 	pwd := database.Password
 	addr := host+":"+port
-	db_name := state.Server.PagesDb.Name
+	db_name := state.Server.Domain
 	// connect to Rethinkdb
 	session, err := r.Connect(r.ConnectOpts{
 		Address: addr,
@@ -131,11 +131,15 @@ func GetFromUrl(url string)  (*datatypes.Page, bool, error)  {
 	defer res.Close()
 	var row map[string]interface{}
 	err = res.One(&row)
-	if err != nil {
+	if (err != nil && err != r.ErrEmptyResult) {
 		events.Error("db.rethinkdb.GetFromUrl", err)
 		return &page, false, err
 	}
-	if err != r.ErrEmptyResult {
+	if err == r.ErrEmptyResult {
+		msg := "Empty results for url "+url
+		events.New("runtime", "db.rethinkdb.GetFromUrl", msg)
+		return &page, false, err
+	} else {
 		fields := row["fields"].(map[string]interface{})
 		title := fields["title"].(string)
 		content := fields["content"].(string)
@@ -144,6 +148,5 @@ func GetFromUrl(url string)  (*datatypes.Page, bool, error)  {
 		page.Content = content
 		return &page, true, err
 	}
-	fmt.Println(page)
 	return &page, false, nil
 }

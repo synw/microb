@@ -121,20 +121,27 @@ func sendCommandFeedback(command *datatypes.Command) {
 	return
 }
 
-func ListenToIncomingCommands(channel_name string) {
+func ListenToIncomingCommands(channel_name string, c_ok chan bool, c_err chan error) {
 	var done chan bool
 	// connect to channel
 	c, subevents := listenForCommands(channel_name, done)
 	defer c.Close()
 	err := c.Connect()
 	if err != nil {
-		appevents.New("error", "listeners.websockets.Listen()", err.Error())
+		c_err <- err
+		c_ok <- false
+		return
 	}
 	// suscribe to channel
 	_, err = c.Subscribe(channel_name, subevents)
 	if err != nil {
-		appevents.New("error", "listeners.websockets.Listen()", err.Error())
+		c_err <- err
+		c_ok <- false
+		return
+	} else {
+		c_ok <- true
 	}
 	// sit here and wait
 	<- done
+	return
 }

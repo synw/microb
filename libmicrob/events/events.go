@@ -30,12 +30,6 @@ func New(event_class string, from string, message string) {
 	Handle(event)
 }
 
-func ErrMsg(from string, msg string) {
-	var d map[string]interface{}
-	event := &datatypes.Event{"error", from, msg, d}
-	Handle(event)
-}
-
 func State(from string, msg string) {
 	New("state", from, msg)
 }
@@ -54,6 +48,19 @@ func Debug(args ...string) {
 func Error(from string, err error) {
 	var d map[string]interface{}
 	event := &datatypes.Event{"error", from, err.Error(), d}
+	Handle(event)
+}
+
+func ErrMsg(from string, msg string) {
+	var d map[string]interface{}
+	event := &datatypes.Event{"error", from, msg, d}
+	Handle(event)
+}
+
+func Err(from string, msg string, err error) {
+	var d map[string]interface{}
+	fmsg := msg+": "+err.Error()
+	event := &datatypes.Event{"error", from, fmsg, d}
 	Handle(event)
 }
 
