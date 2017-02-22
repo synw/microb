@@ -8,19 +8,8 @@ import (
 )
 
 
-var c = conf.GetConf()
-var verbosity = c["verbosity"].(int)
-
-func printMsg(event_class string, event *datatypes.Event) {
-	msg := format.GetFormatedMsg(event_class, event)
-	if event_class == "error" {
-		msg = msg+" (from "+event.From+")"
-	}
-	fmt.Println(msg)
-}
-
 func Handle(event *datatypes.Event) {
-	if verbosity > 0 {
+	if conf.Verbosity > 0 {
 		printMsg(event.Class, event)
 	}
 }
@@ -53,8 +42,11 @@ func State(from string, msg string) {
 
 func Debug(args ...string) {
 	var msg string
-	for _, arg := range(args) {
-		msg = msg+arg+" "
+	for i, arg := range(args) {
+		if ((i+1) < len(args)) && (i>1) {
+			msg = " "+msg
+		}
+		msg = msg+arg
 	}
 	New("debug", "runtime", msg)
 }
@@ -63,4 +55,12 @@ func Error(from string, err error) {
 	var d map[string]interface{}
 	event := &datatypes.Event{"error", from, err.Error(), d}
 	Handle(event)
+}
+
+func printMsg(event_class string, event *datatypes.Event) {
+	msg := format.GetFormatedMsg(event_class, event)
+	if event_class == "error" {
+		msg = msg+" (from "+event.From+")"
+	}
+	fmt.Println(msg)
 }

@@ -2,17 +2,32 @@ package state
 
 import (
 	"errors"
+	"time"
+	"strconv"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/conf"
 )
 
-var Config = conf.GetConf()
+
+var Config = conf.GetConf("default")
 var Server = &datatypes.Server{Runing:false}
 var Verbosity int = getVerbosity()
 var Debug bool = getDebug()
 
-func init() {
+func InitState(dev_mode bool) {
+	initState()
+	setDevMode(dev_mode)
+	//if Debug == true {
+		go func() {
+			time.Sleep(1*time.Second)
+			events.Debug("State:", "\n", printState())
+			events.Debug("Server:", "\n", Server.Format())
+		}()
+	//}
+}
+
+func initState() {
 	err := setServer()
 	if err != nil {
 		events.Error("state.init()", err)
@@ -25,7 +40,7 @@ func init() {
 	}
 }
 
-func setServer() ( error) {
+func setServer() (error) {
 	domain := Config["domain"].(string)
 	http_host :=  Config["http_host"].(string)
 	http_port := Config["http_port"].(string)
@@ -70,18 +85,13 @@ func setDefaultDbs() error {
 	}
 	return nil
 }
-/*
-func getDefaultDb(role string) (*datatypes.Database, error) {
-	var db *datatypes.Database
-	default_roles, err := getRolesFromConf()
-	if err != nil {
-		return db, err
-	} else {
-		events.Error("state.getDefaultDb", err)
+
+func setDevMode(dev_mode bool) {
+	if dev_mode == true {
+		Config = conf.GetConf("dev")
 	}
-	db = default_roles[role]
-	return db, nil
-}*/
+}
+
 func getDefaultDb(role string) (*datatypes.Database, error) {
 	dbs, err := getDbsFromConf()
 	db := &datatypes.Database{}
@@ -101,40 +111,6 @@ func getDefaultDb(role string) (*datatypes.Database, error) {
 	events.ErrMsg("state.getDefaultDb", msg)
 	return db, nil
 }
-/*
-func getDbRoles() (map[string]*datatypes.Database, error) {
-	var rolemap map[string]*datatypes.Database
-	dbs, err := getDbsFromConf()
-	if err != nil {
-		return rolemap, err
-	}
-	roles, err := getRolesFromConf()
-	if err != nil {
-		return rolemap, err
-	}
-	for _, db := range dbs {
-		for role, cdb := range roles {
-			if cdb == db {
-				rolemap[role] = cdb
-			}
-		}
-	}
-	return rolemap, err
-}*/
-/*
-func getRolesFromConf() (map[string]*datatypes.Database, error) {
-	conf_roles := Config["database_roles"].(map[string]interface{})
-	roles := make(map[string]*datatypes.Database)
-	for role, db_name := range(conf_roles) {
-		r, err := newDbFromConf(db_name.(string))
-		if err != nil {
-			events.Error("state.getRolesFromConf", err)
-			return roles, err
-		}
-		roles[role] = r
-	}
-	return roles, nil
-}*/
 
 func getDbsFromConf() (map[string]*datatypes.Database, error) {
 	dbs := make(map[string]*datatypes.Database)
@@ -187,4 +163,14 @@ func getVerbosity() int {
 func getDebug() bool {
 	d := Config["debug"].(bool)
 	return d
+}
+
+func printState() string {
+	d := "off"
+	if Debug == true {
+		d = "on"
+	}
+	msg := " - Debug is "+d+"\n"
+	msg = msg+" - Verbosity is "+strconv.Itoa(Verbosity)
+	return msg
 }

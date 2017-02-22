@@ -3,6 +3,7 @@ package main
 import (
 	"time"
     "net/http"
+    "flag"
     "github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
     "github.com/synw/microb/libmicrob/http_handlers"
@@ -11,7 +12,11 @@ import (
 )
 
 
+var dev_mode = flag.Bool("d", false, "Dev mode")
+
 func init() {
+	flag.Parse()
+	state.InitState(*dev_mode)
 	go listeners.ListenToIncomingCommands()
 }
 

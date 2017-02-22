@@ -5,7 +5,6 @@ import (
 	"sync"
 	postgresql "github.com/synw/microb/db/postgresql"*/
 	"errors"
-	"github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/db/rethinkdb"
 	"github.com/synw/microb/libmicrob/events"
@@ -13,7 +12,7 @@ import (
 	
 )
 
-var Config = conf.GetConf()
+
 var db_type string
 var misconf = errors.New("Database for pages is not configurated")
 

@@ -5,13 +5,11 @@ import (
 	"time"
 	//"errors"
 	 r "gopkg.in/dancannon/gorethink.v3"
-	 "github.com/synw/microb/libmicrob/conf"
 	 "github.com/synw/microb/libmicrob/datatypes"
 	 "github.com/synw/microb/libmicrob/events"
 	 "github.com/synw/microb/libmicrob/state"
 )
 
-var Config = conf.GetConf()
 var conn *r.Session
 
 func init() {
@@ -28,7 +26,7 @@ func connect(database *datatypes.Database) (*r.Session) {
 	user := database.User
 	pwd := database.Password
 	addr := host+":"+port
-	db_name := Config["domain"].(string)
+	db_name := state.Server.PagesDb.Name
 	// connect to Rethinkdb
 	session, err := r.Connect(r.ConnectOpts{
 		Address: addr,

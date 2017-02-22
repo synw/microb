@@ -6,9 +6,16 @@ import (
 )
 
 
-func GetConf() map[string]interface{} {
+var Verbosity int = 1
+
+
+func GetConf(name string) map[string]interface{} {
 	// set some defaults for conf
-	viper.SetConfigName("config")
+	if name == "dev" {
+		viper.SetConfigName("dev_config")
+	} else {
+		viper.SetConfigName("config")
+	}
 	viper.AddConfigPath(".")
 	viper.SetDefault("http_host", "")
 	viper.SetDefault("http_port", "8080")
@@ -41,6 +48,7 @@ func GetConf() map[string]interface{} {
 	conf["hits_monitor"] = viper.Get("hits_monitor")
 	conf["hits_channels"] = viper.Get("hits_channels")
 	conf["verbosity"] = viper.Get("verbosity")
+	Verbosity = conf["verbosity"].(int)
 	conf["commands_brokers"] = viper.Get("commands_brokers")
 	conf["debug"] = viper.Get("debug")
 	return conf

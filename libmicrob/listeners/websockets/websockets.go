@@ -9,21 +9,17 @@ import (
 	"github.com/centrifugal/centrifugo/libcentrifugo/auth"
 	"github.com/centrifugal/gocent"
 	"github.com/acmacalister/skittles"
-	"github.com/synw/microb/libmicrob/conf"
 	appevents "github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/datatypes/encoding"
 	"github.com/synw/microb/libmicrob/commands"
 	"github.com/synw/microb/libmicrob/datatypes"
+	"github.com/synw/microb/libmicrob/state"
 )
 
 
-var Config = conf.GetConf()
-var SecretKey string = Config["centrifugo_secret_key"].(string)
-var Debug bool = Config["debug"].(bool)
-
 func credentials() *centrifuge.Credentials {
-	secret := SecretKey
-	user := "microb_"+Config["domain"].(string)
+	secret := state.Server.WebsocketsKey
+	user := "microb_"+state.Server.Domain
 	timestamp := centrifuge.Timestamp()
 	info := ""
 	token := auth.GenerateClientToken(secret, user, timestamp, info)
@@ -37,17 +33,17 @@ func credentials() *centrifuge.Credentials {
 
 func listenForCommands(channel_name string, done chan bool) (centrifuge.Centrifuge, *centrifuge.SubEventHandler) {
 	creds := credentials()
-	wsURL := "ws://"+Config["centrifugo_host"].(string)+":"+Config["centrifugo_port"].(string)+"/connection/websocket"
+	wsURL := "ws://"+state.Server.WebsocketsHost+":"+state.Server.WebsocketsPort+"/connection/websocket"
 	
 	onMessage := func(sub centrifuge.Sub, rawmsg centrifuge.Message) error {
-		if (Debug == true) {
+		if (state.Debug == true) {
 			fmt.Println(fmt.Sprintf("New message received in channel %s: %#v", sub.Channel(), rawmsg))
 		}
 		payload, err := encoding.DecodeJsonIncomingRawMessage(rawmsg.Data)
 		var msg string
 		if err != nil {
 			msg = "Error decoding json raw message: "+err.Error()
-			appevents.New("error", "websockets.listenForCommands()", msg)
+			appevents.ErrMsg("websockets.listenForCommands()", msg)
 		}
 		command := commands.GetCommandFromPayload(payload, "websockets")
 		msg  = "Command "+skittles.BoldWhite(command.Name)+" received from "+command.From+" via websockets"
@@ -73,7 +69,7 @@ func listenForCommands(channel_name string, done chan bool) (centrifuge.Centrifu
 	*/
 	onPrivateSub := func(c centrifuge.Centrifuge, req *centrifuge.PrivateRequest) (*centrifuge.PrivateSign, error) {
 		info := ""
-		sign := auth.GenerateChannelSign(SecretKey, req.ClientID, req.Channel, info)
+		sign := auth.GenerateChannelSign(state.Server.WebsocketsKey, req.ClientID, req.Channel, info)
 		privateSign := &centrifuge.PrivateSign{Sign: sign, Info: info}
 		return privateSign, nil
 	}
@@ -92,9 +88,9 @@ func listenForCommands(channel_name string, done chan bool) (centrifuge.Centrifu
 }
 
 func sendCommandFeedback(command *datatypes.Command) {
-	secret := Config["centrifugo_secret_key"].(string)
-	host := Config["centrifugo_host"].(string)
-	port := Config["centrifugo_port"].(string)
+	secret := state.Server.WebsocketsKey
+	host := state.Server.WebsocketsHost
+	port := state.Server.WebsocketsPort
 	purl := fmt.Sprintf("http://%s:%s", host, port)
 	// connect to Centrifugo
 	client := gocent.NewClient(purl, secret, 5*time.Second)
@@ -114,8 +110,8 @@ func sendCommandFeedback(command *datatypes.Command) {
 	}
 	eventstr := &datatypes.WsFeedbackMessage{"command_feedback", command.Status, errstr, data}
 	event, err := json.Marshal(eventstr)
-	channel := "$"+Config["domain"].(string)+"_feedback"
-	if (Debug == true) {
+	channel := "$"+state.Server.Domain+"_feedback"
+	if (state.Debug == true) {
 		fmt.Println("Sending feedback message to", channel, eventstr, "\nDATA:", data)
 	}
 	_, err = client.Publish(channel, event)

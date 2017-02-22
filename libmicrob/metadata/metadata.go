@@ -5,7 +5,7 @@ import (
 	"github.com/synw/microb/libmicrob/conf"
 )
 
-var Config = conf.GetConf()
+var Config = conf.GetConf("dev")
 
 func GetConfString(param string) string {
 	domain := Config[param].(string)
