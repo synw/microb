@@ -24,5 +24,6 @@
 					}
 				},
 	"hits_channels":["$microb_hits"],
-	"commands_brokers": ["changefeeds", "websockets"]
+	"commands_brokers": ["changefeeds", "websockets"],
+	"verbosity": 1
 }

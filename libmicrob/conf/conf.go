@@ -6,7 +6,7 @@ import (
 )
 
 
-var Verbosity int = 1
+var Verbosity = 1
 
 
 func GetConf(name string) map[string]interface{} {
@@ -47,8 +47,9 @@ func GetConf(name string) map[string]interface{} {
 	conf["hits_log"] = viper.Get("hits_log")
 	conf["hits_monitor"] = viper.Get("hits_monitor")
 	conf["hits_channels"] = viper.Get("hits_channels")
-	conf["verbosity"] = viper.Get("verbosity")
-	Verbosity = conf["verbosity"].(int)
+	/*conf["verbosity"] = viper.Get("verbosity")
+	v := conf["verbosity"]
+	Verbosity, _ = v.(int)*/
 	conf["commands_brokers"] = viper.Get("commands_brokers")
 	conf["debug"] = viper.Get("debug")
 	return conf

@@ -14,7 +14,7 @@ import (
 
 var config = conf.GetConf("default")
 var Server = &datatypes.Server{Runing:false}
-var Verbosity int = getVerbosity()
+var Verbosity int = 1
 var Debug bool = false
 var DevMode bool = false
 var ListenWs bool = false
@@ -25,6 +25,7 @@ func InitState(dev_mode bool) {
 	setDevMode(dev_mode)
 	initState()
 	setDebug()
+	setVerbosity()
 	if Debug == true {
 		go func() {
 			time.Sleep(1*time.Second)
@@ -112,6 +113,10 @@ func setDebug() {
 	Debug = d
 }
 
+func setVerbosity() {
+	Verbosity = conf.Verbosity
+}
+
 func getDefaultDb(role string) (*datatypes.Database, error) {
 	dbs, err := getDbsFromConf()
 	db := &datatypes.Database{}
@@ -173,11 +178,6 @@ func newDbFromConf(name string) (*datatypes.Database, error) {
 		return db, err
 	}
 	return db, nil
-}
-
-func getVerbosity() int {
-	v := config["verbosity"].(int)
-	return v
 }
 
 func printState() string {

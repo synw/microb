@@ -19,6 +19,65 @@ import (
 )
 
 
+func Run(command *datatypes.Command) {
+	c := make(chan *datatypes.Command)
+	go runCommand(command, c)
+	select {
+		case cmd := <- c:
+			close(c)
+			// process command results
+			HandleCommandFeedback(cmd)
+	}
+}
+
+func HandleCommandFeedback(command *datatypes.Command) {
+	if command.Status == "error" {
+		events.Error("command_execution", command.Error)
+	}
+	if state.Verbosity > 0 {
+		events.PrintCommandReport(command)
+	}
+}
+
+func GetCommandFromPayload(message *datatypes.WsIncomingMessage, broker string) *datatypes.Command {
+	data := message.Data
+	name := data["name"].(string)
+	reason := ""
+	from := broker
+	if data["from"] != nil {
+		from = data["from"].(string)
+	}
+	var command *datatypes.Command
+	if data["reason"].(string) != "" {
+		reason = data["reason"].(string)
+	}
+	if data["args"] != nil {
+		args := data["args"].([]interface{})
+		command = NewWithArgs(name, from, reason, args)
+	} else {
+		command = New(name, from, reason)
+	}
+	return command
+}
+
+// constructors
+func New(name string, from string, reason string) *datatypes.Command {
+	now := time.Now()
+	var args[]interface{}
+	var rv []interface{}
+	id := encoding.GenerateId()
+	cmd := &datatypes.Command{id, name, from, reason, now, args, "pending", nil, rv}
+	return cmd
+}
+
+func NewWithArgs(name string, from string, reason string, args []interface{}) *datatypes.Command {
+	now := time.Now()
+	var rv []interface{}
+	id := encoding.GenerateId()
+	cmd := &datatypes.Command{id, name, from, reason, now, args, "pending", nil, rv}
+	return cmd
+}
+
 // commands
 func reparseTemplates() error {
 	http_handlers.ReparseTemplates()
@@ -70,54 +129,6 @@ func handleCommandError(command *datatypes.Command, err error, c chan *datatypes
 		c <- command
 	}
 	return
-}
-
-func HandleCommandFeedback(command *datatypes.Command) {
-	if command.Status == "error" {
-		events.Error("command_execution", command.Error)
-	}
-	if state.Verbosity > 0 {
-		events.PrintCommandReport(command)
-	}
-}
-
-func GetCommandFromPayload(message *datatypes.WsIncomingMessage, broker string) *datatypes.Command {
-	data := message.Data
-	name := data["name"].(string)
-	reason := ""
-	from := broker
-	if data["from"] != nil {
-		from = data["from"].(string)
-	}
-	var command *datatypes.Command
-	if data["reason"].(string) != "" {
-		reason = data["reason"].(string)
-	}
-	if data["args"] != nil {
-		args := data["args"].([]interface{})
-		command = NewWithArgs(name, from, reason, args)
-	} else {
-		command = New(name, from, reason)
-	}
-	return command
-}
-
-// constructors
-func New(name string, from string, reason string) *datatypes.Command {
-	now := time.Now()
-	var args[]interface{}
-	var rv []interface{}
-	id := encoding.GenerateId()
-	cmd := &datatypes.Command{id, name, from, reason, now, args, "pending", nil, rv}
-	return cmd
-}
-
-func NewWithArgs(name string, from string, reason string, args []interface{}) *datatypes.Command {
-	now := time.Now()
-	var rv []interface{}
-	id := encoding.GenerateId()
-	cmd := &datatypes.Command{id, name, from, reason, now, args, "pending", nil, rv}
-	return cmd
 }
 /*
 func NewWithData(name string, from string, reason string, data []interface{}) *datatypes.Command {
@@ -196,15 +207,4 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 	// save in db
 	//go db.SaveCommand(command)
 	return
-}
-
-func Run(command *datatypes.Command) {
-	c := make(chan *datatypes.Command)
-	go runCommand(command, c)
-	select {
-		case cmd := <- c:
-			close(c)
-			// process command results
-			HandleCommandFeedback(cmd)
-	}
 }
