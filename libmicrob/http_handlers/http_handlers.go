@@ -26,12 +26,9 @@ func StartMsg() string {
 
 func ServeRequest(response http.ResponseWriter, request *http.Request) {
 	url := request.URL.Path
-	msg := url
 	d := make(map[string]interface{})
 	d["status_code"] = http.StatusOK
 	status := http.StatusOK
-	event := &datatypes.Event{"request", "http_server", msg, d}
-    events.Handle(event)
     page := &datatypes.Page{Url: url, Title: "", Content: ""}
     response = httpResponseWriter{response, &status}
     renderTemplate(response, page)
