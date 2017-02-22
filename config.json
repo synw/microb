@@ -2,7 +2,7 @@
 	"domain": "localhost",
 	"http_host":"",
 	"http_port":"8080",
-	"centrifugo_host":"http://localhost",
+	"centrifugo_host":"localhost",
 	"centrifugo_port":"8001",
 	"centrifugo_secret_key":"secretkey",
 	"databases":{

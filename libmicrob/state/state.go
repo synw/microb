@@ -1,6 +1,7 @@
 package state
 
 import (
+	//"fmt"
 	"errors"
 	"time"
 	"strconv"
@@ -10,21 +11,23 @@ import (
 )
 
 
-var Config = conf.GetConf("default")
+var config = conf.GetConf("default")
 var Server = &datatypes.Server{Runing:false}
 var Verbosity int = getVerbosity()
-var Debug bool = getDebug()
+var Debug bool
+var DevMode bool
 
 func InitState(dev_mode bool) {
-	initState()
 	setDevMode(dev_mode)
-	//if Debug == true {
+	initState()
+	setDebug()
+	if Debug == true {
 		go func() {
 			time.Sleep(1*time.Second)
 			events.Debug("State:", "\n", printState())
 			events.Debug("Server:", "\n", Server.Format())
 		}()
-	//}
+	}
 }
 
 func initState() {
@@ -41,12 +44,12 @@ func initState() {
 }
 
 func setServer() (error) {
-	domain := Config["domain"].(string)
-	http_host :=  Config["http_host"].(string)
-	http_port := Config["http_port"].(string)
-	websockets_host := Config["centrifugo_host"].(string)
-	websockets_port := Config["centrifugo_port"].(string)
-	websockets_key := Config["centrifugo_secret_key"].(string)
+	domain := config["domain"].(string)
+	http_host :=  config["http_host"].(string)
+	http_port := config["http_port"].(string)
+	websockets_host := config["centrifugo_host"].(string)
+	websockets_port := config["centrifugo_port"].(string)
+	websockets_key := config["centrifugo_secret_key"].(string)
 	pages_db := Server.PagesDb
 	hits_db := Server.HitsDb
 	commands_db := Server.CommandsDb
@@ -88,8 +91,16 @@ func setDefaultDbs() error {
 
 func setDevMode(dev_mode bool) {
 	if dev_mode == true {
-		Config = conf.GetConf("dev")
+		config = conf.GetConf("dev")
+		DevMode = true
+	} else {
+		DevMode = false
 	}
+}
+
+func setDebug() {
+	d := config["debug"].(bool)
+	Debug = d
 }
 
 func getDefaultDb(role string) (*datatypes.Database, error) {
@@ -114,7 +125,7 @@ func getDefaultDb(role string) (*datatypes.Database, error) {
 
 func getDbsFromConf() (map[string]*datatypes.Database, error) {
 	dbs := make(map[string]*datatypes.Database)
-	dbs_conf := Config["databases"].(map[string]interface{})
+	dbs_conf := config["databases"].(map[string]interface{})
 	for db_name, _ := range(dbs_conf) {
 		db, err := newDbFromConf(db_name)
 		if err != nil {
@@ -126,7 +137,7 @@ func getDbsFromConf() (map[string]*datatypes.Database, error) {
 }
 
 func newDbFromConf(name string) (*datatypes.Database, error) {
-	dbs_conf := Config["databases"].(map[string]interface{})
+	dbs_conf := config["databases"].(map[string]interface{})
 	var db *datatypes.Database
 	// grab the db in the config
 	for db_name, db_vals := range dbs_conf {
@@ -156,21 +167,21 @@ func newDbFromConf(name string) (*datatypes.Database, error) {
 }
 
 func getVerbosity() int {
-	v := Config["verbosity"].(int)
+	v := config["verbosity"].(int)
 	return v
 }
 
-func getDebug() bool {
-	d := Config["debug"].(bool)
-	return d
-}
-
 func printState() string {
+	dm := "off"
+	if DevMode == true {
+		dm = "on"
+	}
+	msg := " - Dev mode is "+dm+"\n"
 	d := "off"
 	if Debug == true {
 		d = "on"
 	}
-	msg := " - Debug is "+d+"\n"
+	msg = msg+" - Debug is "+d+"\n"
 	msg = msg+" - Verbosity is "+strconv.Itoa(Verbosity)
 	return msg
 }

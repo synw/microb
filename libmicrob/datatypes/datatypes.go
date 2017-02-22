@@ -27,12 +27,12 @@ func (s Server) Format() string {
 	msg = msg+" - Domain: "+s.Domain+"\n"
 	msg = msg+" - Host: "+s.Host+"\n"
 	msg = msg+" - Port: "+s.Port+"\n"
-	msg = msg+" - Websockets host: "+s.Port+"\n"
-	msg = msg+" - Websockets port: "+s.Port+"\n"
+	msg = msg+" - Websockets host: "+s.WebsocketsHost+"\n"
+	msg = msg+" - Websockets port: "+s.WebsocketsPort+"\n"
 	msg = msg+" - Pages database: "+s.PagesDb.Name+"\n"
 	msg = msg+" - Hits database: "+s.HitsDb.Name+"\n"
 	msg = msg+" - Commands database: "+s.CommandsDb.Name+"\n"
-	if (s.Runing) {
+	if (s.Runing == true) {
 		msg = msg+" * Server is runing"
 	} else {
 		msg = msg+" * Server is not runing"
