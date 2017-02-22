@@ -29,7 +29,7 @@ func InitState(dev_mode bool) {
 	if Debug == true {
 		go func() {
 			time.Sleep(1*time.Second)
-			events.Debug("State:", "\n", printState())
+			events.Debug("State:", "\n", FormatState())
 			events.Debug("Server:", "\n", Server.Format())
 		}()
 	}
@@ -180,7 +180,7 @@ func newDbFromConf(name string) (*datatypes.Database, error) {
 	return db, nil
 }
 
-func printState() string {
+func FormatState() string {
 	dm := "off"
 	if DevMode == true {
 		dm = "on"

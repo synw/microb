@@ -174,8 +174,8 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 			return
 		}
 		line := "------------------------------"
-		version := "\n "+line+"\n - Version: "+status["version"].(string)+"\n"
-		cache_size_mb := "- Cache size: "+strconv.FormatFloat(status["cache_size_mb"].(float64), 'f', 2, 64)+" Mb\n"
+		version := "\n "+line+"\n - Version: "+status["version"].(string)
+		cache_size_mb := "- Cache size: "+strconv.FormatFloat(status["cache_size_mb"].(float64), 'f', 2, 64)+" Mb"
 		time_started := line+"\nStarted since "+format.FormatTime(status["time_started"].(time.Time))
 		command.ReturnValues = append(command.ReturnValues, version)
 		command.ReturnValues = append(command.ReturnValues, cache_size_mb)
@@ -193,7 +193,14 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 		}
 		command.ReturnValues = rvs
 		command.Status = "success"
-	} /*else if (command.Name == "db_list") {
+	} else if command.Name == "state" {
+		msg := state.FormatState()
+		var rvs []interface{}
+		rvs = append(rvs, msg)
+		command.ReturnValues = rvs
+		command.Status = "success"
+	} 
+	/*else if (command.Name == "db_list") {
 		for role, db := range metadata.GetDatabasesAndRoles() {
 			msg := database.Name
 			command.ReturnValues = append(command.ReturnValues, )
