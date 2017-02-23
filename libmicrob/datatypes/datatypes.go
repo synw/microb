@@ -19,8 +19,8 @@ type Server struct {
 	PagesDb *Database
 	HitsDb *Database
 	CommandsDb *Database
-	Runing bool
-	RuningServer *http.Server
+	Running bool
+	RunningServer *http.Server
 }
 
 func (s Server) Format() string {
@@ -33,7 +33,7 @@ func (s Server) Format() string {
 	msg = msg+" - Pages database: "+s.PagesDb.Name+"\n"
 	msg = msg+" - Hits database: "+s.HitsDb.Name+"\n"
 	msg = msg+" - Commands database: "+s.CommandsDb.Name+"\n"
-	if (s.Runing == true) {
+	if (s.Running == true) {
 		msg = msg+" * Server is runing"
 	} else {
 		msg = msg+" * Server is not runing"
@@ -49,6 +49,7 @@ type Database struct {
 	User string
 	Password string
 	Roles []string
+	Running bool
 }
 
 type Page struct {

@@ -3,7 +3,7 @@ package rethinkdb
 import (
 	//"fmt"
 	"time"
-	//"errors"
+	"errors"
 	 r "gopkg.in/dancannon/gorethink.v3"
 	 "github.com/synw/microb/libmicrob/datatypes"
 	 "github.com/synw/microb/libmicrob/events"
@@ -12,18 +12,32 @@ import (
 
 var conn *r.Session
 
-func InitDb() error {
-	if state.Server.PagesDb != nil {
-		if state.Server.PagesDb.Type == "rethinkdb" {
-			cn, err := connect(state.Server.PagesDb)
-			conn = cn
-			if err != nil {
-				events.Err("db.rethinkdb.InitDb", "Impossible to connect to database", err)
-				return err
-			}
-		}
+func InitDb(database *datatypes.Database) error {
+	if database.Type != "rethinkdb" {
+		err := errors.New("Not a rethinkdb database")
+		return err
+	}
+	cn, err := connect(database)
+	conn = cn
+	if err != nil {
+		events.Err("db.rethinkdb.InitDb", "Impossible to connect to database", err)
+		return err
 	}
 	return nil
+}
+
+func SwitchDb(role string, database *datatypes.Database) error {
+	var err error
+	if conn != nil {
+		conn.Close()
+	}
+	if role == "pages" {
+		err = InitDb(database)
+	} else {
+		err = errors.New("Not implemented")
+		events.Error("db.rethinkdb.SwitchDb", err)
+	}
+	return err
 }
 
 func connect(database *datatypes.Database) (*r.Session, error) {

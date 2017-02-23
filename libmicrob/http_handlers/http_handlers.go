@@ -164,12 +164,10 @@ func startMsg() string {
 	database := state.Server.PagesDb
 	server := state.Server
     loc := server.Host+":"+server.Port
-    if (state.Verbosity > 0) {
-		msg = "Server started on "+loc+" for domain "+skittles.BoldWhite(server.Domain)
-		msg = msg+" with "+database.Type
-		msg = msg+" ("+database.Host+")"
-		events.New("runtime_info", "http_server", msg)
-	}
+	msg = "Server started on "+loc+" for domain "+skittles.BoldWhite(server.Domain)
+	msg = msg+" with "+database.Type
+	msg = msg+" ("+database.Host+")"
+	events.New("runtime_info", "http_server", msg)
 	return msg
 }
 

@@ -13,17 +13,22 @@ import (
 
 
 var config = conf.GetConf("default")
-var Server = &datatypes.Server{Runing:false}
+var pages_db = &datatypes.Database{Running:false}
+var hits_db = &datatypes.Database{Running:false}
+var commands_db = &datatypes.Database{Running:false}
+var Server = &datatypes.Server{Running:false, PagesDb:pages_db, HitsDb:hits_db, CommandsDb:commands_db}
 var Verbosity int = 1
 var Debug bool = false
 var DevMode bool = false
 var ListenWs bool = false
 var Routes []string
-var DbIsOk bool
 
 func InitState(dev_mode bool) error {
 	setDevMode(dev_mode)
-	err := initState()
+	err := setServer()
+	if err != nil {
+		return err
+	}
 	if err != nil {
 		return err
 	}
@@ -45,18 +50,42 @@ func SetRoutes(routes []string) {
 	Routes = routes
 }
 
+func GetDbFromConf(name string) (*datatypes.Database, error) {
+	var db *datatypes.Database
+	dbs, err := getDbsFromConf()
+	if err != nil {
+		return db, err
+	}
+	for _, d  := range(dbs) {
+		if d.Name == name {
+			return d, nil
+		}
+	}
+	msg := "Database "+name+" not found in config"
+	err = errors.New(msg)
+	return db, err
+}
+
 func FormatState() string {
 	var msg string
 	d := "off"
 	if Debug == true {
 		d = "on"
 	}
-	db := skittles.Red("down")
-	if DbIsOk == true {
-		db = "up"
+	pdb := skittles.Red("down")
+	if Server.PagesDb.Running == true {
+		pdb = "up"
+	}
+	hdb := skittles.Red("down")
+	if Server.HitsDb.Running == true {
+		hdb = "up"
+	}
+	cdb := skittles.Red("down")
+	if Server.CommandsDb.Running == true {
+		cdb = "up"
 	}
 	up := skittles.Red("down")
-	if Server.Runing == true {
+	if Server.Running == true {
 		up = "up"
 	}
 	cc := "down"
@@ -64,7 +93,9 @@ func FormatState() string {
 		cc = "up"
 	}
 	msg = msg+" - Server is "+up+"\n"
-	msg = msg+" - Database is "+db+"\n"
+	msg = msg+" - Pages database is "+pdb+"\n"
+	msg = msg+" - Hits database is "+hdb+"\n"
+	msg = msg+" - Commands database is "+cdb+"\n"
 	msg = msg+" - Commands channel is "+cc+"\n"
 	msg = msg+" - Verbosity is set to "+strconv.Itoa(Verbosity)+"\n"
 	msg = msg+" - Debug is "+d+"\n"
@@ -74,22 +105,6 @@ func FormatState() string {
 	return msg
 }
 
-func initState() error {
-	err := setServer()
-	if err != nil {
-		msg := "state.init(): "+err.Error()
-		e := errors.New(msg)
-		return e
-	}
-	err = setDefaultDbs()
-	if err != nil {
-		msg := "state.init(): "+err.Error()
-		e := errors.New(msg)
-		return e
-	}
-	return nil
-}
-
 func setServer() (error) {
 	domain := config["domain"].(string)
 	http_host :=  config["http_host"].(string)
@@ -97,12 +112,14 @@ func setServer() (error) {
 	websockets_host := config["centrifugo_host"].(string)
 	websockets_port := config["centrifugo_port"].(string)
 	websockets_key := config["centrifugo_secret_key"].(string)
-	pages_db := Server.PagesDb
-	hits_db := Server.HitsDb
-	commands_db := Server.CommandsDb
 	var srv *http.Server
 	server := &datatypes.Server{domain, http_host, http_port, websockets_host, websockets_port, websockets_key, pages_db, hits_db, commands_db, false, srv}
 	Server = server
+	setDefaultDbs()
+	err := setDefaultDbs()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -210,7 +227,7 @@ func newDbFromConf(name string) (*datatypes.Database, error) {
 			for _, r := range roles_i {
 				roles = append(roles, r.(string))
 			}
-			db = &datatypes.Database{dbtype, db_name, host, port, user, password, roles}
+			db = &datatypes.Database{dbtype, db_name, host, port, user, password, roles, false}
 			break
 		}
 	}

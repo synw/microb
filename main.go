@@ -11,6 +11,7 @@ import (
     "github.com/synw/microb/libmicrob/http_handlers"
     "github.com/synw/microb/libmicrob/listeners"
     "github.com/synw/microb/libmicrob/state"
+    "github.com/synw/microb/libmicrob/state/mutate"
     "github.com/synw/microb/libmicrob/events"
     "github.com/synw/microb/libmicrob/db"
 )
@@ -22,10 +23,16 @@ func init() {
 	flag.Parse()
 	err := state.InitState(*dev_mode)
 	if err != nil {
-		panic(err)
+		events.Error("init", err)
 	}
-	db.InitDb()
-	if state.DbIsOk {
+	err = db.InitDb()
+	if err != nil {
+		events.Err("init", "Http server can not run: no pages database", err)
+	}
+	if state.Server.PagesDb.Running == true {
+		if state.Debug == true {
+			events.Debug("Getting routes from db")
+		}
 		routes, err := db.GetRoutes()
 		if err != nil {
 			events.Err("init", "Can't get the routes out of the database", err)
@@ -61,37 +68,28 @@ func main() {
 	r.NotFound(http_handlers.Handle404)
 	// http server
 	loc := state.Server.Host+":"+state.Server.Port
-    if state.DbIsOk == true {
-    	httpServer := &http.Server{
-			Addr: loc,
-		    ReadTimeout: 5 * time.Second,
-		    WriteTimeout: 10 * time.Second,
-		    Handler: r,
-		}
-		state.Server.RuningServer = httpServer
-		state.Server.Runing= true
-    } else {
+    /*if state.DbIsOk != true {
     	events.State("main", "Http server is not running. Please check your configuration")
-    }
+    }*/
+	httpServer := &http.Server{
+		Addr: loc,
+	    ReadTimeout: 5 * time.Second,
+	    WriteTimeout: 10 * time.Second,
+	    Handler: r,
+	}
+	state.Server.RunningServer = httpServer
 	// wait for all init checks to proceed (are we connected to a websockets server?)
 	wg.Wait()
 	if state.ListenWs == false {
 		msg := "The server is not listening for commands. Please configure your websockets server"
 		events.State("runtime", msg)
 	}
-	if (state.DbIsOk == false && state.ListenWs == false) {
+	if (state.Server.PagesDb.Name != "" && state.ListenWs == false) {
 		fmt.Println("Nothing to do: going to sleep")
 		return
 	}
-	if state.DbIsOk == true {
-		http_handlers.StartMsg()
-		state.Server.Runing = true
-		state.Server.RuningServer.ListenAndServe()
-	} else {
-		if state.ListenWs == true {
-			// sit and listen
-			run := make(chan bool)
-			<- run
-		}
-	} 
+	_ = mutate.StartServer()
+	// sit and listen
+	run := make(chan bool)
+	<- run
 }

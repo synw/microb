@@ -7,6 +7,7 @@ import (
 	"time"
 	"strconv"
 	//"github.com/shirou/gopsutil/mem"
+	color "github.com/acmacalister/skittles"
 	"github.com/synw/microb/libmicrob/db"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/datatypes/encoding"
@@ -217,9 +218,33 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 				// STATE DB
 				var rvs []interface{}
 				msg := "Database state:\n"
-				msg = msg+" - Pages database is "+state.Server.PagesDb.Name+" ("+state.Server.PagesDb.Type+") at "+state.Server.PagesDb.Host+"\n"
-				msg = msg+" - Hits database is "+state.Server.HitsDb.Name+" ("+state.Server.HitsDb.Type+") at "+state.Server.HitsDb.Host+"\n"
-				msg = msg+" - Commands database is "+state.Server.CommandsDb.Name+" ("+state.Server.CommandsDb.Type+") at "+state.Server.CommandsDb.Host
+				if state.Server.PagesDb.Name != "" {
+					if state.Server.PagesDb.Running == true {
+						msg = msg+" - Pages database is "+state.Server.PagesDb.Name+" ("+state.Server.PagesDb.Type+") at "+state.Server.PagesDb.Host+"\n"
+					} else {
+						msg = msg+" - Pages database is "+color.Red("down")+"\n"
+					}
+				} else {
+					msg = msg+" - Pages database is "+color.Red("unset")+"\n"
+				}
+				if state.Server.HitsDb.Name != "" {
+					if state.Server.HitsDb.Running == true {
+						msg = msg+" - Hits database is "+state.Server.HitsDb.Name+" ("+state.Server.HitsDb.Type+") at "+state.Server.HitsDb.Host+"\n"
+					} else {
+						msg = msg+" - Hits database is "+color.Red("down")+"\n"
+					}
+				} else {
+					msg = msg+" - Hits database is "+color.Red("unset")+"\n"
+				}
+				if state.Server.CommandsDb.Name != "" {
+					if state.Server.CommandsDb.Running == true {
+						msg = msg+" - Commands database is "+state.Server.CommandsDb.Name+" ("+state.Server.CommandsDb.Type+") at "+state.Server.CommandsDb.Host
+					} else {
+						msg = msg+" - Commands database is "+color.Red("down")
+					}
+				} else {
+					msg = msg+" - Commands database is "+color.Red("unset")
+				}
 				rvs = append(rvs, msg)
 				command.ReturnValues = rvs
 				command.Status = "success"
@@ -245,12 +270,14 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 			cmd := command.Args[0]
 			arg := command.Args[1]
 			if cmd == "verbosity" {
+				// SET VERBOSITY
 				msg := mutate.Verbosity(arg.(string))
 				var rvs []interface{}
 				rvs = append(rvs, msg)
 				command.ReturnValues = rvs
 				command.Status = "success"
 			} else if cmd == "debug" {
+				// SET DEBUG
 				msg, err := mutate.Debug(arg.(string))
 				if err != nil {
 					command.Status = "error"
@@ -258,9 +285,69 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 				} else {
 					var rvs []interface{}
 					rvs = append(rvs, msg)
+					
 					command.Status = "success"
 				}
-			} 
+			} else if cmd == "pagesdb" {
+				// SET PAGESDB
+				msg, err := mutate.PagesDb(arg.(string))
+				if err != nil {
+					command.Status = "error"
+					command.Error = err
+				} else {
+					var rvs []interface{}
+					rvs = append(rvs, msg)
+					command.ReturnValues = rvs
+					command.Status = "success"
+				}
+			} else {
+				msg := "Command set "+cmd.(string)+" is unknown"
+				err := errors.New(msg)
+				command.Error = err
+				var rvs []interface{}
+				rvs = append(rvs, msg)
+				command.ReturnValues = rvs
+				command.Status = "error"
+			}
+		}
+	} else if command.Name == "server" {
+		// SERVER
+		var err error
+		num_args := len(command.Args)
+		if  num_args == 0 {
+			msg := "Please provide an action: ex: server restart"
+			err = errors.New(msg)
+		} else if num_args > 1 {
+			msg := "Only one argument is allowed for the command server"
+			err = errors.New(msg)
+		} else {
+			cmd := command.Args[0]
+			if cmd == "start" { 
+				// SERVER START
+				err = mutate.StartServer()
+				if err != nil {
+					msg := "Error starting the server: "+err.Error()
+					err = errors.New(msg)
+				}
+			} else if cmd == "kill" {
+				err = mutate.KillServer()
+				if err != nil {
+					msg := "Error stopping the server "+err.Error()
+					err = errors.New(msg)
+				}
+			} else {
+				msg := "Command server "+cmd.(string)+" is unknown"
+				err = errors.New(msg)
+			}
+		}
+		if err != nil {
+			command.Error = err
+			var rvs []interface{}
+			rvs = append(rvs, err.Error())
+			command.ReturnValues = rvs
+			command.Status = "error"
+		} else {
+			command.Status = "success"
 		}
 	}
 	/*else if (command.Name == "db_list") {
