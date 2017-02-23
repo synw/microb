@@ -3,25 +3,29 @@ package events
 import (
 	"fmt"
 	"github.com/synw/microb/libmicrob/datatypes"
-	"github.com/synw/microb/libmicrob/conf"
+	"github.com/synw/microb/libmicrob/state"
 	"github.com/synw/microb/libmicrob/events/format"
 )
 
 
 func Handle(event *datatypes.Event) {
-	if conf.Verbosity > 0 {
+	if state.Verbosity > 0 {
 		printMsg(event.Class, event)
 	}
 }
 
 func PrintCommandReport(command *datatypes.Command) {
-	fmt.Println(format.GetTime(), format.GetCommandReportMsg(command))
+	if state.Verbosity > 0 {
+		fmt.Println(format.GetTime(), format.GetCommandReportMsg(command))
+	}
 }
 
 func Print(event_class string, from string, message string) {
 	var d map[string]interface{}
 	event := &datatypes.Event{event_class, from, message, d}
-	printMsg(event_class, event)
+	if state.Verbosity > 0 {
+		printMsg(event_class, event)
+	}
 }
 
 func New(event_class string, from string, message string) {

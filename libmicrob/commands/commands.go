@@ -13,6 +13,7 @@ import (
 	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/events/format"
 	"github.com/synw/microb/libmicrob/state"
+	"github.com/synw/microb/libmicrob/state/mutate"
 	"github.com/synw/microb/libmicrob/commands/methods"
 	"github.com/synw/microb/libmicrob/http_handlers"
 	
@@ -39,11 +40,10 @@ func HandleCommandFeedback(command *datatypes.Command) {
 	}
 }
 
-func GetCommandFromPayload(message *datatypes.WsIncomingMessage, broker string) *datatypes.Command {
+func GetCommandFromPayload(message *datatypes.WsIncomingMessage, from string) *datatypes.Command {
 	data := message.Data
 	name := data["name"].(string)
 	reason := ""
-	from := broker
 	if data["from"] != nil {
 		from = data["from"].(string)
 	}
@@ -147,6 +147,7 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 		return
 	}
 	if (command.Name == "update_routes") {
+		// UPDATE ROUTES
 		err := updateRoutes()
 		if err != nil {
 			handleCommandError(command, err, c)
@@ -156,6 +157,7 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 			command.Status = "success"
 		}
 	} else if (command.Name == "reparse_templates") {
+		// REPARSE TEMPLATES
 		err := reparseTemplates()
 		if err != nil { 
 			handleCommandError(command, err, c)
@@ -165,6 +167,7 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 			command.Status = "success"
 		}
 	} else if (command.Name == "ping") {
+		// PING
 		command.ReturnValues = append(command.ReturnValues, "PONG")
 		command.Status = "success"
 	} else if (command.Name == "db_status") {
@@ -182,6 +185,7 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 		command.ReturnValues = append(command.ReturnValues, time_started)
 		command.Status = "success"
 	} else if (command.Name == "routes") {
+		// ROUTES
 		routes, err := db.GetRoutes()
 		if err != nil {
 			handleCommandError(command, err, c)
@@ -194,12 +198,50 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 		command.ReturnValues = rvs
 		command.Status = "success"
 	} else if command.Name == "state" {
+		// STATE
 		msg := state.FormatState()
 		var rvs []interface{}
 		rvs = append(rvs, msg)
 		command.ReturnValues = rvs
 		command.Status = "success"
-	} 
+	} else if command.Name == "set" {
+		// SET
+		num_args := len(command.Args)
+		if  num_args == 0 {
+			msg := "Command set incoming from "+command.From+" with no arguments"
+			events.ErrMsg("commands.run", msg)
+		} else if num_args == 1 {
+			msg := "Command set incoming from "+command.From+" with only one argument: "+command.Args[0].(string)
+			events.ErrMsg("commands.run", msg)
+		} else if num_args > 2 {
+			var arguments string
+			for _, a := range(command.Args) {
+				arguments = arguments+" "+a.(string)
+			}
+			msg := "Command set incoming from "+command.From+" with more than two arguments:"+arguments
+			events.ErrMsg("commands.run", msg)
+		} else {
+			cmd := command.Args[0]
+			arg := command.Args[1]
+			if cmd == "verbosity" {
+				msg := mutate.Verbosity(arg.(string))
+				var rvs []interface{}
+				rvs = append(rvs, msg)
+				command.ReturnValues = rvs
+				command.Status = "success"
+			} else if cmd == "debug" {
+				msg, err := mutate.Debug(arg.(string))
+				if err != nil {
+					command.Status = "error"
+					command.Error = err
+				} else {
+					var rvs []interface{}
+					rvs = append(rvs, msg)
+					command.Status = "success"
+				}
+			} 
+		}
+	}
 	/*else if (command.Name == "db_list") {
 		for role, db := range metadata.GetDatabasesAndRoles() {
 			msg := database.Name

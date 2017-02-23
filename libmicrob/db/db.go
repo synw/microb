@@ -13,14 +13,14 @@ import (
 )
 
 
-var db_type string
+var pages_db string
 var misconf = errors.New("Database for pages is not configurated")
 
 func InitDb() {
 	if state.Server.PagesDb != nil {
-		db_type = state.Server.PagesDb.Type
+		pages_db = state.Server.PagesDb.Type
 	}
-	if db_type == "rethinkdb" {
+	if pages_db == "rethinkdb" {
 		err := rethinkdb.InitDb()
 		if err != nil {
 			state.Server.PagesDb = nil
@@ -35,10 +35,10 @@ func InitDb() {
 func ReportStatus() (map[string]interface{}, error) {
 	var err error
 	status := make(map[string]interface{})
-	if db_type == "" {
+	if pages_db == "" {
 		return status, misconf
 	}
-	if db_type == "rethinkdb" {
+	if pages_db == "rethinkdb" {
 		status, err = rethinkdb.ReportStatus()
 	}
 	if err != nil {
@@ -50,10 +50,10 @@ func ReportStatus() (map[string]interface{}, error) {
 func GetFromUrl(url string)  (*datatypes.Page, bool, error) {
 	var r *datatypes.Page
 	f := false
-	if db_type == "" {
+	if pages_db == "" {
 		return r, f, misconf
 	}
-	if db_type == "rethinkdb" {
+	if pages_db == "rethinkdb" {
 		res, found, err := rethinkdb.GetFromUrl(url)
 		if err != nil {
 			events.Error("db.GetFromUrl", err)
@@ -68,10 +68,10 @@ func GetFromUrl(url string)  (*datatypes.Page, bool, error) {
 
 func GetRoutes() ([]string, error) {
 	var routes []string
-	if db_type == "" {
+	if pages_db == "" {
 		return routes, misconf
 	}
-	if db_type == "rethinkdb" {
+	if pages_db == "rethinkdb" {
 		routes = rethinkdb.GetRoutes()
 	}
 	return routes, nil

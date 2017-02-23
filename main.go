@@ -20,7 +20,10 @@ var dev_mode = flag.Bool("d", false, "Dev mode")
 
 func init() {
 	flag.Parse()
-	state.InitState(*dev_mode)
+	err := state.InitState(*dev_mode)
+	if err != nil {
+		panic(err)
+	}
 	db.InitDb()
 	if state.DbIsOk {
 		routes, err := db.GetRoutes()

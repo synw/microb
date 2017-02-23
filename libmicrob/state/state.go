@@ -1,14 +1,13 @@
 package state
 
 import (
-	//"fmt"
+	"fmt"
 	"errors"
 	"time"
 	"strconv"
 	"net/http"
 	"github.com/acmacalister/skittles"
 	"github.com/synw/microb/libmicrob/datatypes"
-	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/conf"
 )
 
@@ -22,18 +21,24 @@ var ListenWs bool = false
 var Routes []string
 var DbIsOk bool
 
-func InitState(dev_mode bool) {
+func InitState(dev_mode bool) error {
 	setDevMode(dev_mode)
-	initState()
+	err := initState()
+	if err != nil {
+		return err
+	}
 	setDebug()
 	setVerbosity()
 	if Debug == true {
 		go func() {
 			time.Sleep(1*time.Second)
-			events.Debug("State:", "\n", FormatState())
-			events.Debug("Server:", "\n", Server.Format())
+			msg := "State:\n"+FormatState()
+			fmt.Println(msg)
+			msg = "Server:\n"+Server.Format()
+			fmt.Println(msg)
 		}()
 	}
+	return nil
 }
 
 func SetRoutes(routes []string) {
@@ -69,17 +74,20 @@ func FormatState() string {
 	return msg
 }
 
-func initState() {
+func initState() error {
 	err := setServer()
 	if err != nil {
-		events.Error("state.init()", err)
-		return
+		msg := "state.init(): "+err.Error()
+		e := errors.New(msg)
+		return e
 	}
 	err = setDefaultDbs()
 	if err != nil {
-		events.Error("state.init()", err)
-		return
+		msg := "state.init(): "+err.Error()
+		e := errors.New(msg)
+		return e
 	}
+	return nil
 }
 
 func setServer() (error) {
@@ -104,7 +112,8 @@ func setDefaultDbs() error {
 		return err
 	}
 	if pdb == nil {
-		events.ErrMsg("state.setDefaultDbs", "No database found for role pages")
+		errors.New("state.setDefaultDbs: no database found for role pages")
+		return err
 	} else {
 		Server.PagesDb = pdb
 	}
@@ -113,7 +122,8 @@ func setDefaultDbs() error {
 		return err
 	}
 	if hdb == nil {
-		events.ErrMsg("state.setDefaultDbs", "No database found for role hits")
+		errors.New("state.setDefaultDbs: no database found for role hits")
+		return err
 	} else {
 		Server.HitsDb = hdb
 	}
@@ -122,7 +132,8 @@ func setDefaultDbs() error {
 		return err
 	}
 	if cdb == nil {
-		events.ErrMsg("state.setDefaultDbs", "No database found for role commands")
+		errors.New("state.setDefaultDbs: no database found for role commands")
+		return err
 	} else {
 		Server.CommandsDb = cdb
 	}
@@ -151,7 +162,8 @@ func getDefaultDb(role string) (*datatypes.Database, error) {
 	dbs, err := getDbsFromConf()
 	db := &datatypes.Database{}
 	if err != nil {
-		events.Error("state.getDefaultDb", err)
+		e := "state.getDefaultDb: "+err.Error()
+		errors.New(e)
 		return db, err
 	}
 	for _, cdb := range dbs {
@@ -163,8 +175,9 @@ func getDefaultDb(role string) (*datatypes.Database, error) {
 		}
 	}
 	msg := "Database not found for role "+role
-	events.ErrMsg("state.getDefaultDb", msg)
-	return db, nil
+	e := "state.getDefaultDb: "+msg
+	err = errors.New(e)
+	return db, err
 }
 
 func getDbsFromConf() (map[string]*datatypes.Database, error) {
@@ -202,9 +215,8 @@ func newDbFromConf(name string) (*datatypes.Database, error) {
 		}
 	}
 	if db == nil {
-		msg := "Database "+name+" not found in config"
+		msg := "state.newDbFromConf: database "+name+" not found in config"
 		err := errors.New(msg)
-		events.Error("state.newDbFromConf", err)
 		return db, err
 	}
 	return db, nil
