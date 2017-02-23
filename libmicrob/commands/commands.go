@@ -199,11 +199,32 @@ func runCommand(command *datatypes.Command, c chan *datatypes.Command) {
 		command.Status = "success"
 	} else if command.Name == "state" {
 		// STATE
-		msg := state.FormatState()
-		var rvs []interface{}
-		rvs = append(rvs, msg)
-		command.ReturnValues = rvs
-		command.Status = "success"
+		num_args := len(command.Args)
+		if  num_args == 0 {
+			msg := state.FormatState()
+			var rvs []interface{}
+			rvs = append(rvs, msg)
+			command.ReturnValues = rvs
+			command.Status = "success"
+		} else if num_args > 1 {
+			var rvs []interface{}
+			msg := "Too many arguments to command state"
+			rvs = append(rvs, msg)
+			command.ReturnValues = rvs
+			command.Status = "error"
+		} else {
+			if command.Args[0].(string) == "db" {
+				// STATE DB
+				var rvs []interface{}
+				msg := "Database state:\n"
+				msg = msg+" - Pages database is "+state.Server.PagesDb.Name+" ("+state.Server.PagesDb.Type+") at "+state.Server.PagesDb.Host+"\n"
+				msg = msg+" - Hits database is "+state.Server.HitsDb.Name+" ("+state.Server.HitsDb.Type+") at "+state.Server.HitsDb.Host+"\n"
+				msg = msg+" - Commands database is "+state.Server.CommandsDb.Name+" ("+state.Server.CommandsDb.Type+") at "+state.Server.CommandsDb.Host
+				rvs = append(rvs, msg)
+				command.ReturnValues = rvs
+				command.Status = "success"
+			}
+		}
 	} else if command.Name == "set" {
 		// SET
 		num_args := len(command.Args)
