@@ -11,11 +11,15 @@ import (
 )
 
 var conn *r.Session
+var isConnected bool = false
 
 func InitDb(database *datatypes.Database) error {
 	if database.Type != "rethinkdb" {
 		err := errors.New("Not a rethinkdb database")
 		return err
+	}
+	if state.Debug == true {
+		events.Debug("Connecting to "+database.Name)
 	}
 	cn, err := connect(database)
 	conn = cn
@@ -28,10 +32,16 @@ func InitDb(database *datatypes.Database) error {
 
 func SwitchDb(role string, database *datatypes.Database) error {
 	var err error
-	if conn != nil {
+	if isConnected == true {
+		if state.Debug == true {
+			events.Debug("Closing previous connection to rethinkdb")
+		}
 		conn.Close()
 	}
 	if role == "pages" {
+		if state.Debug == true {
+			events.Debug("Initializing new database "+database.Name+" ("+database.Host+") for role "+role)
+		}
 		err = InitDb(database)
 	} else {
 		err = errors.New("Not implemented")
@@ -58,7 +68,9 @@ func connect(database *datatypes.Database) (*r.Session, error) {
 	})
     if err != nil {
         events.Error("db.rethinkdb.connectToDb()", err)
+        return session, err
     }
+    isConnected = true
     return session, err
 }
 /*

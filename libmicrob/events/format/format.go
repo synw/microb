@@ -57,7 +57,7 @@ func FormatTime(t time.Time) string {
 
 func getEventOutputFlags() map[string]string {
 	output_flags := make(map[string]string)
-	output_flags["info"] = "["+skittles.Cyan("info")+"]"
+	output_flags["info"] = "["+skittles.Green("info")+"]"
 	output_flags["event"] = "["+skittles.Yellow("event")+"]"
 	output_flags["command"] = "[=> "+skittles.Cyan("command")+"]"
 	output_flags["error"] = "["+skittles.BoldRed("error")+"]"

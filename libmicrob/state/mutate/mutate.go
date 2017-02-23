@@ -54,9 +54,13 @@ func Verbosity(lvl string) string {
 
 func Debug(lvl string) (string, error) {
 	var msg string
-	if lvl == "true" {
+	if lvl == "on" {
 		state.Debug = true
-		msg = "Debug is set to "+lvl
+		msg = "Debug is on"
+		events.State("mutate.Debug", msg)
+	} else if lvl == "off" {
+		state.Debug = false
+		msg = "Debug is off"
 		events.State("mutate.Debug", msg)
 	} else {
 		msg = "Invalid value for set debug: "+lvl
