@@ -4,6 +4,7 @@ import (
 	"fmt"
     "flag"
     "errors"
+    "github.com/synw/centcom"
     "github.com/synw/terr"
     "github.com/synw/microb/libmicrob/state"
     "github.com/synw/microb/libmicrob/events"
@@ -15,7 +16,8 @@ var verbosity = flag.Int("v", 1, "Verbosity")
 
 func main() {
 	flag.Parse()
-	_, trace := state.InitState(*dev_mode, *verbosity)
+	cli, trace := state.InitState(*dev_mode, *verbosity)
+	defer centcom.Disconnect(cli)
 	if trace != nil {
 		err := errors.New("Unable to initialize state")
 		trace = terr.Add("main", err, trace)
@@ -25,9 +27,21 @@ func main() {
 	if state.Verbosity > 2 {
 		fmt.Println(terr.Ok("Initialized state"))
 	}
-	if state.Verbosity > 0 {
-		fmt.Println("waiting...")
-	}	
+	// connect on the commands channel
+	cli, err := cli.Suscribe("$dev")
+	if err != nil {
+		fmt.Println(err)
+	}
+	// listen
+	go func() {
+	fmt.Println("Listening for commands...")
+	for msg := range(cli.Channels) {
+		if msg.Channel == "$dev" {
+			fmt.Println("PAYLOAD", msg.Payload, msg.UID)
+		}
+	}
+	}()
+	// idle
 	for {
 		
 	}
