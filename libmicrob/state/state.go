@@ -39,11 +39,16 @@ func InitState(is_dev bool, verbosity int) (*ws.Cli, *terr.Trace) {
 
 func initCli() (*ws.Cli, *terr.Trace) {
 	cli := ws.NewClient(Conf.WsHost, Conf.WsPort, Conf.WsKey)
-	//terr.Debug(cli.Host, Conf.WsHost, cli.Key, cli)
 	cli, err := centcom.Connect(cli)
 	if err != nil {
 		trace := terr.New("ws.InitCli", err)
 		var cli *ws.Cli
+		return cli, trace
+	}
+	cli.ConnOk = true
+	cli, err = cli.CheckHttp()
+	if err != nil {
+		trace := terr.New("ws.InitCli", err)
 		return cli, trace
 	}
 	return cli, nil
