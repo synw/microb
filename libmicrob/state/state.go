@@ -1,6 +1,7 @@
 package state
 
 import (
+	"fmt"
 	"github.com/synw/terr"
 	"github.com/synw/centcom"
 	"github.com/synw/centcom/ws"
@@ -45,11 +46,17 @@ func initCli() (*ws.Cli, *terr.Trace) {
 		var cli *ws.Cli
 		return cli, trace
 	}
-	cli.ConnOk = true
+	cli.IsConnected = true
+	if Verbosity > 1 {
+		fmt.Println(terr.Ok("Websockets client connected"))
+	}
 	cli, err = cli.CheckHttp()
 	if err != nil {
 		trace := terr.New("ws.InitCli", err)
 		return cli, trace
 	}
+	if Verbosity > 1 {
+		fmt.Println(terr.Ok("Websockets http transport ready"))
+	}	
 	return cli, nil
 }
