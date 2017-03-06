@@ -1,15 +1,15 @@
 {
 	"domain": "localhost",
 	"http_host":"",
-	"http_port":"8080",
+	"http_port":8080,
 	"centrifugo_host":"localhost",
-	"centrifugo_port":"8001",
+	"centrifugo_port":8001,
 	"centrifugo_key":"238a3fd4-71c9-4eb1-9995-914b235efef1",
 	"databases":{
 					"default": {
 						"type":"rethinkdb",
 						"host":"localhost",
-						"port":"28015",
+						"port":28015,
 						"user":"admin",
 						"password":"pwd",
 						"roles": ["pages", "hits", "commands"]

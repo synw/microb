@@ -15,7 +15,7 @@ var verbosity = flag.Int("v", 1, "Verbosity")
 
 func main() {
 	flag.Parse()
-	trace := state.InitState(*dev_mode, *verbosity)
+	_, trace := state.InitState(*dev_mode, *verbosity)
 	if trace != nil {
 		err := errors.New("Unable to initialize state")
 		trace = terr.Add("main", err, trace)

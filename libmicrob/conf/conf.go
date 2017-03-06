@@ -11,14 +11,14 @@ import (
 func GetConf(name string) (*datatypes.Conf, *terr.Trace) {
 	conf, trace := getConf(name)
 	if trace != nil {
-		trace = terr.Pass("conf.Conf", trace)
+		trace = terr.Pass("conf.GetConf", trace)
 		var cf *datatypes.Conf
 		return cf, trace
 	}
 	host := conf["http_host"].(string)
-	port := conf["http_port"].(string)
+	port := int(conf["http_port"].(float64))
 	wshost := conf["centrifugo_host"].(string)	
-	wsport := conf["centrifugo_port"].(string)	
+	wsport := int(conf["centrifugo_port"].(float64))	
 	wskey := conf["centrifugo_key"].(string)
 	cf := &datatypes.Conf{host, port, wshost, wsport, wskey, 1}
 	return cf, nil

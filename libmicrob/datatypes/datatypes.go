@@ -7,10 +7,10 @@ import (
 
 type Conf struct {
 	HttpHost string
-	HttpPort string
+	HttpPort int
 	WsHost string
-	WsPort string
-	WkKey string
+	WsPort int
+	WsKey string
 	Verbosity int
 }
 
