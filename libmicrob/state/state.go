@@ -17,9 +17,10 @@ var Cli *ws.Cli
 
 func InitState(is_dev bool, verbosity int) (*ws.Cli, *terr.Trace) {
 	Verbosity = verbosity	
-	name := "config"
+	name := "normal"
 	if is_dev == true {
-		name = "dev_config"
+		name = "dev"
+		fmt.Println("Dev mode is on")
 	}
 	cf, trace := conf.GetConf(name)
 	if trace != nil {
@@ -28,6 +29,7 @@ func InitState(is_dev bool, verbosity int) (*ws.Cli, *terr.Trace) {
 		return cli, trace
 	}
 	Conf = cf
+	terr.Debug(Conf.WsKey)
 	cli, trace := initCli()
 	if trace != nil {	
 		trace = terr.Pass("state.InitState", trace)

@@ -4,7 +4,7 @@
 	"http_port":8080,
 	"centrifugo_host":"localhost",
 	"centrifugo_port":8001,
-	"centrifugo_key":"238a3fd4-71c9-4eb1-9995-914b235efef1",
+	"centrifugo_key":"secret_key",
 	"databases":{
 					"default": {
 						"type":"rethinkdb",
