@@ -29,7 +29,6 @@ func InitState(is_dev bool, verbosity int) (*ws.Cli, *terr.Trace) {
 		return cli, trace
 	}
 	Conf = cf
-	terr.Debug(Conf.WsKey)
 	cli, trace := initCli()
 	if trace != nil {	
 		trace = terr.Pass("state.InitState", trace)
