@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
     "flag"
+    "errors"
     "github.com/synw/terr"
     "github.com/synw/microb/libmicrob/state"
     "github.com/synw/microb/libmicrob/events"
@@ -16,16 +17,17 @@ func main() {
 	flag.Parse()
 	trace := state.InitState(*dev_mode, *verbosity)
 	if trace != nil {
-		trace = terr.Pass("main", trace)
+		err := errors.New("Unable to initialize state")
+		trace = terr.Add("main", err, trace)
 		events.Error(trace)
-	} else {
-		if state.Verbosity > 2 {
-			terr.Ok("Initialized state")
-		}
+		return
+	}
+	if state.Verbosity > 2 {
+		fmt.Println(terr.Ok("Initialized state"))
 	}
 	if state.Verbosity > 0 {
-			fmt.Println("waiting...")
-		}	
+		fmt.Println("waiting...")
+	}	
 	for {
 		
 	}

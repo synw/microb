@@ -2,7 +2,6 @@ package events
 
 import (
 	"fmt"
-	"time"
 	color "github.com/acmacalister/skittles"	
 	"github.com/synw/terr"
 	"github.com/synw/microb/libmicrob/datatypes"
@@ -42,8 +41,7 @@ func New(class string, from string, tr ...*terr.Trace) *datatypes.Event {
 // internal methods
 
 func getMsg(event *datatypes.Event) string {
-	t := getTime()
-	out := t+" "+getFormatedMsgNoTime(event)
+	out := getFormatedMsgNoTime(event)
 	return out
 }
 
@@ -52,7 +50,7 @@ func getEventOutputFlags() map[string]string {
 	output_flags["info"] = "["+color.Green("info")+"]"
 	output_flags["event"] = "["+color.Yellow("event")+"]"
 	output_flags["command"] = "[=> "+color.Cyan("command")+"]"
-	output_flags["error"] = "["+color.BoldRed("error")+"]"
+	output_flags["error"] = ""
 	output_flags["metric"] = "["+color.Cyan("metric")+"]"
 	output_flags["state"] = "["+color.Yellow("state")+"]"
 	output_flags["debug"] = "["+color.Yellow("debug")+"]"
@@ -66,12 +64,11 @@ func getFormatedMsgNoTime(event *datatypes.Event) string {
 	var out string
 	msg := event.Message
 	output_flags := getEventOutputFlags()
-	out = out+output_flags[event.Class]
-	out = out+" "+msg
+	label := output_flags[event.Class]
+	sep := " "
+	if label == "" {
+		sep = ""
+	}
+	out = out+sep+msg
 	return out
-}
-
-func getTime() string {
-	t := time.Now()
-	return t.Format("15:04:05")
 }
