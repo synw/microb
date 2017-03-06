@@ -1,15 +1,30 @@
 package conf
 
 import (
-	"fmt"
+	"errors"
 	"github.com/spf13/viper"
+	"github.com/synw/terr"
+	"github.com/synw/microb/libmicrob/datatypes"
 )
 
 
-var Verbosity = 1
+func GetConf(name string) (*datatypes.Conf, *terr.Trace) {
+	conf, trace := getConf(name)
+	if trace != nil {
+		trace = terr.Pass("conf.Conf", trace)
+		var cf *datatypes.Conf
+		return cf, trace
+	}
+	host := conf["http_host"].(string)
+	port := conf["http_port"].(string)
+	wshost := conf["centrifugo_host"].(string)	
+	wsport := conf["centrifugo_port"].(string)	
+	wskey := conf["centrifugo_key"].(string)
+	cf := &datatypes.Conf{host, port, wshost, wsport, wskey, 1}
+	return cf, nil
+}
 
-
-func GetConf(name string) map[string]interface{} {
+func getConf(name string) (map[string]interface{},*terr.Trace) {
 	// set some defaults for conf
 	if name == "dev" {
 		viper.SetConfigName("dev_config")
@@ -32,7 +47,16 @@ func GetConf(name string) map[string]interface{} {
 	// get the actual conf
 	err := viper.ReadInConfig()
 	if err != nil {
-	    panic(fmt.Errorf("Fatal error config file: %s \n", err))
+		var conf map[string]interface{}
+		switch err.(type) {
+		case viper.ConfigParseError:
+			trace := terr.New("conf.getConf", err)
+			return conf, trace
+		default:
+			err := errors.New("Unable to locate config file")
+			trace := terr.New("conf.getConf", err)
+			return conf, trace
+		}
 	}
 	conf := make(map[string]interface{})
 	conf["domain"] = viper.Get("domain")
@@ -40,7 +64,7 @@ func GetConf(name string) map[string]interface{} {
 	conf["http_port"] = viper.Get("http_port")
 	conf["centrifugo_host"] = viper.Get("centrifugo_host")
 	conf["centrifugo_port"] = viper.Get("centrifugo_port")
-	conf["centrifugo_secret_key"] = viper.Get("centrifugo_secret_key")
+	conf["centrifugo_key"] = viper.Get("centrifugo_key")
 	conf["databases"] = viper.Get("databases")
 	conf["default_database"] = viper.Get("databases.main")
 	conf["staticfiles_host"] = viper.Get("staticfiles_host")
@@ -51,6 +75,5 @@ func GetConf(name string) map[string]interface{} {
 	v := conf["verbosity"]
 	Verbosity, _ = v.(int)*/
 	conf["commands_brokers"] = viper.Get("commands_brokers")
-	conf["debug"] = viper.Get("debug")
-	return conf
+	return conf, nil
 }

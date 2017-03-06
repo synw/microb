@@ -2,76 +2,76 @@ package events
 
 import (
 	"fmt"
+	"time"
+	color "github.com/acmacalister/skittles"	
+	"github.com/synw/terr"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/state"
-	"github.com/synw/microb/libmicrob/events/format"
 )
 
 
 func Handle(event *datatypes.Event) {
 	if state.Verbosity > 0 {
-		printMsg(event.Class, event)
+		fmt.Println(getMsg(event))
 	}
 }
 
-func PrintCommandReport(command *datatypes.Command) {
-	if state.Verbosity > 0 {
-		fmt.Println(format.GetTime(), format.GetCommandReportMsg(command))
-	}
-}
+// event classes
 
-func Print(event_class string, from string, message string) {
-	var d map[string]interface{}
-	event := &datatypes.Event{event_class, from, message, d}
-	if state.Verbosity > 0 {
-		printMsg(event_class, event)
-	}
-}
-
-func New(event_class string, from string, message string) {
-	var d map[string]interface{}
-	event := &datatypes.Event{event_class, from, message, d}
+func Error(trace *terr.Trace) {
+	event := New("error", "runtime", trace)
 	Handle(event)
 }
 
-func State(from string, msg string) {
-	New("state", from, msg)
-}
+// constructor
 
-func Debug(args ...string) {
+func New(class string, from string, tr ...*terr.Trace) *datatypes.Event {
+	var data map[string]interface{}
+	var trace *terr.Trace
 	var msg string
-	for i, arg := range(args) {
-		if ((i+1) < len(args)) && (i>1) {
-			msg = " "+msg
+	if class == "error" {
+		if len(tr) > 0 {
+			trace = tr[0]
+			msg = trace.Formatc()
 		}
-		msg = msg+arg
 	}
-	New("debug", "runtime", msg)
+	event := &datatypes.Event{class, from, msg, data, trace}
+	return event
 }
 
-func Error(from string, err error) {
-	var d map[string]interface{}
-	event := &datatypes.Event{"error", from, err.Error(), d}
-	Handle(event)
+// internal methods
+
+func getMsg(event *datatypes.Event) string {
+	t := getTime()
+	out := t+" "+getFormatedMsgNoTime(event)
+	return out
 }
 
-func ErrMsg(from string, msg string) {
-	var d map[string]interface{}
-	event := &datatypes.Event{"error", from, msg, d}
-	Handle(event)
+func getEventOutputFlags() map[string]string {
+	output_flags := make(map[string]string)
+	output_flags["info"] = "["+color.Green("info")+"]"
+	output_flags["event"] = "["+color.Yellow("event")+"]"
+	output_flags["command"] = "[=> "+color.Cyan("command")+"]"
+	output_flags["error"] = "["+color.BoldRed("error")+"]"
+	output_flags["metric"] = "["+color.Cyan("metric")+"]"
+	output_flags["state"] = "["+color.Yellow("state")+"]"
+	output_flags["debug"] = "["+color.Yellow("debug")+"]"
+	output_flags["request"] = ""
+	output_flags["request_error"] = ""
+	output_flags["runtime_info"] = ""
+	return output_flags
 }
 
-func Err(from string, msg string, err error) {
-	var d map[string]interface{}
-	fmsg := msg+": "+err.Error()
-	event := &datatypes.Event{"error", from, fmsg, d}
-	Handle(event)
+func getFormatedMsgNoTime(event *datatypes.Event) string {
+	var out string
+	msg := event.Message
+	output_flags := getEventOutputFlags()
+	out = out+output_flags[event.Class]
+	out = out+" "+msg
+	return out
 }
 
-func printMsg(event_class string, event *datatypes.Event) {
-	msg := format.GetFormatedMsg(event_class, event)
-	if event_class == "error" {
-		msg = msg+" (from "+event.From+")"
-	}
-	fmt.Println(msg)
+func getTime() string {
+	t := time.Now()
+	return t.Format("15:04:05")
 }
