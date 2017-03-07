@@ -8,20 +8,21 @@ import (
 )
 
 
-func GetConf(name string) (*datatypes.Conf, *terr.Trace) {
+func GetServer(name string) (*datatypes.Server, *terr.Trace) {
 	conf, trace := getConf(name)
 	if trace != nil {
-		trace = terr.Pass("conf.GetConf", trace)
-		var cf *datatypes.Conf
-		return cf, trace
+		trace = terr.Pass("conf.GetServer", trace)
+		var s *datatypes.Server
+		return s, trace
 	}
+	domain := conf["domain"].(string)
 	host := conf["http_host"].(string)
 	port := int(conf["http_port"].(float64))
 	wshost := conf["centrifugo_host"].(string)	
 	wsport := int(conf["centrifugo_port"].(float64))	
 	wskey := conf["centrifugo_key"].(string)
-	cf := &datatypes.Conf{host, port, wshost, wsport, wskey, 1}
-	return cf, nil
+	s := &datatypes.Server{domain, host, port, wshost, wsport, wskey}
+	return s, nil
 }
 
 func getConf(name string) (map[string]interface{},*terr.Trace) {
@@ -40,7 +41,6 @@ func getConf(name string) (map[string]interface{},*terr.Trace) {
 	viper.SetDefault("hits_monitor", true)
 	hits_channels := []string{"$microb_hits"}
 	viper.SetDefault("hits_channels", hits_channels)
-	viper.SetDefault("verbosity", 1)
 	viper.SetDefault("debug", false)
 	brockers := [0]string{}
 	viper.SetDefault("commands_brokers", brockers)
@@ -71,9 +71,6 @@ func getConf(name string) (map[string]interface{},*terr.Trace) {
 	conf["hits_log"] = viper.Get("hits_log")
 	conf["hits_monitor"] = viper.Get("hits_monitor")
 	conf["hits_channels"] = viper.Get("hits_channels")
-	/*conf["verbosity"] = viper.Get("verbosity")
-	v := conf["verbosity"]
-	Verbosity, _ = v.(int)*/
 	conf["commands_brokers"] = viper.Get("commands_brokers")
 	return conf, nil
 }

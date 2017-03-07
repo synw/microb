@@ -10,7 +10,7 @@ import (
 )
 
 
-var Conf *datatypes.Conf = &datatypes.Conf{}
+var Server *datatypes.Server = &datatypes.Server{}
 var Verbosity int = 1
 var Cli *ws.Cli
 
@@ -22,14 +22,14 @@ func InitState(is_dev bool, verbosity int) (*ws.Cli, *terr.Trace) {
 		name = "dev"
 		fmt.Println("Dev mode is on")
 	}
-	cf, trace := conf.GetConf(name)
+	server, trace := conf.GetServer(name)
 	if trace != nil {
 		trace = terr.Pass("stateInit.State", trace)
 		var cli *ws.Cli
 		return cli, trace
 	}
-	Conf = cf
-	cli, trace := initCli()
+	Server = server
+	cli, trace := initWsCli()
 	if trace != nil {	
 		trace = terr.Pass("state.InitState", trace)
 		return cli, trace
@@ -39,8 +39,8 @@ func InitState(is_dev bool, verbosity int) (*ws.Cli, *terr.Trace) {
 
 // internal methods
 
-func initCli() (*ws.Cli, *terr.Trace) {
-	cli := ws.NewClient(Conf.WsHost, Conf.WsPort, Conf.WsKey)
+func initWsCli() (*ws.Cli, *terr.Trace) {
+	cli := ws.NewClient(Server.WsHost, Server.WsPort, Server.WsKey)
 	cli, err := centcom.Connect(cli)
 	if err != nil {
 		trace := terr.New("ws.InitCli", err)

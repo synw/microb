@@ -1,17 +1,18 @@
 package datatypes
 
 import (
+	"time"
 	"github.com/synw/terr"
 )
 
 
-type Conf struct {
+type Server struct {
+	Domain string
 	HttpHost string
 	HttpPort int
 	WsHost string
 	WsPort int
 	WsKey string
-	Verbosity int
 }
 
 type Event struct {
@@ -20,4 +21,16 @@ type Event struct {
 	Message string
 	Data map[string]interface{}
 	Trace *terr.Trace
+}
+
+type Command struct {
+	Id string
+	Name string
+	From string
+	Reason string
+	Date time.Time
+	Args []interface{}
+	Status string
+	Error error
+	ReturnValues []interface{}
 }
