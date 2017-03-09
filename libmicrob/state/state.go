@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/synw/terr"
 	"github.com/synw/centcom"
-	"github.com/synw/centcom/ws"
 	"github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/datatypes"
 )
@@ -12,10 +11,10 @@ import (
 
 var Server *datatypes.Server = &datatypes.Server{}
 var Verbosity int = 1
-var Cli *ws.Cli
+var Cli *centcom.Cli
 
 
-func InitState(is_dev bool, verbosity int) (*ws.Cli, *terr.Trace) {
+func InitState(is_dev bool, verbosity int) (*centcom.Cli, *terr.Trace) {
 	Verbosity = verbosity	
 	name := "normal"
 	if is_dev == true {
@@ -25,7 +24,7 @@ func InitState(is_dev bool, verbosity int) (*ws.Cli, *terr.Trace) {
 	server, trace := conf.GetServer(name)
 	if trace != nil {
 		trace = terr.Pass("stateInit.State", trace)
-		var cli *ws.Cli
+		var cli *centcom.Cli
 		return cli, trace
 	}
 	Server = server
@@ -39,12 +38,12 @@ func InitState(is_dev bool, verbosity int) (*ws.Cli, *terr.Trace) {
 
 // internal methods
 
-func initWsCli() (*ws.Cli, *terr.Trace) {
-	cli := ws.NewClient(Server.WsHost, Server.WsPort, Server.WsKey)
+func initWsCli() (*centcom.Cli, *terr.Trace) {
+	cli := centcom.NewClient(Server.WsHost, Server.WsPort, Server.WsKey)
 	cli, err := centcom.Connect(cli)
 	if err != nil {
-		trace := terr.New("ws.InitCli", err)
-		var cli *ws.Cli
+		trace := terr.New("InitCli", err)
+		var cli *centcom.Cli
 		return cli, trace
 	}
 	cli.IsConnected = true
@@ -53,7 +52,7 @@ func initWsCli() (*ws.Cli, *terr.Trace) {
 	}
 	cli, err = cli.CheckHttp()
 	if err != nil {
-		trace := terr.New("ws.InitCli", err)
+		trace := terr.New("InitCli", err)
 		return cli, trace
 	}
 	if Verbosity > 1 {

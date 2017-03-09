@@ -4,6 +4,7 @@ import (
 	"fmt"
     "flag"
     "errors"
+    "strconv"
     "github.com/synw/centcom"
     "github.com/synw/terr"
     "github.com/synw/microb/libmicrob/state"
@@ -28,18 +29,19 @@ func main() {
 		fmt.Println(terr.Ok("Initialized state"))
 	}
 	// connect on the commands channel
-	cli, err := cli.Suscribe("$dev")
+	cli, err := cli.Suscribe(state.Server.CmdChannel)
 	if err != nil {
 		fmt.Println(err)
 	}
 	// listen
 	go func() {
-	fmt.Println("Listening for commands...")
-	for msg := range(cli.Channels) {
-		if msg.Channel == "$dev" {
-			fmt.Println("PAYLOAD", msg.Payload, msg.UID)
+		msg := "Listening for commands at "+cli.Host+":"+strconv.Itoa(cli.Port)+" on channel "+state.Server.CmdChannel+"..."
+		fmt.Println(msg)
+		for msg := range(cli.Channels) {
+			if msg.Channel == "cmd:$dev" {
+				fmt.Println("PAYLOAD", msg.Payload, msg.UID)
+			}
 		}
-	}
 	}()
 	// idle
 	for {
