@@ -29,7 +29,7 @@ func main() {
 		fmt.Println(terr.Ok("Initialized state"))
 	}
 	// connect on the commands channel
-	cli, err := cli.Suscribe(state.Server.CmdChannel)
+	err := cli.Subscribe(state.Server.CmdChannel)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -38,7 +38,7 @@ func main() {
 		msg := "Listening for commands at "+cli.Host+":"+strconv.Itoa(cli.Port)+" on channel "+state.Server.CmdChannel+"..."
 		fmt.Println(msg)
 		for msg := range(cli.Channels) {
-			if msg.Channel == "cmd:$dev" {
+			if msg.Channel == state.Server.CmdChannel {
 				fmt.Println("PAYLOAD", msg.Payload, msg.UID)
 			}
 		}

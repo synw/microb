@@ -40,7 +40,7 @@ func InitState(is_dev bool, verbosity int) (*centcom.Cli, *terr.Trace) {
 
 func initWsCli() (*centcom.Cli, *terr.Trace) {
 	cli := centcom.NewClient(Server.WsHost, Server.WsPort, Server.WsKey)
-	cli, err := centcom.Connect(cli)
+	err := centcom.Connect(cli)
 	if err != nil {
 		trace := terr.New("InitCli", err)
 		var cli *centcom.Cli
@@ -50,7 +50,7 @@ func initWsCli() (*centcom.Cli, *terr.Trace) {
 	if Verbosity > 1 {
 		fmt.Println(terr.Ok("Websockets client connected"))
 	}
-	cli, err = cli.CheckHttp()
+	err = cli.CheckHttp()
 	if err != nil {
 		trace := terr.New("InitCli", err)
 		return cli, trace
