@@ -14,7 +14,7 @@ var Verbosity int = 1
 var Cli *centcom.Cli
 
 
-func InitState(is_dev bool, verbosity int) (*centcom.Cli, *terr.Trace) {
+func InitState(is_dev bool, verbosity int) *terr.Trace {
 	Verbosity = verbosity	
 	name := "normal"
 	if is_dev == true {
@@ -24,16 +24,16 @@ func InitState(is_dev bool, verbosity int) (*centcom.Cli, *terr.Trace) {
 	server, trace := conf.GetServer(name)
 	if trace != nil {
 		trace = terr.Pass("stateInit.State", trace)
-		var cli *centcom.Cli
-		return cli, trace
+		return trace
 	}
 	Server = server
 	cli, trace := initWsCli()
 	if trace != nil {	
 		trace = terr.Pass("state.InitState", trace)
-		return cli, trace
+		return trace
 	}
-	return cli, nil
+	Cli = cli
+	return nil
 }
 
 // internal methods
