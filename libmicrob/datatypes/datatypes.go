@@ -13,7 +13,8 @@ type Server struct {
 	WsHost string
 	WsPort int
 	WsKey string
-	CmdChannel string
+	CmdChanIn string
+	CmdChanOut string
 }
 
 type Event struct {

@@ -79,7 +79,7 @@ func sendCommand(command *datatypes.Command) *terr.Trace {
 		trace := terr.New("commands.SendCommand", err)
 		return trace
 	}
-	_, err = state.Cli.Http.Publish(state.Server.CmdChannel, payload)
+	_, err = state.Cli.Http.Publish(state.Server.CmdChanOut, payload)
 	if err != nil {
 		trace := terr.New("commands.SendCommand", err)
 		return trace

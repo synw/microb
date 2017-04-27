@@ -21,8 +21,9 @@ func GetServer(name string) (*datatypes.Server, *terr.Trace) {
 	wshost := conf["centrifugo_host"].(string)	
 	wsport := int(conf["centrifugo_port"].(float64))	
 	wskey := conf["centrifugo_key"].(string)
-	comchan := conf["command_channel"].(string)	
-	s := &datatypes.Server{domain, host, port, wshost, wsport, wskey, comchan}
+	comchan_in := "cmd:$"+domain+"_in"
+	comchan_out := "cmd:$"+domain+"_out"
+	s := &datatypes.Server{domain, host, port, wshost, wsport, wskey, comchan_in, comchan_out}
 	return s, nil
 }
 
@@ -72,6 +73,6 @@ func getConf(name string) (map[string]interface{},*terr.Trace) {
 	conf["hits_log"] = viper.Get("hits_log")
 	conf["hits_monitor"] = viper.Get("hits_monitor")
 	conf["hits_channels"] = viper.Get("hits_channels")
-	conf["command_channel"] = viper.Get("command_channel")	
+	conf["command_channel"] = viper.Get("command_channel")
 	return conf, nil
 }

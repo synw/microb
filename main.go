@@ -30,23 +30,21 @@ func main() {
 		fmt.Println(terr.Ok("Initialized state"))
 	}
 	// connect on the commands channel
-	err := state.Cli.Subscribe(state.Server.CmdChannel)
+	err := state.Cli.Subscribe(state.Server.CmdChanIn)
 	if err != nil {
 		fmt.Println(err)
 	}
 	// listen
 	go func() {
-		m := "Listening for commands at "+state.Cli.Host+":"+strconv.Itoa(state.Cli.Port)+" on channel "+state.Server.CmdChannel+"..."
+		m := "Listening for commands at "+state.Cli.Host+":"+strconv.Itoa(state.Cli.Port)+" on channel "+state.Server.CmdChanIn+" ..."
 		fmt.Println(m)
 		for msg := range(state.Cli.Channels) {
-			if msg.Channel == state.Server.CmdChannel {
+			if msg.Channel == state.Server.CmdChanIn {
 				//fmt.Println("PAYLOAD", msg.Payload.(map[string]interface{}))
 				cmd.Run(msg.Payload)
 			}
 		}
 	}()
 	// idle
-	for {
-		
-	}
+	select {}
 }
