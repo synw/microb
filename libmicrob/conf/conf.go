@@ -2,7 +2,6 @@ package conf
 
 import (
 	"errors"
-	"strconv"
 	"github.com/spf13/viper"
 	"github.com/synw/terr"
 	"github.com/synw/microb/libmicrob/datatypes"
@@ -10,11 +9,10 @@ import (
 
 
 func GetServer(name string) (*datatypes.Server, *terr.Trace) {
-	conf, trace := getConf(name)
-	if trace != nil {
-		trace = terr.Pass("conf.GetServer", trace)
-		var s *datatypes.Server
-		return s, trace
+	conf, tr := getConf(name)
+	if tr != nil {
+		s := &datatypes.Server{}
+		return s, tr
 	}
 	domain := conf["domain"].(string)
 	host := conf["http_host"].(string)
@@ -29,16 +27,14 @@ func GetServer(name string) (*datatypes.Server, *terr.Trace) {
 }
 
 func GetDefaultDb(name string) (*datatypes.Database, *terr.Trace) {
-	conf, trace := getConf(name)
-	if trace != nil {
-		trace = terr.Pass("conf.GetDb", trace)
-		var d *datatypes.Database
-		return d, trace
+	conf, tr := getConf(name)
+	if tr != nil {
+		d := &datatypes.Database{}
+		return d, tr
 	}
 	db := conf["default_database"].(map[string]interface {})
 	dbtype := db["type"].(string)
-	host := db["host"].(string)
-	port := strconv.Itoa(int(db["port"].(float64)))
+	addr := db["addr"].(string)
 	user := db["user"].(string)	
 	password := db["password"].(string)
 	r := db["roles"].([]interface{})
@@ -46,7 +42,7 @@ func GetDefaultDb(name string) (*datatypes.Database, *terr.Trace) {
 	for _, role := range(r) {
 		roles = append(roles, role.(string))
 	}
-	d := &datatypes.Database{dbtype, "default", host, port, user, password, roles, false}
+	d := &datatypes.Database{dbtype, "default", addr, user, password, roles, false}
 	return d, nil
 }
 
@@ -96,6 +92,5 @@ func getConf(name string) (map[string]interface{},*terr.Trace) {
 	conf["hits_log"] = viper.Get("hits_log")
 	conf["hits_monitor"] = viper.Get("hits_monitor")
 	conf["hits_channels"] = viper.Get("hits_channels")
-	conf["command_channel"] = viper.Get("command_channel")
 	return conf, nil
 }

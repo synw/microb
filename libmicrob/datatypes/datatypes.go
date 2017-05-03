@@ -47,8 +47,7 @@ type Command struct {
 type Database struct {
 	Type string
 	Name string
-	Host string
-	Port string
+	Addr string
 	User string
 	Password string
 	Roles []string

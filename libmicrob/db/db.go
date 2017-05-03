@@ -2,44 +2,50 @@ package db
 
 import (
 	"errors"
+	"fmt"
+	"github.com/synw/terr"
 	"github.com/synw/microb/libmicrob/datatypes"
-	//"github.com/synw/microb/libmicrob/db/rethinkdb"
+	"github.com/synw/microb/libmicrob/db/rethinkdb"
 	"github.com/synw/microb/libmicrob/state"
 	"github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/events"
 	
 )
 
-func InitDb(dev string) error {
+func InitDb(dev string) *terr.Trace {
 	db, _ := conf.GetDefaultDb(dev)
-	/*err := CheckDb(db)
-	if err != nil {
+	tr := CheckDb(db)
+	if tr != nil {
 		state.DocDb = nil
-		state.DocDb.Running = false
-		events.State("db.InitDb", "Disabling documents database")
-		return err
-	}*/
+		events.Msg("state", "db.InitDb", "Disabling documents database")
+		return tr
+	}
 	state.DocDb = db
 	state.DocDb.Running = true
 	if state.Debug == true {
-		events.New("Document db is now running", "db:InitDb")
+		events.Msg("state", "db.InitDb", "Document database is running")
+	}
+	if state.Verbosity > 1 {
+		msg := "Database "+db.Name+" is running at "+db.Addr
+		fmt.Println(terr.Ok(msg))
 	}
 	return nil
 }
 
-func CheckDb(database *datatypes.Database) error {
+func CheckDb(db *datatypes.Database) *terr.Trace {
 	err := errors.New("Unknown database type")
-	/*if database.Type == "rethinkdb" {
-		if database != nil {
-			err = rethinkdb.InitDb(state.DocDb)
-			if err != nil {
-				events.ErrMsg("db.InitDb", "Database connection error")
-				return nil
+	var tr *terr.Trace
+	if db.Type == "rethinkdb" {
+		if db != nil {
+			tr := rethinkdb.InitDb(db)
+			if tr != nil {
+				return tr
 			}
 		}
 	} else {
-		err = errors.New("Not implemented")
-		events.Error("db.rethinkdb.CheckDb", err)
-	}*/
-	return err
+		err = errors.New("Database type not implemented")
+		tr = terr.New("db.rethinkdb.CheckDb", err)
+		events.Error(tr)
+	}
+	return tr
 }

@@ -8,16 +8,14 @@
 	"databases":{
 					"default": {
 						"type":"rethinkdb",
-						"host":"localhost",
-						"port":28015,
+						"addr":"localhosty:28015",
 						"user":"admin",
 						"password":"pwd",
 						"roles": ["pages", "hits", "commands"]
 					},
 					"local_pg": {
 						"type":"postgresql",
-						"host":"localhost",
-						"port":"",
+						"addr":"localhost",
 						"user":"admin",
 						"password":"pwd",
 						"roles":[]

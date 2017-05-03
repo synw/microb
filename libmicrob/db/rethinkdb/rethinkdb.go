@@ -1,10 +1,10 @@
 package rethinkdb
 
 import (
-	//"fmt"
 	"time"
 	"errors"
 	 r "gopkg.in/dancannon/gorethink.v3"
+	 "github.com/synw/terr"
 	 "github.com/synw/microb/libmicrob/datatypes"
 	 "github.com/synw/microb/libmicrob/events"
 	 "github.com/synw/microb/libmicrob/state"
@@ -14,19 +14,20 @@ import (
 var conn *r.Session
 var isConnected bool = false
 
-func InitDb(database *datatypes.Database) error {
+func InitDb(database *datatypes.Database) *terr.Trace {
 	if database.Type != "rethinkdb" {
 		err := errors.New("Not a rethinkdb database")
-		return err
+		trace := terr.New("db.rethinkdb.Initdb", err)
+		return trace
 	}
 	if state.Debug == true {
-		events.Debug("Connecting to "+database.Name)
+		events.New("debug", "Connecting to "+database.Name)
 	}
 	cn, err := connect(database)
 	conn = cn
 	if err != nil {
-		events.Err("db.rethinkdb.InitDb", "Impossible to connect to database", err)
-		return err
+		trace := terr.New("db.rethinkdb.InitDb", err)
+		return trace
 	}
 	return nil
 }
@@ -52,11 +53,9 @@ func SwitchDb(role string, database *datatypes.Database) error {
 }*/
 
 func connect(database *datatypes.Database) (*r.Session, error) {
-	host := database.Host
-	port := database.Port
 	user := database.User
 	pwd := database.Password
-	addr := host+":"+port
+	addr := database.Addr
 	db_name := state.Server.Domain
 	// connect to Rethinkdb
 	session, err := r.Connect(r.ConnectOpts{
@@ -68,7 +67,8 @@ func connect(database *datatypes.Database) (*r.Session, error) {
         MaxOpen:    10,
 	})
     if err != nil {
-        events.Error("db.rethinkdb.connectToDb()", err)
+        trace := terr.New("db.rethinkdb.connectToDb()", err)
+        events.Error(trace)
         return session, err
     }
     isConnected = true
@@ -104,7 +104,8 @@ func ReportStatus()(map[string]interface{}, error) {
 	var row map[string]interface{}
 	err = res.One(&row)
 	if err != nil && err != r.ErrEmptyResult {
-		events.Error("db.rethinkdb.ReportStatus", err)
+		trace := terr.New("db.rethinkdb.ReportStatus", err)
+		events.Error(trace)
 	}
 	process := row["process"].(map[string]interface{})
 	//network := row["network"].(map[string]interface{})
@@ -117,7 +118,7 @@ func ReportStatus()(map[string]interface{}, error) {
 	final_status["time_started"] = time_started
 	return final_status, nil
 }
-
+/*
 func GetFromUrl(url string)  (*datatypes.Page, bool, error)  {
 	session := conn
 	var page datatypes.Page
@@ -127,7 +128,8 @@ func GetFromUrl(url string)  (*datatypes.Page, bool, error)  {
 	var row map[string]interface{}
 	err = res.One(&row)
 	if (err != nil && err != r.ErrEmptyResult) {
-		events.Error("db.rethinkdb.GetFromUrl", err)
+		trace := terr.New("db.rethinkdb.GetFromUrl", err)
+		events.Error(trace)
 		return &page, false, err
 	}
 	if err == r.ErrEmptyResult {
@@ -145,3 +147,4 @@ func GetFromUrl(url string)  (*datatypes.Page, bool, error)  {
 	}
 	return &page, false, nil
 }
+*/

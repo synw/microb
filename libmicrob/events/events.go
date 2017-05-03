@@ -2,6 +2,7 @@ package events
 
 import (
 	"fmt"
+	"errors"
 	color "github.com/acmacalister/skittles"	
 	"github.com/synw/terr"
 	"github.com/synw/microb/libmicrob/datatypes"
@@ -23,6 +24,13 @@ func Error(trace *terr.Trace) {
 }
 
 // constructor
+
+func Msg(class string, from string, msg string) *datatypes.Event {
+	err := errors.New(msg)
+	tr := terr.New(from, err)
+	event := New(class, from, tr)
+	return event
+}
 
 func New(class string, from string, tr ...*terr.Trace) *datatypes.Event {
 	var data map[string]interface{}

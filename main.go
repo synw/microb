@@ -20,11 +20,11 @@ var verbosity = flag.Int("v", 1, "Verbosity")
 
 func main() {
 	flag.Parse()
-	trace := state.InitState(*dev_mode, *verbosity)
-	if trace != nil {
+	tr := state.InitState(*dev_mode, *verbosity)
+	if tr != nil {
 		err := errors.New("Unable to initialize state")
-		trace = terr.Add("main", err, trace)
-		events.Error(trace)
+		tr = terr.Add("main", err, tr)
+		events.Error(tr)
 		return
 	}
 	defer centcom.Disconnect(state.Cli)
@@ -35,16 +35,15 @@ func main() {
 	httpServer.InitHttpServer()
 	// init database
 	name := "normal"
-	t := true
-	if dev_mode == &t {
+	if *dev_mode == true {
 		name = "dev"
 	}
-	err := db.InitDb(name)
-	if err != nil {
-		fmt.Println(err)
+	tr = db.InitDb(name)
+	if tr != nil {
+		tr.Formatc()
 	}
 	// connect on the commands channel
-	err = state.Cli.Subscribe(state.Server.CmdChanIn)
+	err := state.Cli.Subscribe(state.Server.CmdChanIn)
 	if err != nil {
 		fmt.Println(err)
 	}
