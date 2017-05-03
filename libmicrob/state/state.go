@@ -18,19 +18,22 @@ var DocDb = &datatypes.Database{}
 
 func InitState(name string, verbosity int) *terr.Trace {
 	Verbosity = verbosity
+	// microb server
 	server, trace := conf.GetServer(name)
 	if trace != nil {
 		trace = terr.Pass("stateInit.State", trace)
 		return trace
 	}
-	// microb server
 	Server = server
+	// Websockets client
+	if Verbosity > 0 {
+		fmt.Println("Initializing commands transport layer ...")
+	}
 	cli, trace := initWsCli()
 	if trace != nil {	
 		trace = terr.Pass("state.InitState", trace)
 		return trace
 	}
-	// Websockets client
 	Cli = cli
 	return nil
 }

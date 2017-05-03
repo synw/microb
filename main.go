@@ -35,6 +35,7 @@ func main() {
 		events.Error(tr)
 		return
 	}
+	events.Msg("state", "state.InitState", "Commands transport layer operational")
 	defer centcom.Disconnect(state.Cli)
 	if state.Verbosity > 2 {
 		fmt.Println(terr.Ok("Initialized state"))

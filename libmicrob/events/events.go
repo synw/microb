@@ -37,6 +37,12 @@ func Err(class string, from string, tr ...*terr.Trace) *datatypes.Event {
 	handle(event)
 	return event
 }
+/*
+func Info(msg string) {
+	var data map[string]interface{}
+	event := &datatypes.Event{"info", "", msg, data, nil}
+	handle(event)
+}*/
 
 // internal methods
 

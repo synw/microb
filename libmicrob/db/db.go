@@ -22,11 +22,11 @@ func InitDb(dev string) *terr.Trace {
 	}
 	state.DocDb = db
 	state.DocDb.Running = true
-	if state.Debug == true {
-		events.Msg("state", "db.InitDb", "Document database is running")
+	if state.Verbosity > 0 {
+		events.Msg("state", "db.InitDb", "Document database running")
 	}
 	if state.Verbosity > 1 {
-		msg := "Database "+db.Name+" is up at "+db.Addr
+		msg := "Database "+db.Name+" ( "+db.Type+") is up at "+db.Addr
 		fmt.Println(terr.Ok(msg))
 	}
 	return nil
@@ -37,6 +37,9 @@ func CheckDb(db *datatypes.Database) *terr.Trace {
 	var tr *terr.Trace
 	if db.Type == "rethinkdb" {
 		if db != nil {
+			if state.Verbosity > 0 {
+				fmt.Println("Connecting to database "+db.Name+" ...")
+			}
 			tr := rethinkdb.InitDb(db)
 			if tr != nil {
 				return tr

@@ -20,9 +20,6 @@ func InitDb(database *datatypes.Database) *terr.Trace {
 		trace := terr.New("db.rethinkdb.Initdb", err)
 		return trace
 	}
-	if state.Debug == true {
-		events.Msg("debug", "db.rethinkdb.InitDb", "Connecting to database "+database.Name)
-	}
 	cn, err := connect(database)
 	conn = cn
 	if err != nil {
