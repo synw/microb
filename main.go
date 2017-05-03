@@ -50,7 +50,7 @@ func main() {
 	// listen
 	go func() {
 		m := "Listening for commands at "+state.Cli.Host+":"+strconv.Itoa(state.Cli.Port)+" on channel "+state.Server.CmdChanIn+" ..."
-		fmt.Println(m)
+		events.Msg("state", "main", m, )
 		for msg := range(state.Cli.Channels) {
 			if msg.Channel == state.Server.CmdChanIn {
 				//fmt.Println("PAYLOAD", msg.Payload.(map[string]interface{}))

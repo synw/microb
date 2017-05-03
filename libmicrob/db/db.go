@@ -26,7 +26,7 @@ func InitDb(dev string) *terr.Trace {
 		events.Msg("state", "db.InitDb", "Document database is running")
 	}
 	if state.Verbosity > 1 {
-		msg := "Database "+db.Name+" is running at "+db.Addr
+		msg := "Database "+db.Name+" is up at "+db.Addr
 		fmt.Println(terr.Ok(msg))
 	}
 	return nil

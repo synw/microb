@@ -2,7 +2,6 @@ package events
 
 import (
 	"fmt"
-	"errors"
 	color "github.com/acmacalister/skittles"	
 	"github.com/synw/terr"
 	"github.com/synw/microb/libmicrob/datatypes"
@@ -10,29 +9,21 @@ import (
 )
 
 
-func Handle(event *datatypes.Event) {
-	if state.Verbosity > 0 {
-		fmt.Println(getMsg(event))
-	}
-}
-
-// event classes
-
 func Error(trace *terr.Trace) {
-	event := New("error", "runtime", trace)
-	Handle(event)
+	event := Err("error", "runtime", trace)
+	handle(event)
 }
 
 // constructor
 
 func Msg(class string, from string, msg string) *datatypes.Event {
-	err := errors.New(msg)
-	tr := terr.New(from, err)
-	event := New(class, from, tr)
+	var data map[string]interface{}
+	event := &datatypes.Event{class, from, msg, data, nil}
+	handle(event)
 	return event
 }
 
-func New(class string, from string, tr ...*terr.Trace) *datatypes.Event {
+func Err(class string, from string, tr ...*terr.Trace) *datatypes.Event {
 	var data map[string]interface{}
 	var trace *terr.Trace
 	var msg string
@@ -43,10 +34,17 @@ func New(class string, from string, tr ...*terr.Trace) *datatypes.Event {
 		}
 	}
 	event := &datatypes.Event{class, from, msg, data, trace}
+	handle(event)
 	return event
 }
 
 // internal methods
+
+func handle(event *datatypes.Event) {
+	if state.Verbosity > 0 {
+		fmt.Println(getMsg(event))
+	}
+}
 
 func getMsg(event *datatypes.Event) string {
 	out := getFormatedMsgNoTime(event)
@@ -69,14 +67,13 @@ func getEventOutputFlags() map[string]string {
 }
 
 func getFormatedMsgNoTime(event *datatypes.Event) string {
-	var out string
-	msg := event.Message
 	output_flags := getEventOutputFlags()
 	label := output_flags[event.Class]
 	sep := " "
 	if label == "" {
 		sep = ""
 	}
-	out = out+sep+msg
+	msg := event.Message
+	out := label+sep+msg
 	return out
 }
