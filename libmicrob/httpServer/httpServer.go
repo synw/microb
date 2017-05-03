@@ -10,9 +10,10 @@ import (
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
 	"github.com/acmacalister/skittles"
+	"github.com/synw/terr"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/state"
-	//"github.com/synw/microb/libmicrob/events"
+	"github.com/synw/microb/libmicrob/events"
 )
 
 
@@ -39,22 +40,23 @@ func InitHttpServer() {
 }
 
 func Run() {
-	fmt.Println(startMsg())
+	events.Msg("state", "httpServer.run", startMsg())
 	state.HttpServer.Instance.ListenAndServe()
-	state.HttpServer.Runing = true
+	state.HttpServer.Running = true
 }
 
-func Stop() error {
+func Stop() *terr.Trace {
 	d := time.Now().Add(5 * time.Second)
 	ctx, cancel := context.WithDeadline(context.Background(), d)
 	defer cancel()
 	srv := state.HttpServer.Instance
 	err := srv.Shutdown(ctx)
 	if err != nil {
-		return err
+		tr := terr.New("httpServer.Stop", err)
+		return tr
 	}
-	state.HttpServer.Runing = false
-	fmt.Println(stopMsg())
+	state.HttpServer.Running = false
+	events.Msg("state", "httpServer.Stop", stopMsg())
 	return nil
 }
 

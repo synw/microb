@@ -8,12 +8,15 @@ import (
 
 
 func Start(cmd *datatypes.Command) *datatypes.Command {
-	mutate.StartHttpServer()
+	tr := mutate.StartHttpServer()
+	if tr != nil {
+		events.Err("error", "cmd.httpServer", tr)
+		return cmd
+	}
 	var resp []interface{}
 	resp = append(resp, "Http server started")
 	cmd.Status = "success"
 	cmd.ReturnValues = resp
-	events.Msg("state", "cmd.httpServer.Start", "Http server started")
 	return cmd
 }
 
@@ -23,6 +26,5 @@ func Stop(cmd *datatypes.Command) *datatypes.Command {
 	resp = append(resp, "Http server stopped")
 	cmd.Status = "success"
 	cmd.ReturnValues = resp
-	events.Msg("state", "cmd.httpServer.Stop", "Http server stoped")
 	return cmd
 }

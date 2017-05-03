@@ -21,7 +21,7 @@ type Server struct {
 type HttpServer struct {
 	Server *Server
 	Instance *http.Server
-	Runing bool
+	Running bool
 }
 
 type Event struct {
