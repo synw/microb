@@ -23,8 +23,7 @@ func InitHttpServer() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.StripSlashes)
-	r.Get("/x/", ServeApi)
-	r.Route("/x", func(r chi.Router) {
+	r.Route("/", func(r chi.Router) {
 		r.Get("/*", ServeApi)
 	})
 	// init
@@ -35,8 +34,7 @@ func InitHttpServer() {
 	    WriteTimeout: 10 * time.Second,
 	    Handler: r,
 	}
-	c := make(chan struct{})
-	state.HttpServer = datatypes.HttpServer{state.Server, httpServer, false, c}
+	state.HttpServer = datatypes.HttpServer{state.Server, httpServer, false}
 	return 
 }
 
@@ -65,7 +63,7 @@ func ServeApi(response http.ResponseWriter, request *http.Request) {
 	/*url := request.URL.Path
 	if url == "/x" {
 		url = "/"
-	} 
+	}
 	doc, err := getDocument(url)
 	if err != nil {
 		events.Error("http_handlers.ServeApi()", err)

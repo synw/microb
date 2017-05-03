@@ -2,6 +2,7 @@ package conf
 
 import (
 	"errors"
+	"strconv"
 	"github.com/spf13/viper"
 	"github.com/synw/terr"
 	"github.com/synw/microb/libmicrob/datatypes"
@@ -25,6 +26,28 @@ func GetServer(name string) (*datatypes.Server, *terr.Trace) {
 	comchan_out := "cmd:$"+domain+"_out"
 	s := &datatypes.Server{domain, host, port, wshost, wsport, wskey, comchan_in, comchan_out}
 	return s, nil
+}
+
+func GetDefaultDb(name string) (*datatypes.Database, *terr.Trace) {
+	conf, trace := getConf(name)
+	if trace != nil {
+		trace = terr.Pass("conf.GetDb", trace)
+		var d *datatypes.Database
+		return d, trace
+	}
+	db := conf["default_database"].(map[string]interface {})
+	dbtype := db["type"].(string)
+	host := db["host"].(string)
+	port := strconv.Itoa(int(db["port"].(float64)))
+	user := db["user"].(string)	
+	password := db["password"].(string)
+	r := db["roles"].([]interface{})
+	var roles []string
+	for _, role := range(r) {
+		roles = append(roles, role.(string))
+	}
+	d := &datatypes.Database{dbtype, "default", host, port, user, password, roles, false}
+	return d, nil
 }
 
 func getConf(name string) (map[string]interface{},*terr.Trace) {
@@ -68,7 +91,7 @@ func getConf(name string) (map[string]interface{},*terr.Trace) {
 	conf["centrifugo_port"] = viper.Get("centrifugo_port")
 	conf["centrifugo_key"] = viper.Get("centrifugo_key")
 	conf["databases"] = viper.Get("databases")
-	conf["default_database"] = viper.Get("databases.main")
+	conf["default_database"] = viper.Get("databases.default")
 	conf["staticfiles_host"] = viper.Get("staticfiles_host")
 	conf["hits_log"] = viper.Get("hits_log")
 	conf["hits_monitor"] = viper.Get("hits_monitor")

@@ -11,6 +11,7 @@ import (
     "github.com/synw/microb/libmicrob/cmd"
     "github.com/synw/microb/libmicrob/events"
     "github.com/synw/microb/libmicrob/httpServer"
+    "github.com/synw/microb/libmicrob/db"
 )
 
 
@@ -32,8 +33,18 @@ func main() {
 	}
 	// init http server
 	httpServer.InitHttpServer()
+	// init database
+	name := "normal"
+	t := true
+	if dev_mode == &t {
+		name = "dev"
+	}
+	err := db.InitDb(name)
+	if err != nil {
+		fmt.Println(err)
+	}
 	// connect on the commands channel
-	err := state.Cli.Subscribe(state.Server.CmdChanIn)
+	err = state.Cli.Subscribe(state.Server.CmdChanIn)
 	if err != nil {
 		fmt.Println(err)
 	}

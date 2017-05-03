@@ -22,7 +22,6 @@ type HttpServer struct {
 	Server *Server
 	Instance *http.Server
 	Runing bool
-	Close chan struct{}
 }
 
 type Event struct {
@@ -43,4 +42,15 @@ type Command struct {
 	Status string
 	Error error
 	ReturnValues []interface{}
+}
+
+type Database struct {
+	Type string
+	Name string
+	Host string
+	Port string
+	User string
+	Password string
+	Roles []string
+	Running bool
 }

@@ -9,10 +9,12 @@ import (
 )
 
 
+var Debug = true
 var Server = &datatypes.Server{}
 var Verbosity int = 1
 var Cli *centcom.Cli
 var HttpServer = datatypes.HttpServer{}
+var DocDb = &datatypes.Database{}
 
 func InitState(is_dev bool, verbosity int) *terr.Trace {
 	Verbosity = verbosity	
