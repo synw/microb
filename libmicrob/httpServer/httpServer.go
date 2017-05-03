@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 	"context"
+	"encoding/json"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
 	"github.com/acmacalister/skittles"
@@ -23,6 +24,9 @@ func InitHttpServer() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.StripSlashes)
 	r.Get("/x/", ServeApi)
+	r.Route("/x", func(r chi.Router) {
+		r.Get("/*", ServeApi)
+	})
 	// init
 	loc := state.Server.HttpHost+":"+strconv.Itoa(state.Server.HttpPort)
 	httpServer := &http.Server{
@@ -57,6 +61,7 @@ func Stop() error {
 }
 
 func ServeApi(response http.ResponseWriter, request *http.Request) {
+	fmt.Println("SERVE API", request.URL.Path)
 	/*url := request.URL.Path
 	if url == "/x" {
 		url = "/"
@@ -71,10 +76,10 @@ func ServeApi(response http.ResponseWriter, request *http.Request) {
 		}
     	handleAPI404(response, request)
     	return
-    }
+    }*/
+    doc := []int{1, 2}
 	json_bytes, _ := json.Marshal(doc)
-	fmt.Fprintf(response, "%s\n", json_bytes)*/
-	fmt.Println("SERVE", request.URL.Path)
+	fmt.Fprintf(response, "%s\n", json_bytes)
 }
 /*
 func getDocument(url string) (*datatypes.Page, error) {
@@ -98,20 +103,11 @@ func getDocument(url string) (*datatypes.Page, error) {
 */
 
 func stopMsg() string {
-	// welcome msg
 	msg := "Http server stopped"
-	/*database := state.HttpServer.PagesDb
-	server := state.HttpServer
-    loc := server.Host+":"+server.Port
-	msg = "Server started on "+loc+" for domain "+skittles.BoldWhite(server.Domain)
-	msg = msg+" with "+database.Type
-	msg = msg+" ("+database.Host+")"
-	events.New("runtime_info", "http_server", msg)*/
 	return msg
 }
 
 func startMsg() string {
-	// welcome msg
 	var msg string
     loc := state.Server.HttpHost+":"+strconv.Itoa(state.Server.HttpPort)
 	msg = "Server started on "+loc+" for domain "+skittles.BoldWhite(state.Server.Domain)
