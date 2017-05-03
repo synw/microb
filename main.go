@@ -17,6 +17,7 @@ import (
 
 var dev_mode = flag.Bool("d", false, "Dev mode")
 var verbosity = flag.Int("v", 1, "Verbosity")
+var serve = flag.Bool("s", false, "Start http server")
 
 func main() {
 	if state.Verbosity > 0 {
@@ -40,12 +41,15 @@ func main() {
 	if state.Verbosity > 2 {
 		fmt.Println(terr.Ok("Initialized state"))
 	}
-	// init http server
-	httpServer.InitHttpServer()
 	// init database
 	tr = db.InitDb(name)
 	if tr != nil {
 		tr.Formatc()
+	}
+	// init http server
+	httpServer.InitHttpServer(*serve)
+	if *serve == false {
+		events.Msg("state", "main", "Http server is down")
 	}
 	// connect on the commands channel
 	err := state.Cli.Subscribe(state.Server.CmdChanIn)

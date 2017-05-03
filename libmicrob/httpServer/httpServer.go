@@ -17,7 +17,7 @@ import (
 )
 
 
-func InitHttpServer() {
+func InitHttpServer(serve bool) {
 	// routing
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
@@ -36,6 +36,9 @@ func InitHttpServer() {
 	    Handler: r,
 	}
 	state.HttpServer = datatypes.HttpServer{state.Server, httpServer, false}
+	if serve == true {
+		Run()
+	}
 	return 
 }
 
