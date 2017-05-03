@@ -4,6 +4,7 @@ import (
 	"github.com/synw/microb/libmicrob/datatypes"
 )
 
+
 func Ping(cmd *datatypes.Command) *datatypes.Command {
 	var resp []interface{}
 	resp = append(resp, "PONG")

@@ -2,6 +2,7 @@ package datatypes
 
 import (
 	"time"
+	"net/http"
 	"github.com/synw/terr"
 )
 
@@ -15,6 +16,13 @@ type Server struct {
 	WsKey string
 	CmdChanIn string
 	CmdChanOut string
+}
+
+type HttpServer struct {
+	Server *Server
+	Instance *http.Server
+	Runing bool
+	Close chan struct{}
 }
 
 type Event struct {

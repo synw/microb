@@ -9,10 +9,10 @@ import (
 )
 
 
-var Server *datatypes.Server = &datatypes.Server{}
+var Server = &datatypes.Server{}
 var Verbosity int = 1
 var Cli *centcom.Cli
-
+var HttpServer = datatypes.HttpServer{}
 
 func InitState(is_dev bool, verbosity int) *terr.Trace {
 	Verbosity = verbosity	
@@ -26,12 +26,14 @@ func InitState(is_dev bool, verbosity int) *terr.Trace {
 		trace = terr.Pass("stateInit.State", trace)
 		return trace
 	}
+	// microb server
 	Server = server
 	cli, trace := initWsCli()
 	if trace != nil {	
 		trace = terr.Pass("state.InitState", trace)
 		return trace
 	}
+	// Websockets client
 	Cli = cli
 	return nil
 }

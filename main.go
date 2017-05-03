@@ -10,6 +10,7 @@ import (
     "github.com/synw/microb/libmicrob/state"
     "github.com/synw/microb/libmicrob/cmd"
     "github.com/synw/microb/libmicrob/events"
+    "github.com/synw/microb/libmicrob/httpServer"
 )
 
 
@@ -29,6 +30,8 @@ func main() {
 	if state.Verbosity > 2 {
 		fmt.Println(terr.Ok("Initialized state"))
 	}
+	// init http server
+	httpServer.InitHttpServer()
 	// connect on the commands channel
 	err := state.Cli.Subscribe(state.Server.CmdChanIn)
 	if err != nil {

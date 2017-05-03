@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"time"
 	"errors"
 	"encoding/json"
@@ -9,12 +8,13 @@ import (
 	"github.com/synw/terr"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/state"
+	"github.com/synw/microb/libmicrob/cmd/httpServer"
 	"github.com/synw/microb/libmicrob/cmd/base"
 )
 
 
 func IsValid(command *datatypes.Command) bool {
-	valid_commands := []string{"ping"}
+	valid_commands := []string{"ping", "start", "stop"}
 	is_valid := false
 	for _, com := range(valid_commands) {
 		if (com == command.Name) {
@@ -30,11 +30,14 @@ func Run(payload interface{}) {
 	if (exec == false) {
 		return
 	}
+	if IsValid(cmd) == false {
+		return
+	}
 	c := make(chan *datatypes.Command)
 	go runCommand(cmd, c)
 	select {
 		case com := <- c:
-			fmt.Println("RES", com)
+			//fmt.Println("RES", com)
 			err := sendCommand(com)
 			if err != nil {
 				// todo
@@ -111,6 +114,10 @@ func runCommand(cmd *datatypes.Command, c chan *datatypes.Command) {
 	com := &datatypes.Command{}
 	if cmd.Name == "ping" {
 		com = base.Ping(cmd)
+	} else if cmd.Name == "start" {
+		com = httpServer.Start(cmd)
+	} else if cmd.Name == "stop" {
+		com = httpServer.Stop(cmd)
 	}
 	c <- com
 	return
