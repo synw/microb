@@ -53,13 +53,13 @@ func getMsg(event *datatypes.Event) string {
 
 func getEventOutputFlags() map[string]string {
 	output_flags := make(map[string]string)
-	output_flags["info"] = "["+color.Green("info")+"]"
+	output_flags["info"] = "["+color.Blue("info")+"]"
 	output_flags["event"] = "["+color.Yellow("event")+"]"
 	output_flags["command"] = "[=> "+color.Cyan("command")+"]"
 	output_flags["error"] = ""
 	output_flags["metric"] = "["+color.Cyan("metric")+"]"
 	output_flags["state"] = "["+color.Yellow("state")+"]"
-	output_flags["debug"] = "["+color.Yellow("debug")+"]"
+	output_flags["debug"] = "["+color.Magenta("debug")+"]"
 	output_flags["request"] = ""
 	output_flags["request_error"] = ""
 	output_flags["runtime_info"] = ""

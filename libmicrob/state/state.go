@@ -16,13 +16,8 @@ var Cli *centcom.Cli
 var HttpServer = datatypes.HttpServer{}
 var DocDb = &datatypes.Database{}
 
-func InitState(is_dev bool, verbosity int) *terr.Trace {
-	Verbosity = verbosity	
-	name := "normal"
-	if is_dev == true {
-		name = "dev"
-		fmt.Println("Dev mode is on")
-	}
+func InitState(name string, verbosity int) *terr.Trace {
+	Verbosity = verbosity
 	server, trace := conf.GetServer(name)
 	if trace != nil {
 		trace = terr.Pass("stateInit.State", trace)

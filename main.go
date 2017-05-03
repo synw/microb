@@ -19,8 +19,16 @@ var dev_mode = flag.Bool("d", false, "Dev mode")
 var verbosity = flag.Int("v", 1, "Verbosity")
 
 func main() {
+	if state.Verbosity > 0 {
+		fmt.Println("Starting Microb server ...")	
+	}
 	flag.Parse()
-	tr := state.InitState(*dev_mode, *verbosity)
+	name := "normal"
+	if *dev_mode == true {
+		name = "dev"
+		events.Msg("info", "state.InitState", "Dev mode is on")
+	}
+	tr := state.InitState(name, *verbosity)
 	if tr != nil {
 		err := errors.New("Unable to initialize state")
 		tr = terr.Add("main", err, tr)
@@ -34,10 +42,6 @@ func main() {
 	// init http server
 	httpServer.InitHttpServer()
 	// init database
-	name := "normal"
-	if *dev_mode == true {
-		name = "dev"
-	}
 	tr = db.InitDb(name)
 	if tr != nil {
 		tr.Formatc()
