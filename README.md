@@ -11,18 +11,17 @@ is available
 - **Decoupled**: the databases, the static files server, the websockets server and the api server 
 can be located anywhere. 
 
-External servers used
----------------------
+Dependencies
+------------
 
-- Static files: [Caddy](https://github.com/mholt/caddy)
 - Websockets: [Centrifugo](https://github.com/centrifugal/centrifugo)
 
 Supported databases
 -------------------
 
 - Rethinkdb
-- Postgresql
-- Sqlite
+- Postgresql [WIP]
+- Sqlite [WIP]
 
 External libraries used
 -----------------------
