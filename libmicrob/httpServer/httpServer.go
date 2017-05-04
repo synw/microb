@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
+	//"github.com/goware/cors"
 	"github.com/acmacalister/skittles"
 	"github.com/synw/terr"
 	"github.com/synw/microb/libmicrob/datatypes"
@@ -32,6 +33,7 @@ func InitHttpServer(serve bool) {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.StripSlashes)
+	// main route
 	r.Route("/", func(r chi.Router) {
 		r.Get("/*", ServeApi)
 	})
@@ -80,16 +82,14 @@ func handle404(response http.ResponseWriter, request *http.Request) {
  	doc := &datatypes.Document{Url: "/error/", Fields: fields}
 	status := http.StatusNotFound
 	response = httpResponseWriter{response, &status}
+	response = headers(response)
 	json_bytes, _ := json.Marshal(doc)
 	fmt.Fprintf(response, "%s\n", json_bytes)
 }
 
 func ServeApi(response http.ResponseWriter, request *http.Request) {
-	fmt.Println("SERVE API", request.URL.Path)
 	url := request.URL.Path
-	if url == "/x" {
-		url = "/"
-	}
+	if url == "" { url = "/" }
 	doc, err := getDocument(url)
 	if err != nil {
 		events.Err("error", "httpServer.ServeApi", err)
@@ -102,7 +102,14 @@ func ServeApi(response http.ResponseWriter, request *http.Request) {
     	return
     }
 	json_bytes, _ := json.Marshal(doc)
+	response = headers(response)
 	fmt.Fprintf(response, "%s\n", json_bytes)
+}
+
+func headers(response http.ResponseWriter) http.ResponseWriter {
+	response.Header().Set("Content-Type", "application/json")
+	response.Header().Set("Access-Control-Allow-Headers", state.Cors)
+	return response
 }
 
 func getDocument(url string) (*datatypes.Document, *terr.Trace) {

@@ -63,7 +63,11 @@ func GetDefaultDb(name string) (*datatypes.Database, *terr.Trace) {
 	return dbobj, nil
 }
 
-func getConf(name string) (map[string]interface{},*terr.Trace) {
+func GetConf(name string) (map[string]interface{}, *terr.Trace) {
+	return getConf(name)
+}
+
+func getConf(name string) (map[string]interface{}, *terr.Trace) {
 	// set some defaults for conf
 	if name == "dev" {
 		viper.SetConfigName("dev_config")
@@ -80,6 +84,7 @@ func getConf(name string) (map[string]interface{},*terr.Trace) {
 	hits_channels := []string{"$microb_hits"}
 	viper.SetDefault("hits_channels", hits_channels)
 	viper.SetDefault("debug", false)
+	viper.SetDefault("cors", []string{})
 	// get the actual conf
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -109,5 +114,6 @@ func getConf(name string) (map[string]interface{},*terr.Trace) {
 	conf["hits_log"] = viper.Get("hits_log")
 	conf["hits_monitor"] = viper.Get("hits_monitor")
 	conf["hits_channels"] = viper.Get("hits_channels")
+	conf["cors"] = viper.Get("cors")
 	return conf, nil
 }

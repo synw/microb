@@ -6,21 +6,23 @@
 	"centrifugo_port":8001,
 	"centrifugo_key":"secret_key",
 	"databases":{
-					"default": {
-						"type":"rethinkdb",
-						"addr":"localhosty:28015",
-						"user":"admin",
-						"password":"pwd",
-						"roles": ["pages", "hits", "commands"]
-					},
-					"local_pg": {
-						"type":"postgresql",
-						"addr":"localhost",
-						"user":"admin",
-						"password":"pwd",
-						"roles":[]
-					}
+				"default": {
+					"type":"rethinkdb",
+					"addr":"localhost:28015",
+					"user":"admin",
+					"password":"pwd",
+					"roles": ["documents", "metrics", "commands"],
+					"dbs": {"documents": "mydb"},
+					"tables": {"documents": "docs"}
 				},
-	"hits_channels":["$microb_hits"],
-	"verbosity": 3
+				"local_pg": {
+					"type":"postgresql",
+					"addr":"localhost",
+					"user":"admin",
+					"password":"pwd",
+					"roles":[]
+				}
+		},
+	"verbosity": 3,
+	"cors": ["http://localhost", "http://127.0.0.1"]
 }

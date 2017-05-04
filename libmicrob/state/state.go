@@ -2,6 +2,7 @@ package state
 
 import (
 	"fmt"
+	"strings"
 	"github.com/synw/terr"
 	"github.com/synw/centcom"
 	"github.com/synw/microb/libmicrob/conf"
@@ -15,6 +16,8 @@ var Verbosity int = 1
 var Cli *centcom.Cli
 var HttpServer = datatypes.HttpServer{}
 var DocDb = &datatypes.Database{}
+var Cors string
+var Conf map[string]interface{}
 
 func InitState(name string, verbosity int) *terr.Trace {
 	Verbosity = verbosity
@@ -35,6 +38,18 @@ func InitState(name string, verbosity int) *terr.Trace {
 		return trace
 	}
 	Cli = cli
+	// conf
+	Conf, tr := conf.GetConf(name)
+	if tr != nil {
+		return tr
+	}
+	// headers
+	crs := Conf["cors"].([]interface{})
+	var co []string
+	for _, h := range(crs) {
+		co = append(co, h.(string))
+	}
+	Cors = strings.Join(co, ",")
 	return nil
 }
 
