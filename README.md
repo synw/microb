@@ -37,7 +37,7 @@ A [user interface](https://github.com/synw/microb-ui) using the Caddy static fil
 Data flow
 ---------
 
-![Microb data flow](https://raw.github.com/synw/django-microb/master/docs/img/microb.png)
+![Microb data flow](https://github.com/synw/microb/raw/master/docs/img/microb.png)
 
 Note: all components are independant and can be located at any machine: 
 database, api server, static server, websockets server and terminal client
