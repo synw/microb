@@ -14,7 +14,7 @@ can be located anywhere.
 Dependencies
 ------------
 
-- Websockets: [Centrifugo](https://github.com/centrifugal/centrifugo)
+- Websockets server: [Centrifugo](https://github.com/centrifugal/centrifugo)
 
 Supported databases
 -------------------
@@ -22,6 +22,25 @@ Supported databases
 - Rethinkdb
 - Postgresql [WIP]
 - Sqlite [WIP]
+
+
+Terminal client
+---------------
+
+A [terminal client](https://github.com/synw/microb-cli) is available to control Microb servers
+
+User interface
+--------------
+
+A [user interface](https://github.com/synw/microb-ui) using the Caddy static file server is available
+
+Data flow
+---------
+
+![Microb data flow](https://raw.github.com/synw/django-microb/master/docs/img/microb.png)
+
+Note: all components are independant and can be located at any machine: 
+database, api server, static server, websockets server and terminal client
 
 External libraries used
 -----------------------
