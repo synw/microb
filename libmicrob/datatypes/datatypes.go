@@ -41,6 +41,7 @@ type Command struct {
 	Args []interface{}
 	Status string
 	Trace *terr.Trace
+	ErrMsg string
 	ReturnValues []interface{}
 }
 

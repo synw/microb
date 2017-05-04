@@ -4,7 +4,8 @@ import (
 	"time"
 	"fmt"
 	"errors"
-	"encoding/json"
+	"bytes"
+    "encoding/json"
 	"github.com/ventu-io/go-shortid"
 	color "github.com/acmacalister/skittles"
 	"github.com/synw/terr"
@@ -38,7 +39,7 @@ func Run(payload interface{}) {
 		return
 	}
 	c := make(chan *datatypes.Command)
-	go runCommand(cmd, c)
+	go dispatch(cmd, c)
 	select {
 		case com := <- c:
 			status := com.Status
@@ -77,21 +78,39 @@ func CmdFromPayload(payload interface{}) (*datatypes.Command, bool) {
 	} else {
 		cmd = New(name, from, reason)
 	}
-	if pl["Error"] != nil {
-		err := pl["Error"].(error)
+	if pl["ErrMsg"] != "" {
+		msg := pl["ErrMsg"].(string)
+		err := errors.New(msg)
 		cmd.Trace = terr.New("cmd.CmdFromPayload", err)
+		cmd.ErrMsg = msg
 	}
 	if pl["ReturnValues"] != nil {
 		cmd.ReturnValues = pl["ReturnValues"].([]interface{})
 	}
+	cmd.Status = status
 	if (status != "pending") {
 		return cmd, false
 	}
 	return cmd, true
 }
 
+func printJson(b []byte) ([]byte, error) {
+    var out bytes.Buffer
+    err := json.Indent(&out, b, "", "  ")
+    return out.Bytes(), err
+}
+
 func sendCommand(command *datatypes.Command) *terr.Trace {
+	if command.Trace != nil {
+		command.ErrMsg = command.Trace.Formatc()
+		command.Status = "error"
+	} else {
+		command.Status = "success"
+	}
 	payload, err := json.Marshal(command)
+	/*p, _ := printJson(payload)
+	fmt.Printf("%s", p)*/
+	
 	if err != nil {
 		msg := "Unable to marshall json: "+err.Error()
 		err := errors.New(msg)
@@ -112,6 +131,7 @@ func New(name string, from string, reason string, args ...interface{}) *datatype
 	status := "pending"
 	var tr *terr.Trace
 	var rvs []interface{}
+	var err_msg string
 	command := &datatypes.Command{
 		id,
 		name,
@@ -121,12 +141,13 @@ func New(name string, from string, reason string, args ...interface{}) *datatype
 		args,
 		status,
 		tr,
+		err_msg,
 		rvs,
 	}
 	return command
 }
 
-func runCommand(cmd *datatypes.Command, c chan *datatypes.Command) {
+func dispatch(cmd *datatypes.Command, c chan *datatypes.Command) {
 	com := &datatypes.Command{}
 	if cmd.Name == "ping" {
 		com = base.Ping(cmd)
