@@ -47,7 +47,7 @@ func main() {
 		tr.Formatc()
 	}
 	// init http server
-	httpServer.InitHttpServer(*serve)
+	go httpServer.InitHttpServer(*serve)
 	if *serve == false {
 		events.Msg("state", "main", "Http server is down")
 	}

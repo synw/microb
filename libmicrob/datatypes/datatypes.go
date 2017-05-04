@@ -40,7 +40,7 @@ type Command struct {
 	Date time.Time
 	Args []interface{}
 	Status string
-	Error error
+	Trace *terr.Trace
 	ReturnValues []interface{}
 }
 

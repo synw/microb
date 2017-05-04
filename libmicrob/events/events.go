@@ -37,6 +37,18 @@ func Err(class string, from string, tr ...*terr.Trace) *datatypes.Event {
 	handle(event)
 	return event
 }
+
+func Cmd(cmd *datatypes.Command) *datatypes.Event {
+	msg := color.BoldWhite(cmd.Name)+" received "+fmt.Sprintf("%s", cmd.Date)
+	if (cmd.Reason != "") {
+		msg =msg+" ( "+cmd.Reason+" )"
+	}
+	args := make(map[string]interface{})
+	args["args"] = cmd.Args
+	event := &datatypes.Event{"command", cmd.From, msg, args, nil}
+	handle(event)
+	return event
+}
 /*
 func Info(msg string) {
 	var data map[string]interface{}

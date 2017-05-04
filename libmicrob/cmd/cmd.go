@@ -2,19 +2,23 @@ package cmd
 
 import (
 	"time"
+	"fmt"
 	"errors"
 	"encoding/json"
 	"github.com/ventu-io/go-shortid"
+	color "github.com/acmacalister/skittles"
 	"github.com/synw/terr"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/state"
+	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/cmd/httpServer"
 	"github.com/synw/microb/libmicrob/cmd/base"
+	"github.com/synw/microb/libmicrob/cmd/info"
 )
 
 
 func IsValid(command *datatypes.Command) bool {
-	valid_commands := []string{"ping", "start", "stop"}
+	valid_commands := []string{"ping", "start", "stop", "http"}
 	is_valid := false
 	for _, com := range(valid_commands) {
 		if (com == command.Name) {
@@ -37,10 +41,21 @@ func Run(payload interface{}) {
 	go runCommand(cmd, c)
 	select {
 		case com := <- c:
-			//fmt.Println("RES", com)
-			err := sendCommand(com)
-			if err != nil {
-				// todo
+			status := com.Status
+			if status == "error" {
+				status = color.BoldRed("error")
+				if state.Verbosity > 0 { 
+					fmt.Println(" ->", status, com.Trace.Format())
+				}
+			} else if status == "success" {
+				status = color.Green("success")
+				if state.Verbosity > 0 { 
+					fmt.Println(" ->", status, com.ReturnValues)
+				}
+			}
+			tr := sendCommand(com)
+			if tr != nil {
+				events.Err("error", cmd.Name, tr)
 			}
 			close(c)
 	}
@@ -63,7 +78,8 @@ func CmdFromPayload(payload interface{}) (*datatypes.Command, bool) {
 		cmd = New(name, from, reason)
 	}
 	if pl["Error"] != nil {
-		cmd.Error = pl["Error"].(error)
+		err := pl["Error"].(error)
+		cmd.Trace = terr.New("cmd.CmdFromPayload", err)
 	}
 	if pl["ReturnValues"] != nil {
 		cmd.ReturnValues = pl["ReturnValues"].([]interface{})
@@ -94,7 +110,7 @@ func New(name string, from string, reason string, args ...interface{}) *datatype
 	id, _ := shortid.Generate()
 	date := time.Now()
 	status := "pending"
-	var err error
+	var tr *terr.Trace
 	var rvs []interface{}
 	command := &datatypes.Command{
 		id,
@@ -104,7 +120,7 @@ func New(name string, from string, reason string, args ...interface{}) *datatype
 		date,
 		args,
 		status,
-		err,
+		tr,
 		rvs,
 	}
 	return command
@@ -118,7 +134,10 @@ func runCommand(cmd *datatypes.Command, c chan *datatypes.Command) {
 		com = httpServer.Start(cmd)
 	} else if cmd.Name == "stop" {
 		com = httpServer.Stop(cmd)
+	} else if cmd.Name == "http" {
+		com = info.Http(cmd)
 	}
+	_ = events.Cmd(cmd)
 	c <- com
 	return
 }

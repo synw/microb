@@ -44,8 +44,8 @@ func InitHttpServer(serve bool) {
 
 func Run() {
 	events.Msg("state", "httpServer.run", startMsg())
-	state.HttpServer.Instance.ListenAndServe()
 	state.HttpServer.Running = true
+	state.HttpServer.Instance.ListenAndServe()
 }
 
 func Stop() *terr.Trace {
@@ -113,7 +113,7 @@ func stopMsg() string {
 func startMsg() string {
 	var msg string
     loc := state.Server.HttpHost+":"+strconv.Itoa(state.Server.HttpPort)
-	msg = "Server started on "+loc+" for domain "+skittles.BoldWhite(state.Server.Domain)
+	msg = "Http server started at "+loc+" for domain "+skittles.BoldWhite(state.Server.Domain)
 	/*database := state.HttpServer.PagesDb
 	server := state.HttpServer
     loc := server.Host+":"+server.Port
