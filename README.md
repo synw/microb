@@ -39,7 +39,7 @@ Data flow
 
 ![Microb data flow](https://github.com/synw/microb/raw/master/docs/img/microb.png)
 
-Note: all components are independant and can be located at any machine: 
+Note: all components are independant and can be located on any machine: 
 database, api server, static server, websockets server and terminal client
 
 External libraries used
@@ -53,3 +53,13 @@ External libraries used
 - [Skittles](https://godoc.org/github.com/acmacalister/skittles): terminal colors
 - [Centrifuge-go](https://github.com/centrifugal/centrifuge-go): Centrifugo server side drivers
 - [Gocent](https://github.com/centrifugal/gocent): Centrifugo client side drivers
+
+Todo
+----
+
+- [ ] Postgresql support
+- [ ] Sqlite support
+- [ ] Commands log
+- [ ] Events log
+- [ ] Graphql API
+- [ ] Metrics an introspection capabilities
