@@ -108,7 +108,7 @@ func ServeApi(response http.ResponseWriter, request *http.Request) {
 
 func headers(response http.ResponseWriter) http.ResponseWriter {
 	response.Header().Set("Content-Type", "application/json")
-	response.Header().Set("Access-Control-Allow-Headers", state.Cors)
+	response.Header().Set("Access-Control-Allow-Origin", state.Cors)
 	return response
 }
 

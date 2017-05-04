@@ -49,7 +49,7 @@ func InitState(name string, verbosity int) *terr.Trace {
 	for _, h := range(crs) {
 		co = append(co, h.(string))
 	}
-	Cors = strings.Join(co, ",")
+	Cors = strings.Join(co, " ")
 	return nil
 }
 
