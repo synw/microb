@@ -1,12 +1,10 @@
 package rethinkdb
 
 import (
-	"time"
 	"errors"
 	 r "gopkg.in/dancannon/gorethink.v3"
 	 "github.com/synw/terr"
 	 "github.com/synw/microb/libmicrob/datatypes"
-	 "github.com/synw/microb/libmicrob/events"
 	 "github.com/synw/microb/libmicrob/state"
 )
 
@@ -14,17 +12,43 @@ import (
 var conn *r.Session
 var isConnected bool = false
 
+
+func GetByUrl(url string)  (*datatypes.Document, bool, *terr.Trace)  {
+	session := conn
+	var doc datatypes.Document
+	filters := map[string]interface{}{"uri":url}
+	res, err := r.DB(state.DocDb.Dbs["documents"]).Table(state.DocDb.Tables["documents"]).Filter(filters).Pluck("fields").Run(session)
+	defer res.Close()
+	var row map[string]interface{}
+	err = res.One(&row)
+	if (err != nil && err != r.ErrEmptyResult) {
+		tr := terr.New("db.rethinkdb.GetFromUrl", err)
+		return &doc, false, tr
+	}
+	if err == r.ErrEmptyResult {
+		msg := errors.New("Empty results for url "+url+" - "+err.Error())
+		tr := terr.New("db.rethinkdb.GetFromUrl", msg)
+		return &doc, false, tr
+	} else {
+		fields := row["fields"].(map[string]interface{})
+		doc.Url = url
+		doc.Fields = fields
+		return &doc, true, nil
+	}
+	return &doc, false, nil
+}
+
 func InitDb(database *datatypes.Database) *terr.Trace {
 	if database.Type != "rethinkdb" {
 		err := errors.New("Not a rethinkdb database")
-		trace := terr.New("db.rethinkdb.Initdb", err)
-		return trace
+		tr := terr.New("db.rethinkdb.Initdb", err)
+		return tr
 	}
 	cn, err := connect(database)
 	conn = cn
 	if err != nil {
-		trace := terr.New("db.rethinkdb.InitDb", err)
-		return trace
+		tr := terr.New("db.rethinkdb.InitDb", err)
+		return tr
 	}
 	return nil
 }
@@ -49,27 +73,24 @@ func SwitchDb(role string, database *datatypes.Database) error {
 	return err
 }*/
 
-func connect(database *datatypes.Database) (*r.Session, error) {
+func connect(database *datatypes.Database) (*r.Session, *terr.Trace) {
 	user := database.User
 	pwd := database.Password
 	addr := database.Addr
-	db_name := state.Server.Domain
 	// connect to Rethinkdb
 	session, err := r.Connect(r.ConnectOpts{
 		Address: addr,
-		Database: db_name,
 		Username: user,
 		Password: pwd,
 		InitialCap: 10,
         MaxOpen:    10,
 	})
     if err != nil {
-        trace := terr.New("db.rethinkdb.connectToDb()", err)
-        events.Error(trace)
-        return session, err
+        tr := terr.New("db.rethinkdb.connectToDb()", err)
+        return session, tr
     }
     isConnected = true
-    return session, err
+    return session, nil
 }
 /*
 func ReportIssues() []*datatypes.DatabaseIssue {
@@ -89,20 +110,21 @@ func ReportIssues() []*datatypes.DatabaseIssue {
 		}
 	return issues
 }
-*/
-func ReportStatus()(map[string]interface{}, error) {
+
+func ReportStatus()(map[string]interface{}, *terr.Trace) {
 	session := conn
 	res, err := r.DB("rethinkdb").Table("server_status").Run(session)
 	defer res.Close()
 	status := make(map[string]interface{})
 	if err != nil {
-		return status, err
+		tr := terr.New("db.rethinkdb.ReportStatus", err)
+		return status, tr
 	}
 	var row map[string]interface{}
 	err = res.One(&row)
 	if err != nil && err != r.ErrEmptyResult {
-		trace := terr.New("db.rethinkdb.ReportStatus", err)
-		events.Error(trace)
+		tr := terr.New("db.rethinkdb.ReportStatus", err)
+		return status, tr
 	}
 	process := row["process"].(map[string]interface{})
 	//network := row["network"].(map[string]interface{})
@@ -114,34 +136,5 @@ func ReportStatus()(map[string]interface{}, error) {
 	final_status["cache_size_mb"] = cache_size_mb
 	final_status["time_started"] = time_started
 	return final_status, nil
-}
-/*
-func GetFromUrl(url string)  (*datatypes.Page, bool, error)  {
-	session := conn
-	var page datatypes.Page
-	filters := map[string]interface{}{"uri":url}
-	res, err := r.Table("documents").Filter(filters).Pluck("fields").Run(session)
-	defer res.Close()
-	var row map[string]interface{}
-	err = res.One(&row)
-	if (err != nil && err != r.ErrEmptyResult) {
-		trace := terr.New("db.rethinkdb.GetFromUrl", err)
-		events.Error(trace)
-		return &page, false, err
-	}
-	if err == r.ErrEmptyResult {
-		msg := "Empty results for url "+url
-		events.New("runtime", "db.rethinkdb.GetFromUrl", msg)
-		return &page, false, err
-	} else {
-		fields := row["fields"].(map[string]interface{})
-		title := fields["title"].(string)
-		content := fields["content"].(string)
-		page.Url = url
-		page.Title = title
-		page.Content = content
-		return &page, true, err
-	}
-	return &page, false, nil
 }
 */

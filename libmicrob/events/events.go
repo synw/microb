@@ -8,11 +8,11 @@ import (
 	"github.com/synw/microb/libmicrob/state"
 )
 
-
+/*
 func Error(trace *terr.Trace) {
 	event := Err("error", "runtime", trace)
 	handle(event)
-}
+}*/
 
 // constructor
 

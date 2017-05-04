@@ -33,7 +33,7 @@ func main() {
 	if tr != nil {
 		err := errors.New("Unable to initialize state")
 		tr = terr.Add("main", err, tr)
-		events.Error(tr)
+		events.Err("error", "main", tr)
 		return
 	}
 	events.Msg("state", "state.InitState", "Commands transport layer operational")

@@ -7,6 +7,19 @@ import (
 )
 
 
+type Document struct {
+	Id string
+	Pk int
+	Slug string
+	Url string
+	Domain string
+	Model string
+	Date time.Time
+	Editor string
+	Status string
+	Fields map[string]interface{}
+}
+
 type Server struct {
 	Domain string
 	HttpHost string
@@ -52,5 +65,7 @@ type Database struct {
 	User string
 	Password string
 	Roles []string
+	Dbs map[string]string
+	Tables map[string]string
 	Running bool
 }

@@ -9,8 +9,28 @@ import (
 	"github.com/synw/microb/libmicrob/state"
 	"github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/events"
-	
 )
+
+
+func GetByUrl(url string)  (*datatypes.Document, bool, *terr.Trace) {
+	var r *datatypes.Document
+	f := false
+	if state.DocDb.Running == false {
+		err := errors.New("Documents database is down")
+		tr := terr.New("db.GetByUrl", err)
+		return r, f, tr
+	}
+	if state.DocDb.Type == "rethinkdb" {
+		res, found, tr := rethinkdb.GetByUrl(url)
+		if tr != nil {
+			return r, f, tr
+		}
+		return res, found, nil
+	}
+	err := errors.New("The database did not return any result")
+	tr := terr.New("db.GetFromUrl", err)
+	return r, f, tr
+}
 
 func InitDb(dev string) *terr.Trace {
 	db, _ := conf.GetDefaultDb(dev)
@@ -48,7 +68,7 @@ func CheckDb(db *datatypes.Database) *terr.Trace {
 	} else {
 		err = errors.New("Database type not implemented")
 		tr = terr.New("db.rethinkdb.CheckDb", err)
-		events.Error(tr)
+		events.Err("error", "db.rethinkdb.CheckDb", tr)
 	}
 	return tr
 }

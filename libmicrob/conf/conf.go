@@ -32,18 +32,35 @@ func GetDefaultDb(name string) (*datatypes.Database, *terr.Trace) {
 		d := &datatypes.Database{}
 		return d, tr
 	}
-	db := conf["default_database"].(map[string]interface {})
+	db := conf["default_database"].(map[string]interface{})
 	dbtype := db["type"].(string)
 	addr := db["addr"].(string)
 	user := db["user"].(string)	
 	password := db["password"].(string)
 	r := db["roles"].([]interface{})
+	d := db["dbs"].(map[string]interface{})
+	t := db["tables"].(map[string]interface{})
 	var roles []string
+	var dbs = make(map[string]string)
+	dbs["documents"] = ""
+	dbs["metrics"] = ""
+	dbs["commands"] = ""
+	var tables = make(map[string]string)
+	tables["documents"] = ""
+	tables["metrics"] = ""
+	tables["commands"] = ""
 	for _, role := range(r) {
-		roles = append(roles, role.(string))
+		srole := role.(string)
+		roles = append(roles, srole)
+		if d[srole] != nil {
+			dbs[srole] = d[srole].(string)
+		}
+		if t[srole] != nil {
+			tables[srole] = t[srole].(string)
+		}
 	}
-	d := &datatypes.Database{dbtype, "default", addr, user, password, roles, false}
-	return d, nil
+	dbobj := &datatypes.Database{dbtype, "default", addr, user, password, roles, dbs, tables, false}
+	return dbobj, nil
 }
 
 func getConf(name string) (map[string]interface{},*terr.Trace) {

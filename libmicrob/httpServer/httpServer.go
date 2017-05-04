@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 	"context"
+	"strings"
+	"errors"
 	"encoding/json"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
@@ -14,8 +16,14 @@ import (
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/state"
 	"github.com/synw/microb/libmicrob/events"
+	"github.com/synw/microb/libmicrob/db"
 )
 
+
+type httpResponseWriter struct {
+	http.ResponseWriter
+	status *int
+}
 
 func InitHttpServer(serve bool) {
 	// routing
@@ -63,47 +71,59 @@ func Stop() *terr.Trace {
 	return nil
 }
 
+func handle404(response http.ResponseWriter, request *http.Request) {
+	msg := "Document not found"
+	events.Msg("request_error", "httpServer.handle404", msg)
+	fields := make(map[string]interface{})
+	fields["Title"] = "Page not found"
+	fields["Content"] = "<h1>Page not found</h1>"
+ 	doc := &datatypes.Document{Url: "/error/", Fields: fields}
+	status := http.StatusNotFound
+	response = httpResponseWriter{response, &status}
+	json_bytes, _ := json.Marshal(doc)
+	fmt.Fprintf(response, "%s\n", json_bytes)
+}
+
 func ServeApi(response http.ResponseWriter, request *http.Request) {
 	fmt.Println("SERVE API", request.URL.Path)
-	/*url := request.URL.Path
+	url := request.URL.Path
 	if url == "/x" {
 		url = "/"
 	}
 	doc, err := getDocument(url)
 	if err != nil {
-		events.Error("http_handlers.ServeApi()", err)
+		events.Err("error", "httpServer.ServeApi", err)
 	}
 	if (doc == nil) {
 		if state.Debug == true {
 			fmt.Println("http.handlers.ServeApi() error: route "+url+" not found from database")
 		}
-    	handleAPI404(response, request)
+    	handle404(response, request)
     	return
-    }*/
-    doc := []int{1, 2}
+    }
 	json_bytes, _ := json.Marshal(doc)
 	fmt.Fprintf(response, "%s\n", json_bytes)
 }
-/*
-func getDocument(url string) (*datatypes.Page, error) {
+
+func getDocument(url string) (*datatypes.Document, *terr.Trace) {
 	index_url := url
 	found := false
 	// remove url mask
 	index_url = strings.Replace(index_url,"/x","",-1)
 	// hit db
-	doc, found, err := db.GetFromUrl(index_url)
-	if err != nil {
-		events.Error("http_handlers.getDocument", err)
-		return doc, err
+	doc, found, tr := db.GetByUrl(index_url)
+	if tr != nil {
+		tr := terr.Pass("httpServer.getDocument", tr)
+		return doc, tr
 	}
 	if (found == false) {
 		msg := "Document "+url+" not found"
-		err = errors.New(msg)
-		events.Error("http_handlers.getDocument", err)
+		err := errors.New(msg)
+		tr := terr.Add("httpServer.getDocument", err, tr)
+		return doc, tr
 	}
 	return doc, nil
 }
-*/
 
 func stopMsg() string {
 	msg := "Http server stopped"
