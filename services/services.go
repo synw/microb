@@ -4,6 +4,9 @@ import (
 	"github.com/synw/microb/libmicrob/datatypes"
 )
 
+var InfoService = New("info")
+var HttpService = New("http")
+
 func New(name string, deps ...[]*datatypes.Service) *datatypes.Service {
 	req := []*datatypes.Service{}
 	if len(deps) > 0 {
