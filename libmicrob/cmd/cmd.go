@@ -135,7 +135,7 @@ func New(name string, service *datatypes.Service, from string, reason string, ar
 	var err_msg string
 	command := &datatypes.Command{
 		id,
-		service,
+		service.Name,
 		name,
 		from,
 		reason,

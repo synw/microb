@@ -42,7 +42,7 @@ type Service struct {
 
 type Command struct {
 	Id           string
-	Service      *Service
+	Service      string
 	Name         string
 	From         string
 	Reason       string
