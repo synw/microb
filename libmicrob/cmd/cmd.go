@@ -10,6 +10,7 @@ import (
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/state"
+	"github.com/synw/microb/services"
 	cmdHttp "github.com/synw/microb/services/httpServer/cmd"
 	"github.com/synw/terr"
 	"github.com/ventu-io/go-shortid"
@@ -65,7 +66,7 @@ func CmdFromPayload(payload interface{}) (*datatypes.Command, bool) {
 	status := pl["Status"].(string)
 	name := pl["Name"].(string)
 	servicestr := pl["Service"].(string)
-	service := &datatypes.Service{servicestr, &datatypes.Service{}}
+	s := services.New(servicestr)
 	from := pl["From"].(string)
 	reason := pl["Reason"].(string)
 	cmd := &datatypes.Command{}
@@ -74,9 +75,9 @@ func CmdFromPayload(payload interface{}) (*datatypes.Command, bool) {
 		args = pl["Args"].([]interface{})
 	}
 	if args != nil {
-		cmd = New(name, service, from, reason, args)
+		cmd = New(name, s, from, reason, args)
 	} else {
-		cmd = New(name, service, from, reason)
+		cmd = New(name, s, from, reason)
 	}
 	if pl["ErrMsg"] != "" {
 		msg := pl["ErrMsg"].(string)
@@ -91,7 +92,6 @@ func CmdFromPayload(payload interface{}) (*datatypes.Command, bool) {
 	if status != "pending" {
 		return cmd, false
 	}
-	cmd.Service = service
 	return cmd, true
 }
 

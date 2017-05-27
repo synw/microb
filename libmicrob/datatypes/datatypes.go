@@ -37,7 +37,7 @@ type Event struct {
 
 type Service struct {
 	Name     string
-	Requires *Service
+	Requires []*Service
 }
 
 type Command struct {

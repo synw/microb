@@ -7,6 +7,12 @@ import (
 	"github.com/synw/terr"
 )
 
+func GetComChan(name string) (string, string) {
+	comchan_in := "cmd:$" + name + "_in"
+	comchan_out := "cmd:$" + name + "_out"
+	return comchan_in, comchan_out
+}
+
 func GetServer(dev bool) (*datatypes.Server, *terr.Trace) {
 	conf, tr := GetConf(dev)
 	if tr != nil {
@@ -17,9 +23,7 @@ func GetServer(dev bool) (*datatypes.Server, *terr.Trace) {
 	wshost := conf["centrifugo_host"].(string)
 	wsport := conf["centrifugo_port"].(int)
 	wskey := conf["centrifugo_key"].(string)
-
-	comchan_in := "cmd:$" + name + "_in"
-	comchan_out := "cmd:$" + name + "_out"
+	comchan_in, comchan_out := GetComChan(name)
 	s := &datatypes.Server{name, wshost, wsport, wskey, comchan_in, comchan_out}
 	return s, nil
 }

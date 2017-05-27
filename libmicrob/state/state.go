@@ -5,6 +5,7 @@ import (
 	"github.com/synw/centcom"
 	"github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/datatypes"
+	"github.com/synw/microb/services"
 	"github.com/synw/terr"
 )
 
@@ -54,9 +55,8 @@ func initServices() {
 		fmt.Println("Initializing services ...")
 	}
 	for _, el := range Conf["services"].([]interface{}) {
-		dep := &datatypes.Service{}
 		name := el.(string)
-		s := &datatypes.Service{name, dep}
+		s := services.New(name)
 		Services = append(Services, s)
 		if Verbosity > 1 {
 			fmt.Println("Registering service", name)
