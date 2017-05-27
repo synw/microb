@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	color "github.com/acmacalister/skittles"
-	"github.com/synw/microb/libmicrob/cmd/base"
+	cmdInfo "github.com/synw/microb/libmicrob/cmd/info"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/state"
@@ -18,9 +18,12 @@ import (
 )
 
 func IsValid(command *datatypes.Command) bool {
-	valid_commands := []string{"ping", "start", "stop", "http"}
+	ValidCommands := []string{"ping"}
+	/*for _, s := range state.Services {
+		for _, c range
+	}*/
 	is_valid := false
-	for _, com := range valid_commands {
+	for _, com := range ValidCommands {
 		if com == command.Name {
 			is_valid = true
 			break
@@ -151,15 +154,11 @@ func New(name string, service *datatypes.Service, from string, reason string, ar
 
 func dispatch(cmd *datatypes.Command, c chan *datatypes.Command) {
 	com := &datatypes.Command{}
-	if cmd.Name == "ping" {
-		com = base.Ping(cmd)
-	} else if cmd.Name == "start" {
-		com = cmdHttp.Start(cmd)
-	} else if cmd.Name == "stop" {
-		com = cmdHttp.Stop(cmd)
-	} /*else if cmd.Name == "http" {
-		com = info.Http(cmd)
-	}*/
+	if cmd.Service == "info" {
+		com = cmdInfo.Dispatch(cmd)
+	} else if cmd.Service == "http" {
+		com = cmdHttp.Dispatch(cmd)
+	}
 	_ = events.Cmd(cmd)
 	c <- com
 	return

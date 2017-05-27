@@ -5,6 +5,17 @@ import (
 	"github.com/synw/microb/services/httpServer/state/mutate"
 )
 
+func Dispatch(cmd *datatypes.Command) *datatypes.Command {
+	com := &datatypes.Command{}
+	// TODO: error handling
+	if cmd.Name == "start" {
+		return Start(cmd)
+	} else if cmd.Name == "stop" {
+		return Stop(cmd)
+	}
+	return com
+}
+
 func Start(cmd *datatypes.Command) *datatypes.Command {
 	tr := mutate.StartHttpServer()
 	if tr != nil {

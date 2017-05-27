@@ -4,6 +4,14 @@ import (
 	"github.com/synw/microb/libmicrob/datatypes"
 )
 
+func Dispatch(cmd *datatypes.Command) *datatypes.Command {
+	com := &datatypes.Command{}
+	// TODO: error handling
+	if cmd.Name == "ping" {
+		return Ping(cmd)
+	}
+	return com
+}
 
 func Ping(cmd *datatypes.Command) *datatypes.Command {
 	var resp []interface{}

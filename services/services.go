@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/synw/microb/libmicrob/datatypes"
+	//httpCmd "github.com/synw/microb/services/httpServer/cmd"
 )
 
 var InfoService = New("info")

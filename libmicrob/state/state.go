@@ -6,6 +6,7 @@ import (
 	"github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/services"
+	httpConf "github.com/synw/microb/services/httpServer/conf"
 	"github.com/synw/terr"
 )
 
@@ -17,6 +18,12 @@ var DocDb = &datatypes.Database{}
 var Conf map[string]interface{}
 var Dev bool
 var Services []*datatypes.Service
+
+func getValidCommands() {
+	fmt.Println(httpConf.ValidCommands)
+	/*var InfoService = New("info", []string{"ping"})
+	  var HttpService = New("http", httpCmd.ValidCommands)*/
+}
 
 func InitState(dev bool, verbosity int) *terr.Trace {
 	Verbosity = verbosity

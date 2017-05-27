@@ -6,6 +6,8 @@ import (
 	"github.com/synw/terr"
 )
 
+var ValidCommands = []string{"start", "stop"}
+
 func GetConf(dev bool) (map[string]interface{}, *terr.Trace) {
 	name := "normal"
 	if dev {
