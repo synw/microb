@@ -18,12 +18,8 @@ import (
 )
 
 func IsValid(command *datatypes.Command) bool {
-	ValidCommands := []string{"ping"}
-	/*for _, s := range state.Services {
-		for _, c range
-	}*/
 	is_valid := false
-	for _, com := range ValidCommands {
+	for _, com := range state.ValidCommands {
 		if com == command.Name {
 			is_valid = true
 			break

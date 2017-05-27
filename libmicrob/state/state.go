@@ -18,11 +18,15 @@ var DocDb = &datatypes.Database{}
 var Conf map[string]interface{}
 var Dev bool
 var Services []*datatypes.Service
+var ValidCommands = getValidCommands()
 
-func getValidCommands() {
-	fmt.Println(httpConf.ValidCommands)
-	/*var InfoService = New("info", []string{"ping"})
-	  var HttpService = New("http", httpCmd.ValidCommands)*/
+func getValidCommands() []string {
+	httpCmds := httpConf.ValidCommands
+	infoCmds := []string{"ping"}
+	validCommands := []string{}
+	allComs := append(httpCmds, infoCmds...)
+	validCommands = append(validCommands, allComs...)
+	return validCommands
 }
 
 func InitState(dev bool, verbosity int) *terr.Trace {
