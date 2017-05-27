@@ -1,0 +1,6 @@
+{
+	"domain": "localhost",
+	"http_host":"",
+	"http_port":8080,
+	"cors": ["http://localhost", "http://127.0.0.1"]
+}

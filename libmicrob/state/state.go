@@ -2,27 +2,26 @@ package state
 
 import (
 	"fmt"
-	"strings"
-	"github.com/synw/terr"
 	"github.com/synw/centcom"
 	"github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/datatypes"
+	"github.com/synw/terr"
 )
-
 
 var Debug = true
 var Server = &datatypes.Server{}
 var Verbosity int = 1
 var Cli *centcom.Cli
-var HttpServer = datatypes.HttpServer{}
 var DocDb = &datatypes.Database{}
-var Cors string
 var Conf map[string]interface{}
+var Dev bool
+var Services []*datatypes.Service
 
-func InitState(name string, verbosity int) *terr.Trace {
+func InitState(dev bool, verbosity int) *terr.Trace {
 	Verbosity = verbosity
-	// microb server
-	server, trace := conf.GetServer(name)
+	Dev = dev
+	// command channel server
+	server, trace := conf.GetServer(dev)
 	if trace != nil {
 		trace = terr.Pass("stateInit.State", trace)
 		return trace
@@ -32,28 +31,38 @@ func InitState(name string, verbosity int) *terr.Trace {
 	if Verbosity > 0 {
 		fmt.Println("Initializing commands transport layer ...")
 	}
-	cli, trace := initWsCli()
-	if trace != nil {	
-		trace = terr.Pass("state.InitState", trace)
-		return trace
+	cli, tr := initWsCli()
+	if tr != nil {
+		tr = terr.Pass("state.InitState", tr)
+		return tr
 	}
 	Cli = cli
 	// conf
-	Conf, tr := conf.GetConf(name)
+	Conf, tr = conf.GetConf(dev)
 	if tr != nil {
 		return tr
 	}
-	// headers
-	crs := Conf["cors"].([]interface{})
-	var co []string
-	for _, h := range(crs) {
-		co = append(co, h.(string))
-	}
-	Cors = strings.Join(co, " ")
+	// services
+	initServices()
 	return nil
 }
 
 // internal methods
+
+func initServices() {
+	if Verbosity > 0 {
+		fmt.Println("Initializing services ...")
+	}
+	for _, el := range Conf["services"].([]interface{}) {
+		dep := &datatypes.Service{}
+		name := el.(string)
+		s := &datatypes.Service{name, dep}
+		Services = append(Services, s)
+		if Verbosity > 1 {
+			fmt.Println("Registering service", name)
+		}
+	}
+}
 
 func initWsCli() (*centcom.Cli, *terr.Trace) {
 	cli := centcom.NewClient(Server.WsHost, Server.WsPort, Server.WsKey)
@@ -74,6 +83,6 @@ func initWsCli() (*centcom.Cli, *terr.Trace) {
 	}
 	if Verbosity > 1 {
 		fmt.Println(terr.Ok("Websockets http transport ready"))
-	}	
+	}
 	return cli, nil
 }

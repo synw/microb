@@ -1,28 +1,26 @@
 package cmd
 
 import (
-	"time"
-	"fmt"
-	"errors"
 	"bytes"
-    "encoding/json"
-	"github.com/ventu-io/go-shortid"
+	"encoding/json"
+	"errors"
+	"fmt"
 	color "github.com/acmacalister/skittles"
-	"github.com/synw/terr"
-	"github.com/synw/microb/libmicrob/datatypes"
-	"github.com/synw/microb/libmicrob/state"
-	"github.com/synw/microb/libmicrob/events"
-	"github.com/synw/microb/libmicrob/cmd/httpServer"
 	"github.com/synw/microb/libmicrob/cmd/base"
-	"github.com/synw/microb/libmicrob/cmd/info"
+	"github.com/synw/microb/libmicrob/datatypes"
+	"github.com/synw/microb/libmicrob/events"
+	"github.com/synw/microb/libmicrob/state"
+	cmdHttp "github.com/synw/microb/services/httpServer/cmd"
+	"github.com/synw/terr"
+	"github.com/ventu-io/go-shortid"
+	"time"
 )
-
 
 func IsValid(command *datatypes.Command) bool {
 	valid_commands := []string{"ping", "start", "stop", "http"}
 	is_valid := false
-	for _, com := range(valid_commands) {
-		if (com == command.Name) {
+	for _, com := range valid_commands {
+		if com == command.Name {
 			is_valid = true
 			break
 		}
@@ -32,7 +30,7 @@ func IsValid(command *datatypes.Command) bool {
 
 func Run(payload interface{}) {
 	cmd, exec := CmdFromPayload(payload)
-	if (exec == false) {
+	if exec == false {
 		return
 	}
 	if IsValid(cmd) == false {
@@ -41,24 +39,24 @@ func Run(payload interface{}) {
 	c := make(chan *datatypes.Command)
 	go dispatch(cmd, c)
 	select {
-		case com := <- c:
-			status := com.Status
-			if status == "error" {
-				status = color.BoldRed("error")
-				if state.Verbosity > 0 { 
-					fmt.Println(" ->", status, com.Trace.Format())
-				}
-			} else if status == "success" {
-				status = color.Green("success")
-				if state.Verbosity > 0 { 
-					fmt.Println(" ->", status, com.ReturnValues)
-				}
+	case com := <-c:
+		status := com.Status
+		if status == "error" {
+			status = color.BoldRed("error")
+			if state.Verbosity > 0 {
+				fmt.Println(" ->", status, com.Trace.Format())
 			}
-			tr := sendCommand(com)
-			if tr != nil {
-				events.Err("error", cmd.Name, tr)
+		} else if status == "success" {
+			status = color.Green("success")
+			if state.Verbosity > 0 {
+				fmt.Println(" ->", status, com.ReturnValues)
 			}
-			close(c)
+		}
+		tr := sendCommand(com)
+		if tr != nil {
+			events.Err("error", cmd.Name, tr)
+		}
+		close(c)
 	}
 }
 
@@ -66,6 +64,8 @@ func CmdFromPayload(payload interface{}) (*datatypes.Command, bool) {
 	pl := payload.(map[string]interface{})
 	status := pl["Status"].(string)
 	name := pl["Name"].(string)
+	servicestr := pl["Service"].(string)
+	service := &datatypes.Service{servicestr, &datatypes.Service{}}
 	from := pl["From"].(string)
 	reason := pl["Reason"].(string)
 	cmd := &datatypes.Command{}
@@ -74,9 +74,9 @@ func CmdFromPayload(payload interface{}) (*datatypes.Command, bool) {
 		args = pl["Args"].([]interface{})
 	}
 	if args != nil {
-		cmd = New(name, from, reason, args)
+		cmd = New(name, service, from, reason, args)
 	} else {
-		cmd = New(name, from, reason)
+		cmd = New(name, service, from, reason)
 	}
 	if pl["ErrMsg"] != "" {
 		msg := pl["ErrMsg"].(string)
@@ -88,16 +88,17 @@ func CmdFromPayload(payload interface{}) (*datatypes.Command, bool) {
 		cmd.ReturnValues = pl["ReturnValues"].([]interface{})
 	}
 	cmd.Status = status
-	if (status != "pending") {
+	if status != "pending" {
 		return cmd, false
 	}
+	cmd.Service = service
 	return cmd, true
 }
 
 func printJson(b []byte) ([]byte, error) {
-    var out bytes.Buffer
-    err := json.Indent(&out, b, "", "  ")
-    return out.Bytes(), err
+	var out bytes.Buffer
+	err := json.Indent(&out, b, "", "  ")
+	return out.Bytes(), err
 }
 
 func sendCommand(command *datatypes.Command) *terr.Trace {
@@ -110,9 +111,9 @@ func sendCommand(command *datatypes.Command) *terr.Trace {
 	payload, err := json.Marshal(command)
 	/*p, _ := printJson(payload)
 	fmt.Printf("%s", p)*/
-	
+
 	if err != nil {
-		msg := "Unable to marshall json: "+err.Error()
+		msg := "Unable to marshall json: " + err.Error()
 		err := errors.New(msg)
 		trace := terr.New("commands.SendCommand", err)
 		return trace
@@ -125,7 +126,7 @@ func sendCommand(command *datatypes.Command) *terr.Trace {
 	return nil
 }
 
-func New(name string, from string, reason string, args ...interface{}) *datatypes.Command {
+func New(name string, service *datatypes.Service, from string, reason string, args ...interface{}) *datatypes.Command {
 	id, _ := shortid.Generate()
 	date := time.Now()
 	status := "pending"
@@ -134,6 +135,7 @@ func New(name string, from string, reason string, args ...interface{}) *datatype
 	var err_msg string
 	command := &datatypes.Command{
 		id,
+		service,
 		name,
 		from,
 		reason,
@@ -152,12 +154,12 @@ func dispatch(cmd *datatypes.Command, c chan *datatypes.Command) {
 	if cmd.Name == "ping" {
 		com = base.Ping(cmd)
 	} else if cmd.Name == "start" {
-		com = httpServer.Start(cmd)
+		com = cmdHttp.Start(cmd)
 	} else if cmd.Name == "stop" {
-		com = httpServer.Stop(cmd)
-	} else if cmd.Name == "http" {
+		com = cmdHttp.Stop(cmd)
+	} /*else if cmd.Name == "http" {
 		com = info.Http(cmd)
-	}
+	}*/
 	_ = events.Cmd(cmd)
 	c <- com
 	return

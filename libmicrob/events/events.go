@@ -2,10 +2,10 @@ package events
 
 import (
 	"fmt"
-	color "github.com/acmacalister/skittles"	
-	"github.com/synw/terr"
+	color "github.com/acmacalister/skittles"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/state"
+	"github.com/synw/terr"
 )
 
 /*
@@ -39,9 +39,9 @@ func Err(class string, from string, tr ...*terr.Trace) *datatypes.Event {
 }
 
 func Cmd(cmd *datatypes.Command) *datatypes.Event {
-	msg := color.BoldWhite(cmd.Name)+" received "+fmt.Sprintf("%s", cmd.Date)
-	if (cmd.Reason != "") {
-		msg =msg+" ( "+cmd.Reason+" )"
+	msg := color.BoldWhite(cmd.Name) + " received " + fmt.Sprintf("%s", cmd.Date)
+	if cmd.Reason != "" {
+		msg = msg + " ( " + cmd.Reason + " )"
 	}
 	args := make(map[string]interface{})
 	args["args"] = cmd.Args
@@ -49,6 +49,7 @@ func Cmd(cmd *datatypes.Command) *datatypes.Event {
 	handle(event)
 	return event
 }
+
 /*
 func Info(msg string) {
 	var data map[string]interface{}
@@ -71,13 +72,14 @@ func getMsg(event *datatypes.Event) string {
 
 func getEventOutputFlags() map[string]string {
 	output_flags := make(map[string]string)
-	output_flags["info"] = "["+color.Blue("info")+"]"
-	output_flags["event"] = "["+color.Yellow("event")+"]"
-	output_flags["command"] = "[=> "+color.Cyan("command")+"]"
+	output_flags["ready"] = "[" + color.Green("ready") + "]"
+	output_flags["info"] = "[" + color.Blue("info") + "]"
+	output_flags["event"] = "[" + color.Yellow("event") + "]"
+	output_flags["command"] = "[=> " + color.Cyan("command") + "]"
 	output_flags["error"] = ""
-	output_flags["metric"] = "["+color.Cyan("metric")+"]"
-	output_flags["state"] = "["+color.Yellow("state")+"]"
-	output_flags["debug"] = "["+color.Magenta("debug")+"]"
+	output_flags["metric"] = "[" + color.Cyan("metric") + "]"
+	output_flags["state"] = "[" + color.Yellow("state") + "]"
+	output_flags["debug"] = "[" + color.Magenta("debug") + "]"
 	output_flags["request"] = ""
 	output_flags["request_error"] = ""
 	output_flags["runtime_info"] = ""
@@ -92,6 +94,6 @@ func getFormatedMsgNoTime(event *datatypes.Event) string {
 		sep = ""
 	}
 	msg := event.Message
-	out := label+sep+msg
+	out := label + sep + msg
 	return out
 }
