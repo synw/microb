@@ -2,9 +2,9 @@ package httpServer
 
 import (
 	"context"
-	//"encoding/json"
+	"encoding/json"
 	//"errors"
-	//"fmt"
+	"fmt"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
 	"net/http"
@@ -15,8 +15,8 @@ import (
 	"github.com/acmacalister/skittles"
 	//"github.com/synw/microb/libmicrob/db"
 	"github.com/synw/microb/libmicrob/events"
-	//globalState "github.com/synw/microb/libmicrob/state"
-	//"github.com/synw/microb/services/httpServer/datatypes"
+	globalState "github.com/synw/microb/libmicrob/state"
+	"github.com/synw/microb/services/httpServer/datatypes"
 	"github.com/synw/microb/services/httpServer/state"
 	"github.com/synw/terr"
 )
@@ -88,7 +88,7 @@ func handle404(response http.ResponseWriter, request *http.Request) {
 }
 
 func ServeApi(response http.ResponseWriter, request *http.Request) {
-	/*url := request.URL.Path
+	url := request.URL.Path
 	if url == "" {
 		url = "/"
 	}
@@ -97,7 +97,7 @@ func ServeApi(response http.ResponseWriter, request *http.Request) {
 		events.Err("error", "httpServer.ServeApi", err)
 	}
 	if doc == nil {
-		if state.Debug == true {
+		if globalState.Debug == true {
 			fmt.Println("http.handlers.ServeApi() error: route " + url + " not found from database")
 		}
 		handle404(response, request)
@@ -105,7 +105,7 @@ func ServeApi(response http.ResponseWriter, request *http.Request) {
 	}
 	json_bytes, _ := json.Marshal(doc)
 	response = headers(response)
-	fmt.Fprintf(response, "%s\n", json_bytes)*/
+	fmt.Fprintf(response, "%s\n", json_bytes)
 }
 
 func headers(response http.ResponseWriter) http.ResponseWriter {
@@ -114,9 +114,8 @@ func headers(response http.ResponseWriter) http.ResponseWriter {
 	return response
 }
 
-/*
 func getDocument(url string) (*datatypes.Document, *terr.Trace) {
-	index_url := url
+	/*index_url := url
 	found := false
 	// remove url mask
 	index_url = strings.Replace(index_url, "/x", "", -1)
@@ -131,10 +130,11 @@ func getDocument(url string) (*datatypes.Document, *terr.Trace) {
 		err := errors.New(msg)
 		tr := terr.Add("httpServer.getDocument", err, tr)
 		return doc, tr
-	}
+	}*/
+	doc := &datatypes.Document{}
 	return doc, nil
 }
-*/
+
 func stopMsg() string {
 	msg := "Http server stopped"
 	return msg

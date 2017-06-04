@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	color "github.com/acmacalister/skittles"
 	"github.com/synw/centcom"
 	"github.com/synw/microb/libmicrob/cmd"
 	"github.com/synw/microb/libmicrob/events"
@@ -50,8 +51,8 @@ func main() {
 	}
 	// listen
 	go func() {
-		m := "Listening for commands at " + state.Cli.Host + ":" + strconv.Itoa(state.Cli.Port) + " on channel " + state.Server.CmdChanIn + " ..."
-		events.Msg("ready", "main", m)
+		m := color.BoldWhite("Ready") + ": listening for commands at " + state.Cli.Host + ":" + strconv.Itoa(state.Cli.Port) + " on channel " + state.Server.CmdChanIn + " ..."
+		events.Msg("state", "main", m)
 		for msg := range state.Cli.Channels {
 			if msg.Channel == state.Server.CmdChanIn {
 				//fmt.Println("PAYLOAD", msg.Payload.(map[string]interface{}))

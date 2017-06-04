@@ -26,7 +26,7 @@ func getConf(name string) (map[string]interface{}, *terr.Trace) {
 	viper.AddConfigPath(".")
 	viper.SetDefault("host", "")
 	viper.SetDefault("domain", "localhost")
-	viper.SetDefault("port", "8080")
+	viper.SetDefault("port", 8080)
 	viper.SetDefault("cors", []string{})
 	viper.SetDefault("staticfiles_host", "")
 	viper.SetDefault("staticfiles_port", 3000)
@@ -48,11 +48,11 @@ func getConf(name string) (map[string]interface{}, *terr.Trace) {
 	conf["domain"] = viper.Get("domain")
 	comchan := "$" + conf["domain"].(string)
 	viper.SetDefault("command_channel", comchan)
-	conf["host"] = viper.Get("http_host").(string)
+	conf["host"] = viper.Get("host").(string)
 	conf["domain"] = viper.Get("domain").(string)
-	conf["port"] = int(viper.Get("http_port").(float64))
+	conf["port"] = viper.Get("port").(int)
 	conf["staticfiles_host"] = viper.Get("staticfiles_host").(string)
-	conf["staticfiles_port"] = int(viper.Get("staticfiles_port").(float64))
+	conf["staticfiles_port"] = viper.Get("staticfiles_port").(int)
 	conf["cors"] = viper.Get("cors").([]string)
 	return conf, nil
 }

@@ -1,7 +1,6 @@
 package state
 
 import (
-	globalState "github.com/synw/microb/libmicrob/state"
 	"github.com/synw/microb/services/httpServer/conf"
 	"github.com/synw/microb/services/httpServer/datatypes"
 	"github.com/synw/terr"
@@ -12,7 +11,7 @@ var HttpServer = &datatypes.HttpServer{}
 var Conf map[string]interface{}
 
 func InitState(dev bool, verbosity int) *terr.Trace {
-	Conf, tr := conf.GetConf(globalState.Dev)
+	Conf, tr := conf.GetConf(dev)
 	if tr != nil {
 		return tr
 	}
@@ -30,6 +29,6 @@ func InitState(dev bool, verbosity int) *terr.Trace {
 	domain := Conf["domain"].(string)
 	instance := &http.Server{}
 	runing := false
-	HttpServer = &datatypes.HttpServer{domain, globalState.Server, host, port, instance, runing, cors}
+	HttpServer = &datatypes.HttpServer{domain, host, port, instance, runing, cors}
 	return nil
 }

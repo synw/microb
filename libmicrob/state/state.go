@@ -1,19 +1,21 @@
 package state
 
 import (
+	"errors"
 	"fmt"
 	"github.com/synw/centcom"
 	"github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/services"
 	httpConf "github.com/synw/microb/services/httpServer/conf"
+	httpState "github.com/synw/microb/services/httpServer/state"
 	"github.com/synw/terr"
 )
 
 var Debug = true
-var Server = &datatypes.Server{}
 var Verbosity int = 1
 var Cli *centcom.Cli
+var Server = &datatypes.Server{}
 var DocDb = &datatypes.Database{}
 var Conf map[string]interface{}
 var Dev bool
@@ -55,13 +57,17 @@ func InitState(dev bool, verbosity int) *terr.Trace {
 		return tr
 	}
 	// services
-	initServices()
+	tr = initServices(dev, verbosity)
+	if tr != nil {
+		tr = terr.Add("InitState", errors.New("Problem initilizing services"))
+		return tr
+	}
 	return nil
 }
 
 // internal methods
 
-func initServices() {
+func initServices(dev bool, verbosity int) *terr.Trace {
 	if Verbosity > 0 {
 		fmt.Println("Initializing services ...")
 	}
@@ -72,7 +78,19 @@ func initServices() {
 		if Verbosity > 1 {
 			fmt.Println("Registering service", name)
 		}
+		// init service state
+		if name == "http" {
+			tr := httpState.InitState(dev, verbosity)
+			if tr != nil {
+				tr = terr.Add("initServices", errors.New("Unable to initialize http service"))
+				return tr
+			}
+			if Verbosity > 0 {
+				terr.Ok("Http service initialized")
+			}
+		}
 	}
+	return nil
 }
 
 func initWsCli() (*centcom.Cli, *terr.Trace) {
