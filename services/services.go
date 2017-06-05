@@ -3,26 +3,12 @@ package services
 import (
 	"errors"
 	"fmt"
-	cmdInfo "github.com/synw/microb/libmicrob/cmd/info"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/state"
-	cmdHttp "github.com/synw/microb/services/httpServer/cmd"
-	httpState "github.com/synw/microb/services/httpServer/state"
 	"github.com/synw/terr"
 	"reflect"
 )
-
-var InfoService = New("info")
-var HttpService = New("http")
-
-var initState = map[string]interface{}{
-	"http": httpState.InitState,
-}
-var initDispatch = map[string]interface{}{
-	"http": cmdHttp.Dispatch,
-	"info": cmdInfo.Dispatch,
-}
 
 func Dispatch(cmd *datatypes.Command, c chan *datatypes.Command) {
 	com := &datatypes.Command{}
