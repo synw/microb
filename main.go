@@ -9,6 +9,7 @@ import (
 	"github.com/synw/microb/libmicrob/cmd"
 	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/state"
+	"github.com/synw/microb/services"
 	"github.com/synw/terr"
 	"strconv"
 )
@@ -25,6 +26,7 @@ func main() {
 	if *dev == true {
 		events.Msg("info", "state.InitState", "Dev mode is on")
 	}
+	// init state
 	tr := state.InitState(*dev, *verbosity)
 	if tr != nil {
 		err := errors.New("Unable to initialize state")
@@ -38,12 +40,11 @@ func main() {
 	if state.Verbosity > 2 {
 		fmt.Println(terr.Ok("Initialized state"))
 	}
-	/* init database
-	tr = db.InitDb(name)
+	// init services
+	tr = services.InitServices(*dev, *verbosity)
 	if tr != nil {
-		tr.Formatc()
-	}*/
-
+		tr.Fatal("Problem initilizing services")
+	}
 	// connect on the commands channel
 	err := state.Cli.Subscribe(state.Server.CmdChanIn)
 	if err != nil {

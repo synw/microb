@@ -6,12 +6,10 @@ import (
 	"errors"
 	"fmt"
 	color "github.com/acmacalister/skittles"
-	cmdInfo "github.com/synw/microb/libmicrob/cmd/info"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/state"
 	"github.com/synw/microb/services"
-	cmdHttp "github.com/synw/microb/services/httpServer/cmd"
 	"github.com/synw/terr"
 	"github.com/ventu-io/go-shortid"
 	"time"
@@ -37,7 +35,7 @@ func Run(payload interface{}) {
 		return
 	}
 	c := make(chan *datatypes.Command)
-	go dispatch(cmd, c)
+	go services.Dispatch(cmd, c)
 	select {
 	case com := <-c:
 		status := com.Status
@@ -108,9 +106,6 @@ func sendCommand(command *datatypes.Command) *terr.Trace {
 		command.Status = "success"
 	}
 	payload, err := json.Marshal(command)
-	/*p, _ := printJson(payload)
-	fmt.Printf("%s", p)*/
-
 	if err != nil {
 		msg := "Unable to marshall json: " + err.Error()
 		err := errors.New(msg)
@@ -146,16 +141,4 @@ func New(name string, service *datatypes.Service, from string, reason string, ar
 		rvs,
 	}
 	return command
-}
-
-func dispatch(cmd *datatypes.Command, c chan *datatypes.Command) {
-	com := &datatypes.Command{}
-	if cmd.Service == "info" {
-		com = cmdInfo.Dispatch(cmd)
-	} else if cmd.Service == "http" {
-		com = cmdHttp.Dispatch(cmd)
-	}
-	_ = events.Cmd(cmd)
-	c <- com
-	return
 }
