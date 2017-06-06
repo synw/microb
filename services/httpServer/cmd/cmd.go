@@ -3,13 +3,15 @@ package cmd
 import (
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/services/httpServer/state/mutate"
+	"github.com/synw/terr"
 )
 
 func Dispatch(cmd *datatypes.Command) *datatypes.Command {
 	com := &datatypes.Command{}
 	// TODO: error handling
 	if cmd.Name == "start" {
-		return Start(cmd)
+		res := Start(cmd)
+		return res
 	} else if cmd.Name == "stop" {
 		return Stop(cmd)
 	}
@@ -21,6 +23,7 @@ func Start(cmd *datatypes.Command) *datatypes.Command {
 	if tr != nil {
 		cmd.Trace = tr
 		cmd.Status = "error"
+		terr.Debug("cmd err", tr)
 		return cmd
 	}
 	var resp []interface{}

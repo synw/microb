@@ -49,7 +49,6 @@ func InitHttpServer(serve bool) {
 	if serve == true {
 		Run()
 	}
-	return
 }
 
 func Run() {

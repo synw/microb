@@ -37,6 +37,7 @@ type Event struct {
 
 type Service struct {
 	Name     string
+	Cmds     []string
 	Requires []*Service
 }
 

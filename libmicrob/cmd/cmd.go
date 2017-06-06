@@ -15,9 +15,9 @@ import (
 	"time"
 )
 
-func IsValid(command *datatypes.Command) bool {
+func isValid(command *datatypes.Command) bool {
 	is_valid := false
-	for _, com := range state.ValidCommands {
+	for _, com := range services.ValidCommands {
 		if com == command.Name {
 			is_valid = true
 			break
@@ -31,7 +31,9 @@ func Run(payload interface{}) {
 	if exec == false {
 		return
 	}
-	if IsValid(cmd) == false {
+	if isValid(cmd) == false {
+		fmt.Println("Invalid command", cmd)
+
 		return
 	}
 	c := make(chan *datatypes.Command)
@@ -62,19 +64,33 @@ func CmdFromPayload(payload interface{}) (*datatypes.Command, bool) {
 	pl := payload.(map[string]interface{})
 	status := pl["Status"].(string)
 	name := pl["Name"].(string)
-	servicestr := pl["Service"].(string)
-	s := services.New(servicestr)
+	serv := pl["Service"].(string)
+	var s *datatypes.Service
+	found := false
+	for i, srv := range services.All {
+		if srv.Name == serv {
+			s = services.All[i]
+			found = true
+			break
+		}
+	}
+	cmd := &datatypes.Command{}
+	if !found {
+		terr.Debug("Service not found", s)
+
+		return cmd, false
+	}
+	cmd.Service = s.Name
 	from := pl["From"].(string)
 	reason := pl["Reason"].(string)
-	cmd := &datatypes.Command{}
 	var args []interface{}
 	if pl["Args"] != nil {
 		args = pl["Args"].([]interface{})
 	}
 	if args != nil {
-		cmd = New(name, s, from, reason, args)
+		cmd = New(name, s.Name, from, reason, args)
 	} else {
-		cmd = New(name, s, from, reason)
+		cmd = New(name, s.Name, from, reason)
 	}
 	if pl["ErrMsg"] != "" {
 		msg := pl["ErrMsg"].(string)
@@ -120,7 +136,7 @@ func sendCommand(command *datatypes.Command) *terr.Trace {
 	return nil
 }
 
-func New(name string, service *datatypes.Service, from string, reason string, args ...interface{}) *datatypes.Command {
+func New(name string, service string, from string, reason string, args ...interface{}) *datatypes.Command {
 	id, _ := shortid.Generate()
 	date := time.Now()
 	status := "pending"
@@ -129,7 +145,7 @@ func New(name string, service *datatypes.Service, from string, reason string, ar
 	var err_msg string
 	command := &datatypes.Command{
 		id,
-		service.Name,
+		service,
 		name,
 		from,
 		reason,

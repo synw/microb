@@ -35,7 +35,6 @@ func main() {
 		return
 	}
 	events.Msg("state", "state.InitState", "Commands transport layer operational")
-	events.Msg("state", "state.InitServices", "Services are ready")
 	defer centcom.Disconnect(state.Cli)
 	if state.Verbosity > 2 {
 		fmt.Println(terr.Ok("Initialized state"))
@@ -45,6 +44,7 @@ func main() {
 	if tr != nil {
 		tr.Fatal("Problem initilizing services")
 	}
+	events.Msg("state", "state.InitServices", "Services are ready")
 	// connect on the commands channel
 	err := state.Cli.Subscribe(state.Server.CmdChanIn)
 	if err != nil {

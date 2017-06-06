@@ -13,7 +13,7 @@ func StartHttpServer() *terr.Trace {
 		tr := terr.New("state.mutate.StartHttpServer", err)
 		return tr
 	}
-	httpServer.InitHttpServer(true)
+	go httpServer.InitHttpServer(true)
 	return nil
 }
 
