@@ -1,65 +1,42 @@
-Microb
-======
+# Microb
 
-An API server that is:
+Toolbox to manage observable services
 
-- **Observable**: the server can stream runtime info, and send introspections results
-
-- **Mutable**: ability to change the server's state at runtime. A [terminal client](https://github.com/synw/microb-cli)
-is available
-
-- **Decoupled**: the databases, the static files server, the websockets server and the api server 
-can be located anywhere. 
-
-Dependencies
-------------
+#### Dependencies
 
 - Websockets server: [Centrifugo](https://github.com/centrifugal/centrifugo)
 
-Supported databases
--------------------
+#### Terminal client
 
-- Rethinkdb
-- Postgresql [WIP]
-- Sqlite [WIP]
+A [terminal client](https://github.com/synw/microb-cli) is used to control Microb instances
 
+## Install
 
-Terminal client
----------------
+   ```bash
+   go get github.com/synw/microb
+   go get github.com/synw/microb-cli
+   ```
+   
+[Install Centrifugo](https://fzambia.gitbooks.io/centrifugal/content/server/start.html)
 
-A [terminal client](https://github.com/synw/microb-cli) is available to control Microb servers
+## Usage
 
-User interface
---------------
+To write a new service use this folder structure under `services/yourservice`:
 
-A [user interface](https://github.com/synw/microb-ui) using the Caddy static file server is available
+- `datatypes`: the types used in the service
+- `commands`: all the commands used to mutate or observe the service
+- `conf`: the service's configuration
+- `state`: manage the service's state
 
-Data flow
----------
+Check the http service example at `services/httpServer`
 
-![Microb data flow](https://github.com/synw/microb/raw/master/docs/img/microb.png)
+Then register your service in `services/manifest.go` and compile. Write the cli commands and compile the client.
 
-Note: all components are independant and can be located on any machine: 
-database, api server, static server, websockets server and terminal client
+#### External libraries
 
-External libraries used
------------------------
-
-- [Chi](https://github.com/pressly/chi): http router
 - [Viper](https://github.com/spf13/viper): configuration management
-- [Gorm](https://github.com/jinzhu/gorm): orm for relational databases
-- [Gorethink](https://github.com/GoRethink/gorethink): Rethinkdb drivers
-- [Go-short-id](https://github.com/ventu-io/go-shortid): unique ids generation
-- [Skittles](https://godoc.org/github.com/acmacalister/skittles): terminal colors
 - [Centrifuge-go](https://github.com/centrifugal/centrifuge-go): Centrifugo server side drivers
 - [Gocent](https://github.com/centrifugal/gocent): Centrifugo client side drivers
-
-Todo
-----
-
-- [ ] Postgresql support
-- [ ] Sqlite support
-- [ ] Commands log
-- [ ] Events log
-- [ ] Graphql API
-- [ ] Metrics an introspection capabilities
+- [Go-short-id](https://github.com/ventu-io/go-shortid): unique ids generation
+- [Skittles](https://godoc.org/github.com/acmacalister/skittles): terminal colors
+- [Chi](https://github.com/pressly/chi): http router
