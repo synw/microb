@@ -12,7 +12,6 @@ var Debug = true
 var Verbosity int = 1
 var Cli *centcom.Cli
 var Server = &datatypes.Server{}
-var DocDb = &datatypes.Database{}
 var Conf map[string]interface{}
 var Dev bool
 var Services = make(map[string]*datatypes.Service)
