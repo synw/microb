@@ -5,19 +5,6 @@ import (
 	"time"
 )
 
-type Document struct {
-	Id     string
-	Pk     int
-	Slug   string
-	Url    string
-	Domain string
-	Model  string
-	Date   time.Time
-	Editor string
-	Status string
-	Fields map[string]interface{}
-}
-
 type Server struct {
 	Name       string
 	WsHost     string
@@ -53,16 +40,4 @@ type Command struct {
 	Trace        *terr.Trace
 	ErrMsg       string
 	ReturnValues []interface{}
-}
-
-type Database struct {
-	Type     string
-	Name     string
-	Addr     string
-	User     string
-	Password string
-	Roles    []string
-	Dbs      map[string]string
-	Tables   map[string]string
-	Running  bool
 }
