@@ -8,14 +8,6 @@ import (
 	"github.com/synw/terr"
 )
 
-/*
-func Error(trace *terr.Trace) {
-	event := Err("error", "runtime", trace)
-	handle(event)
-}*/
-
-// constructor
-
 func Msg(class string, from string, msg string) *datatypes.Event {
 	var data map[string]interface{}
 	event := &datatypes.Event{class, from, msg, data, nil}
@@ -50,13 +42,6 @@ func Cmd(cmd *datatypes.Command) *datatypes.Event {
 	return event
 }
 
-/*
-func Info(msg string) {
-	var data map[string]interface{}
-	event := &datatypes.Event{"info", "", msg, data, nil}
-	handle(event)
-}*/
-
 // internal methods
 
 func handle(event *datatypes.Event) {
@@ -67,6 +52,18 @@ func handle(event *datatypes.Event) {
 
 func getMsg(event *datatypes.Event) string {
 	out := getFormatedMsgNoTime(event)
+	return out
+}
+
+func getFormatedMsgNoTime(event *datatypes.Event) string {
+	output_flags := getEventOutputFlags()
+	label := output_flags[event.Class]
+	sep := " "
+	if label == "" {
+		sep = ""
+	}
+	msg := event.Message
+	out := label + sep + msg
 	return out
 }
 
@@ -84,16 +81,4 @@ func getEventOutputFlags() map[string]string {
 	output_flags["request_error"] = ""
 	output_flags["runtime_info"] = ""
 	return output_flags
-}
-
-func getFormatedMsgNoTime(event *datatypes.Event) string {
-	output_flags := getEventOutputFlags()
-	label := output_flags[event.Class]
-	sep := " "
-	if label == "" {
-		sep = ""
-	}
-	msg := event.Message
-	out := label + sep + msg
-	return out
 }

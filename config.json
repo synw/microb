@@ -1,28 +1,12 @@
 {
-	"domain": "localhost",
-	"http_host":"",
-	"http_port":8080,
 	"centrifugo_host":"localhost",
 	"centrifugo_port":8001,
 	"centrifugo_key":"secret_key",
-	"databases":{
-				"default": {
-					"type":"rethinkdb",
-					"addr":"localhost:28015",
-					"user":"admin",
-					"password":"pwd",
-					"roles": ["documents", "metrics", "commands"],
-					"dbs": {"documents": "mydb"},
-					"tables": {"documents": "docs"}
-				},
-				"local_pg": {
-					"type":"postgresql",
-					"addr":"localhost",
-					"user":"admin",
-					"password":"pwd",
-					"roles":[]
-				}
-		},
 	"verbosity": 3,
-	"cors": ["http://localhost", "http://127.0.0.1"]
+	"name": "localhost",
+	"services": ["http"],
+	"http_domain": "localhost",
+	"http_host":"",
+	"http_port":8080,
+	"http_cors": ["*"]
 }

@@ -15,7 +15,7 @@ func InitState(dev bool, verbosity int) *terr.Trace {
 	if tr != nil {
 		return tr
 	}
-	crs := Conf["cors"].([]string)
+	crs := Conf["http_cors"].([]string)
 	var cors string
 	max := len(crs) + 1
 	for i, c := range crs {
@@ -24,9 +24,9 @@ func InitState(dev bool, verbosity int) *terr.Trace {
 			cors = cors + ","
 		}
 	}
-	host := Conf["host"].(string)
-	port := Conf["port"].(int)
-	domain := Conf["domain"].(string)
+	host := Conf["http_host"].(string)
+	port := Conf["http_port"].(int)
+	domain := Conf["http_domain"].(string)
 	instance := &http.Server{}
 	runing := false
 	HttpServer = &datatypes.HttpServer{domain, host, port, instance, runing, cors}

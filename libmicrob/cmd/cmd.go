@@ -33,7 +33,6 @@ func Run(payload interface{}) {
 	}
 	if isValid(cmd) == false {
 		fmt.Println("Invalid command", cmd)
-
 		return
 	}
 	c := make(chan *datatypes.Command)
@@ -76,8 +75,10 @@ func CmdFromPayload(payload interface{}) (*datatypes.Command, bool) {
 	}
 	cmd := &datatypes.Command{}
 	if !found {
-		terr.Debug("Service not found", s)
-
+		err := errors.New("Service " + serv + "not found")
+		tr := terr.New("cmd.CmdFromPayload", err)
+		cmd.Status = "error"
+		cmd.Trace = tr
 		return cmd, false
 	}
 	cmd.Service = s.Name

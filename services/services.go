@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	color "github.com/acmacalister/skittles"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/state"
@@ -14,11 +15,20 @@ var ValidCommands []string
 
 func Dispatch(cmd *datatypes.Command, c chan *datatypes.Command) {
 	com := &datatypes.Command{}
+	found := false
 	for n, _ := range initDispatch {
 		if cmd.Service == n {
 			cm, _ := Call(initDispatch, n, cmd)
 			com = cm[0].Interface().(*datatypes.Command)
+			found = true
+			break
 		}
+	}
+	if !found {
+		com.Status = "error"
+		err := errors.New("Can not find service " + cmd.Service)
+		tr := terr.New("services.Dispatch", err)
+		com.Trace = tr
 	}
 	_ = events.Cmd(cmd)
 	c <- com
@@ -50,8 +60,10 @@ func InitServices(dev bool, verbosity int) *terr.Trace {
 			}
 		}
 		if state.Verbosity > 0 {
-			msg := name + " service initialized"
-			events.Msg("info", "services.Init", msg)
+			if name != "info" {
+				msg := color.BoldWhite(name) + " service initialized"
+				events.Msg("info", "services.Init", msg)
+			}
 		}
 	}
 	return nil
