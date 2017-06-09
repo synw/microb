@@ -32,6 +32,8 @@ func main() {
 		events.Err("microb", "main", tr.Formatc(), tr.ToErr())
 		return
 	}
+	// init logger
+	log.Init()
 	if *dev == true {
 		events.State("main", "state.InitState", "Dev mode is on", nil)
 	}
@@ -40,8 +42,6 @@ func main() {
 	if state.Verbosity > 2 {
 		fmt.Println(terr.Ok("Initialized state"))
 	}
-	// init logger
-	log.Init()
 	// init services
 	tr = services.InitServices(*dev, *verbosity)
 	if tr != nil {

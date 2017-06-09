@@ -4,29 +4,26 @@ import (
 	"github.com/Sirupsen/logrus"
 	centhook "github.com/synw/logrus-centrifugo"
 	"github.com/synw/microb/libmicrob/state"
-	//"os"
-	//"io"
+	"io/ioutil"
 	"time"
 )
 
 var logChans = map[string]string{
-	"debug": "mysite_public",
-	"info":  "mysite_public",
-	"warn":  "mysite_public",
-	"error": "mysite_public",
-	"fatal": "mysite_public",
-	"panic": "mysite_public",
+	"debug": "$logchan",
+	"info":  "$logchan",
+	"warn":  "$logchan",
+	"error": "$logchan",
+	"fatal": "$logchan",
+	"panic": "$logchan",
 }
 
 var logger = logrus.New()
 
 func Init() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
-	var buf []byte
-	var w = io.Writer(&buf)
-	logrus.SetOutput(w)
 	hook := centhook.New(state.Cli, logChans)
 	logger.Hooks.Add(hook)
+	logger.Out = ioutil.Discard
 }
 
 func New(service string, instance string, level string, msg string) {
