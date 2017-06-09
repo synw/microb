@@ -48,7 +48,7 @@ func InitHttpServer(serve bool) {
 }
 
 func Run() {
-	events.Msg("state", "httpServer.run", startMsg())
+	events.New("state", "http", "httpServer.Run", startMsg(), nil)
 	state.HttpServer.Running = true
 	state.HttpServer.Instance.ListenAndServe()
 }
@@ -61,10 +61,11 @@ func Stop() *terr.Trace {
 	err := srv.Shutdown(ctx)
 	if err != nil {
 		tr := terr.New("httpServer.Stop", err)
+		events.New("error", "http", "httpServer.Stop", stopMsg(), nil)
 		return tr
 	}
 	state.HttpServer.Running = false
-	events.Msg("state", "httpServer.Stop", stopMsg())
+	events.New("state", "http", "httpServer.Stop", stopMsg(), nil)
 	return nil
 }
 
@@ -77,9 +78,10 @@ func ServeApi(response http.ResponseWriter, request *http.Request) {
 	if url == "" {
 		url = "/"
 	}
-	doc, err := getDocument(url)
-	if err != nil {
-		events.Err("error", "httpServer.ServeApi", err)
+	doc, tr := getDocument(url)
+	if tr != nil {
+		msg := "Unable to get document from database"
+		events.Err("http", "httpServer.ServeApi", msg, tr.ToErr())
 	}
 	if doc == nil {
 		if globalState.Debug == true {

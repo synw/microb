@@ -24,17 +24,17 @@ func main() {
 	}
 	flag.Parse()
 	if *dev == true {
-		events.Msg("info", "state.InitState", "Dev mode is on")
+		events.State("main", "state.InitState", "Dev mode is on", nil)
 	}
 	// init state
 	tr := state.InitState(*dev, *verbosity)
 	if tr != nil {
 		err := errors.New("Unable to initialize state")
 		tr = terr.Add("main", err, tr)
-		events.Err("error", "main", tr)
+		events.Err("microb", "main", tr.Formatc(), tr.ToErr())
 		return
 	}
-	events.Msg("state", "state.InitState", "Commands transport layer operational")
+	events.State("main", "state.InitState", "Commands transport layer operational", nil)
 	defer centcom.Disconnect(state.Cli)
 	if state.Verbosity > 2 {
 		fmt.Println(terr.Ok("Initialized state"))
@@ -44,7 +44,7 @@ func main() {
 	if tr != nil {
 		tr.Fatal("Problem initilizing services")
 	}
-	events.Msg("state", "state.InitServices", "Services are ready")
+	events.Ready("microb", "main", "Services are ready", nil)
 	// connect on the commands channel
 	err := state.Cli.Subscribe(state.Server.CmdChanIn)
 	if err != nil {
@@ -52,8 +52,8 @@ func main() {
 	}
 	// listen
 	go func() {
-		m := color.BoldWhite("Ready") + ": listening for commands at " + state.Cli.Host + ":" + strconv.Itoa(state.Cli.Port) + " on channel " + state.Server.CmdChanIn + " ..."
-		events.Msg("state", "main", m)
+		msg := color.BoldWhite("Ready") + ": listening for commands at " + state.Cli.Host + ":" + strconv.Itoa(state.Cli.Port) + " on channel " + state.Server.CmdChanIn + " ..."
+		events.State("microb", "main", msg, nil)
 		for msg := range state.Cli.Channels {
 			if msg.Channel == state.Server.CmdChanIn {
 				//fmt.Println("PAYLOAD", msg.Payload.(map[string]interface{}))

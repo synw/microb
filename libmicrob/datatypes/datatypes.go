@@ -17,9 +17,11 @@ type Server struct {
 type Event struct {
 	Class   string
 	From    string
-	Message string
+	Service string
+	Date    time.Time
+	Msg     string
+	Err     error
 	Data    map[string]interface{}
-	Trace   *terr.Trace
 }
 
 type Service struct {

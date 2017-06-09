@@ -1,45 +1,64 @@
 package events
 
 import (
+	"errors"
 	"fmt"
 	color "github.com/acmacalister/skittles"
 	"github.com/synw/microb/libmicrob/datatypes"
+	"time"
+	//"github.com/synw/microb/libmicrob/log"
 	"github.com/synw/microb/libmicrob/state"
-	"github.com/synw/terr"
 )
 
-func Msg(class string, from string, msg string) *datatypes.Event {
-	var data map[string]interface{}
-	event := &datatypes.Event{class, from, msg, data, nil}
-	handle(event)
-	return event
-}
-
-func Err(class string, from string, tr ...*terr.Trace) *datatypes.Event {
-	var data map[string]interface{}
-	var trace *terr.Trace
-	var msg string
-	if class == "error" {
-		if len(tr) > 0 {
-			trace = tr[0]
-			msg = trace.Formatc()
-		}
+func New(class string, service string, from string, msg string, err error, data ...map[string]interface{}) *datatypes.Event {
+	dataset := make(map[string]interface{})
+	if len(data) > 0 {
+		dataset = data[0]
 	}
-	event := &datatypes.Event{class, from, msg, data, trace}
+	now := time.Now()
+	event := &datatypes.Event{class, from, service, now, msg, err, dataset}
 	handle(event)
 	return event
 }
 
-func Cmd(cmd *datatypes.Command) *datatypes.Event {
+func Err(service string, from string, msg string, err error, data ...map[string]interface{}) {
+	dataset := make(map[string]interface{})
+	if len(data) > 0 {
+		dataset = data[0]
+	}
+	_ = New("error", service, from, msg, err, dataset)
+}
+
+func State(service string, from string, msg string, err error, data ...map[string]interface{}) {
+	dataset := make(map[string]interface{})
+	if len(data) > 0 {
+		dataset = data[0]
+	}
+	_ = New("state", service, from, msg, err, dataset)
+}
+
+func Ready(service string, from string, msg string, err error, data ...map[string]interface{}) {
+	dataset := make(map[string]interface{})
+	if len(data) > 0 {
+		dataset = data[0]
+	}
+	_ = New("ready", service, from, msg, err, dataset)
+}
+
+func Cmd(cmd *datatypes.Command) {
 	msg := color.BoldWhite(cmd.Name) + " received " + fmt.Sprintf("%s", cmd.Date)
 	if cmd.Reason != "" {
 		msg = msg + " ( " + cmd.Reason + " )"
 	}
-	args := make(map[string]interface{})
-	args["args"] = cmd.Args
-	event := &datatypes.Event{"command", cmd.From, msg, args, nil}
-	handle(event)
-	return event
+	data := map[string]interface{}{
+		"args":         cmd.Args,
+		"returnValues": cmd.ReturnValues,
+	}
+	var err error
+	if cmd.ErrMsg != "" {
+		err = errors.New(cmd.ErrMsg)
+	}
+	_ = New("command", cmd.Service, cmd.From, msg, err, data)
 }
 
 // internal methods
@@ -62,7 +81,7 @@ func getFormatedMsgNoTime(event *datatypes.Event) string {
 	if label == "" {
 		sep = ""
 	}
-	msg := event.Message
+	msg := event.Msg
 	out := label + sep + msg
 	return out
 }
@@ -77,8 +96,5 @@ func getEventOutputFlags() map[string]string {
 	output_flags["metric"] = "[" + color.Cyan("metric") + "]"
 	output_flags["state"] = "[" + color.Yellow("state") + "]"
 	output_flags["debug"] = "[" + color.Magenta("debug") + "]"
-	output_flags["request"] = ""
-	output_flags["request_error"] = ""
-	output_flags["runtime_info"] = ""
 	return output_flags
 }

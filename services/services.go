@@ -30,7 +30,6 @@ func Dispatch(cmd *datatypes.Command, c chan *datatypes.Command) {
 		tr := terr.New("services.Dispatch", err)
 		com.Trace = tr
 	}
-	_ = events.Cmd(cmd)
 	c <- com
 	return
 }
@@ -59,12 +58,8 @@ func InitServices(dev bool, verbosity int) *terr.Trace {
 				}
 			}
 		}
-		if state.Verbosity > 0 {
-			if name != "info" {
-				msg := color.BoldWhite(name) + " service initialized"
-				events.Msg("info", "services.Init", msg)
-			}
-		}
+		msg := color.BoldWhite(name) + " service initialized"
+		events.State(name, "services.Init", msg, nil)
 	}
 	return nil
 }

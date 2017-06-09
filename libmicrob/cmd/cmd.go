@@ -28,6 +28,7 @@ func isValid(command *datatypes.Command) bool {
 
 func Run(payload interface{}) {
 	cmd, exec := CmdFromPayload(payload)
+	events.Cmd(cmd)
 	if exec == false {
 		return
 	}
@@ -53,7 +54,8 @@ func Run(payload interface{}) {
 		}
 		tr := sendCommand(com)
 		if tr != nil {
-			events.Err("error", cmd.Name, tr)
+			msg := "Error executing the " + cmd.Name + " command"
+			events.Err(cmd.Service, cmd.From, msg, tr.ToErr())
 		}
 		close(c)
 	}
