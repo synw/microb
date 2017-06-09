@@ -23,9 +23,6 @@ func main() {
 		fmt.Println("Starting Microb service ...")
 	}
 	flag.Parse()
-	if *dev == true {
-		events.State("main", "state.InitState", "Dev mode is on", nil)
-	}
 	// init state
 	tr := state.InitState(*dev, *verbosity)
 	if tr != nil {
@@ -33,6 +30,9 @@ func main() {
 		tr = terr.Add("main", err, tr)
 		events.Err("microb", "main", tr.Formatc(), tr.ToErr())
 		return
+	}
+	if *dev == true {
+		events.State("main", "state.InitState", "Dev mode is on", nil)
 	}
 	events.State("main", "state.InitState", "Commands transport layer operational", nil)
 	defer centcom.Disconnect(state.Cli)

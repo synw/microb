@@ -5,9 +5,9 @@ import (
 	"fmt"
 	color "github.com/acmacalister/skittles"
 	"github.com/synw/microb/libmicrob/datatypes"
-	"time"
-	//"github.com/synw/microb/libmicrob/log"
+	"github.com/synw/microb/libmicrob/log"
 	"github.com/synw/microb/libmicrob/state"
+	"time"
 )
 
 func New(class string, service string, from string, msg string, err error, data ...map[string]interface{}) *datatypes.Event {
@@ -67,6 +67,7 @@ func handle(event *datatypes.Event) {
 	if state.Verbosity > 0 {
 		fmt.Println(getMsg(event))
 	}
+	log.New(event.Service, state.Conf["name"].(string), event.Class, event.Msg)
 }
 
 func getMsg(event *datatypes.Event) string {
