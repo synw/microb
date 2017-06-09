@@ -2,10 +2,10 @@ package state
 
 import (
 	"fmt"
+	"github.com/Sirupsen/logrus"
 	"github.com/synw/centcom"
 	"github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/datatypes"
-	"github.com/synw/microb/libmicrob/log"
 	"github.com/synw/terr"
 )
 
@@ -16,6 +16,7 @@ var Server = &datatypes.Server{}
 var Conf map[string]interface{}
 var Dev bool
 var Services = make(map[string]*datatypes.Service)
+var Logger *logrus.Logger
 
 func InitState(dev bool, verbosity int) *terr.Trace {
 	Verbosity = verbosity
@@ -42,8 +43,6 @@ func InitState(dev bool, verbosity int) *terr.Trace {
 	if tr != nil {
 		return tr
 	}
-	// logger
-	log.InitLogger()
 	return nil
 }
 

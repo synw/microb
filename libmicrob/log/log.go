@@ -1,20 +1,37 @@
 package log
 
 import (
-	log "github.com/Sirupsen/logrus"
-	"os"
+	"github.com/Sirupsen/logrus"
+	centhook "github.com/synw/logrus-centrifugo"
+	"github.com/synw/microb/libmicrob/state"
+	//"os"
+	//"io"
 	"time"
 )
 
-func InitLogger() {
-	log.SetFormatter(&log.JSONFormatter{})
-	log.SetOutput(os.Stdout)
-	//log.SetLevel(log.DebugLevel)
+var logChans = map[string]string{
+	"debug": "mysite_public",
+	"info":  "mysite_public",
+	"warn":  "mysite_public",
+	"error": "mysite_public",
+	"fatal": "mysite_public",
+	"panic": "mysite_public",
+}
+
+var logger = logrus.New()
+
+func Init() {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	var buf []byte
+	var w = io.Writer(&buf)
+	logrus.SetOutput(w)
+	hook := centhook.New(state.Cli, logChans)
+	logger.Hooks.Add(hook)
 }
 
 func New(service string, instance string, level string, msg string) {
 	now := time.Now().UnixNano() / int64(time.Millisecond)
-	logobj := log.WithFields(log.Fields{
+	logobj := logger.WithFields(logrus.Fields{
 		"service":  service,
 		"instance": instance,
 		"level":    level,

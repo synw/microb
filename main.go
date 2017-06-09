@@ -8,6 +8,7 @@ import (
 	"github.com/synw/centcom"
 	"github.com/synw/microb/libmicrob/cmd"
 	"github.com/synw/microb/libmicrob/events"
+	"github.com/synw/microb/libmicrob/log"
 	"github.com/synw/microb/libmicrob/state"
 	"github.com/synw/microb/services"
 	"github.com/synw/terr"
@@ -39,6 +40,8 @@ func main() {
 	if state.Verbosity > 2 {
 		fmt.Println(terr.Ok("Initialized state"))
 	}
+	// init logger
+	log.Init()
 	// init services
 	tr = services.InitServices(*dev, *verbosity)
 	if tr != nil {
