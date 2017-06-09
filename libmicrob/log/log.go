@@ -2,7 +2,6 @@ package log
 
 import (
 	"github.com/Sirupsen/logrus"
-	centhook "github.com/synw/logrus-centrifugo"
 	"github.com/synw/microb/libmicrob/state"
 	"io/ioutil"
 	"time"
@@ -21,7 +20,7 @@ var logger = logrus.New()
 
 func Init() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
-	hook := centhook.New(state.Cli, logChans)
+	hook := NewHook(state.Cli, logChans)
 	logger.Hooks.Add(hook)
 	logger.Out = ioutil.Discard
 }
