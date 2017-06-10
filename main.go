@@ -45,7 +45,7 @@ func main() {
 	// init services
 	tr = services.InitServices(*dev, *verbosity)
 	if tr != nil {
-		tr.Fatal("Problem initilizing services")
+
 	}
 	events.Ready("microb", "main", "Services are ready", nil)
 	// connect on the commands channel

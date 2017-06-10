@@ -54,6 +54,8 @@ func InitServices(dev bool, verbosity int) *terr.Trace {
 				_, tr := Call(initState, n, dev, verbosity)
 				if tr != nil {
 					tr = terr.Add("initServices", errors.New("Unable to initialize "+name+" service"))
+					msg := tr.Formatc()
+					events.Err(name, "services.InitServices", msg, tr.ToErr())
 					return tr
 				}
 			}
@@ -88,6 +90,11 @@ func Call(m map[string]interface{}, name string, params ...interface{}) (result 
 		in[k] = reflect.ValueOf(param)
 	}
 	result = f.Call(in)
+	err := result[0].Interface().(*terr.Trace)
+	if err != nil {
+		tr := terr.Add("services.Call", err)
+		return in, tr
+	}
 	return in, nil
 }
 
