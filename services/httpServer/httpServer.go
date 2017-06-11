@@ -3,12 +3,12 @@ package httpServer
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/acmacalister/skittles"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
 	"github.com/synw/microb/libmicrob/events"
-	globalState "github.com/synw/microb/libmicrob/state"
 	"github.com/synw/microb/services/httpServer/datatypes"
 	"github.com/synw/microb/services/httpServer/state"
 	"github.com/synw/terr"
@@ -84,9 +84,9 @@ func ServeApi(response http.ResponseWriter, request *http.Request) {
 		events.Err("http", "httpServer.ServeApi", msg, tr.ToErr())
 	}
 	if doc == nil {
-		if globalState.Debug == true {
-			fmt.Println("http.handlers.ServeApi() error: route " + url + " not found from database")
-		}
+		msg := "http.handlers.ServeApi() error: route " + url + " not found from database"
+		err := errors.New(msg)
+		events.Err("http", "httpServer.ServeApi", msg, err)
 		handle404(response, request)
 		return
 	}

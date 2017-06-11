@@ -33,7 +33,7 @@ func main() {
 		return
 	}
 	// init logger
-	log.Init()
+	log.Init(state.Cli)
 	if *dev == true {
 		events.State("main", "state.InitState", "Dev mode is on", nil)
 	}
@@ -43,7 +43,8 @@ func main() {
 		fmt.Println(terr.Ok("Initialized state"))
 	}
 	// init services
-	trs := services.InitServices(*dev, *verbosity, conf.Services)
+	services, trs := services.InitServices(*dev, *verbosity, conf.Services)
+	state.Services = services
 	if trs != nil {
 		for _, tr = range trs {
 			tr.Printf("unable to inialize service")
@@ -62,7 +63,7 @@ func main() {
 		for msg := range state.Cli.Channels {
 			if msg.Channel == state.Server.CmdChanIn {
 				//fmt.Println("PAYLOAD", msg.Payload.(map[string]interface{}))
-				cmd.Run(msg.Payload)
+				cmd.Run(msg.Payload, state.Cli, state.Server)
 			}
 		}
 	}()

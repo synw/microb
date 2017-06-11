@@ -5,10 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	color "github.com/acmacalister/skittles"
+	"github.com/synw/centcom"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/events"
-	"github.com/synw/microb/libmicrob/state"
 	"github.com/synw/microb/services"
 	"github.com/synw/terr"
 	"github.com/ventu-io/go-shortid"
@@ -26,7 +25,7 @@ func isValid(command *datatypes.Command) bool {
 	return is_valid
 }
 
-func Run(payload interface{}) {
+func Run(payload interface{}, cli *centcom.Cli, server *datatypes.Server) {
 	cmd, exec := CmdFromPayload(payload)
 	events.Cmd(cmd)
 	if exec == false {
@@ -40,19 +39,8 @@ func Run(payload interface{}) {
 	go services.Dispatch(cmd, c)
 	select {
 	case com := <-c:
-		status := com.Status
-		if status == "error" {
-			status = color.BoldRed("error")
-			if state.Verbosity > 0 {
-				fmt.Println(" ->", status, com.Trace.Format())
-			}
-		} else if status == "success" {
-			status = color.Green("success")
-			if state.Verbosity > 0 {
-				fmt.Println(" ->", status, com.ReturnValues)
-			}
-		}
-		tr := sendCommand(com)
+		events.CmdExec(cmd)
+		tr := sendCommand(com, cli, server)
 		if tr != nil {
 			msg := "Error executing the " + cmd.Name + " command"
 			events.Err(cmd.Service, cmd.From, msg, tr.ToErr())
@@ -117,7 +105,7 @@ func printJson(b []byte) ([]byte, error) {
 	return out.Bytes(), err
 }
 
-func sendCommand(command *datatypes.Command) *terr.Trace {
+func sendCommand(command *datatypes.Command, cli *centcom.Cli, server *datatypes.Server) *terr.Trace {
 	if command.Trace != nil {
 		command.ErrMsg = command.Trace.Formatc()
 		command.Status = "error"
@@ -131,7 +119,7 @@ func sendCommand(command *datatypes.Command) *terr.Trace {
 		trace := terr.New("commands.SendCommand", err)
 		return trace
 	}
-	_, err = state.Cli.Http.Publish(state.Server.CmdChanOut, payload)
+	_, err = cli.Http.Publish(server.CmdChanOut, payload)
 	if err != nil {
 		trace := terr.New("commands.SendCommand", err)
 		return trace

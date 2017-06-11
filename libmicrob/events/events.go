@@ -60,12 +60,38 @@ func Cmd(cmd *datatypes.Command) {
 	}
 	_ = New("command", cmd.Service, cmd.From, msg, err, data)
 }
+func CmdExec(cmd *datatypes.Command) {
+	data := map[string]interface{}{
+		"args":         cmd.Args,
+		"returnValues": cmd.ReturnValues,
+	}
+	var err error
+	if cmd.ErrMsg != "" {
+		err = errors.New(cmd.ErrMsg)
+	}
+	status := cmd.Status
+	if status == "error" {
+		status = color.BoldRed("error")
+		if state.Verbosity > 0 {
+			fmt.Println(" ->", status, cmd.Trace.Format())
+		}
+	} else if status == "success" {
+		status = color.Green("success")
+		if state.Verbosity > 0 {
+			fmt.Println(" ->", status, cmd.ReturnValues)
+		}
+	}
+	msg := ""
+	_ = New("commandExec", cmd.Service, cmd.From, msg, err, data)
+}
 
 // internal methods
 
 func handle(event *datatypes.Event) {
 	if state.Verbosity > 0 {
-		fmt.Println(getMsg(event))
+		if event.Msg != "" {
+			fmt.Println(getMsg(event))
+		}
 	}
 	log.New(event.Service, state.Conf.Name, event.Class, event.Msg)
 }

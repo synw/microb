@@ -6,7 +6,6 @@ import (
 	color "github.com/acmacalister/skittles"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/events"
-	"github.com/synw/microb/libmicrob/state"
 	"github.com/synw/terr"
 	"reflect"
 )
@@ -34,16 +33,17 @@ func Dispatch(cmd *datatypes.Command, c chan *datatypes.Command) {
 	return
 }
 
-func InitServices(dev bool, verbosity int, servs []string) []*terr.Trace {
+func InitServices(dev bool, verbosity int, servs []string) (map[string]*datatypes.Service, []*terr.Trace) {
 	var trs []*terr.Trace
-	if state.Verbosity > 0 {
+	services := make(map[string]*datatypes.Service)
+	if verbosity > 0 {
 		fmt.Println("Initializing services ...")
 	}
 	servs = append(servs, "info")
 	// declare services
 	for _, name := range servs {
 		// register service
-		state.Services[name] = All[name]
+		services[name] = All[name]
 		// register service commands
 		ValidCommands = append(ValidCommands, All[name].Cmds...)
 		// init service state
@@ -63,7 +63,7 @@ func InitServices(dev bool, verbosity int, servs []string) []*terr.Trace {
 			}
 		}
 	}
-	return trs
+	return services, trs
 }
 
 func New(name string, cmds []string, deps ...[]*datatypes.Service) *datatypes.Service {
