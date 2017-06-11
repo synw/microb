@@ -13,22 +13,13 @@ func GetComChan(name string) (string, string) {
 	return comchan_in, comchan_out
 }
 
-func GetServer(dev bool) (*datatypes.Server, *terr.Trace) {
-	conf, tr := GetConf(dev)
-	if tr != nil {
-		s := &datatypes.Server{}
-		return s, tr
-	}
-	name := conf["name"].(string)
-	wshost := conf["centrifugo_host"].(string)
-	wsport := conf["centrifugo_port"].(int)
-	wskey := conf["centrifugo_key"].(string)
-	comchan_in, comchan_out := GetComChan(name)
-	s := &datatypes.Server{name, wshost, wsport, wskey, comchan_in, comchan_out}
+func GetServer(conf *datatypes.Conf) (*datatypes.Server, *terr.Trace) {
+	comchan_in, comchan_out := GetComChan(conf.Name)
+	s := &datatypes.Server{conf.Name, conf.WsHost, conf.WsPort, conf.WsKey, comchan_in, comchan_out}
 	return s, nil
 }
 
-func GetConf(dev bool) (map[string]interface{}, *terr.Trace) {
+func GetConf(dev bool) (*datatypes.Conf, *terr.Trace) {
 	name := "normal"
 	if dev {
 		name = "dev"
@@ -36,7 +27,7 @@ func GetConf(dev bool) (map[string]interface{}, *terr.Trace) {
 	return getConf(name)
 }
 
-func getConf(name string) (map[string]interface{}, *terr.Trace) {
+func getConf(name string) (*datatypes.Conf, *terr.Trace) {
 	// set some defaults for conf
 	if name == "dev" {
 		viper.SetConfigName("dev_config")
@@ -52,22 +43,27 @@ func getConf(name string) (map[string]interface{}, *terr.Trace) {
 	// get the actual conf
 	err := viper.ReadInConfig()
 	if err != nil {
-		var conf map[string]interface{}
+		conf := &datatypes.Conf{}
 		switch err.(type) {
 		case viper.ConfigParseError:
-			trace := terr.New("conf.getConf", err)
-			return conf, trace
+			tr := terr.New("conf.getConf", err)
+			return conf, tr
 		default:
 			err := errors.New("Unable to locate config file")
-			trace := terr.New("conf.getConf", err)
-			return conf, trace
+			tr := terr.New("conf.getConf", err)
+			return conf, tr
 		}
 	}
-	conf := make(map[string]interface{})
-	conf["centrifugo_host"] = viper.Get("centrifugo_host").(string)
-	conf["centrifugo_port"] = int(viper.Get("centrifugo_port").(float64))
-	conf["centrifugo_key"] = viper.Get("centrifugo_key").(string)
-	conf["name"] = viper.Get("name").(string)
-	conf["services"] = viper.Get("services").([]interface{})
+	var services []string
+	for _, s := range viper.Get("services").([]interface{}) {
+		services = append(services, s.(string))
+	}
+	conf := &datatypes.Conf{
+		viper.Get("centrifugo_host").(string),
+		int(viper.Get("centrifugo_port").(float64)),
+		viper.Get("centrifugo_key").(string),
+		viper.Get("name").(string),
+		services,
+	}
 	return conf, nil
 }

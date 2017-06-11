@@ -25,7 +25,7 @@ func main() {
 	}
 	flag.Parse()
 	// init state
-	tr := state.InitState(*dev, *verbosity)
+	conf, tr := state.InitState(*dev, *verbosity)
 	if tr != nil {
 		err := errors.New("Unable to initialize state")
 		tr = terr.Add("main", err, tr)
@@ -43,7 +43,7 @@ func main() {
 		fmt.Println(terr.Ok("Initialized state"))
 	}
 	// init services
-	trs := services.InitServices(*dev, *verbosity)
+	trs := services.InitServices(*dev, *verbosity, conf.Services)
 	if trs != nil {
 		for _, tr = range trs {
 			tr.Printf("unable to inialize service")

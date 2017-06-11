@@ -67,7 +67,7 @@ func handle(event *datatypes.Event) {
 	if state.Verbosity > 0 {
 		fmt.Println(getMsg(event))
 	}
-	log.New(event.Service, state.Conf["name"].(string), event.Class, event.Msg)
+	log.New(event.Service, state.Conf.Name, event.Class, event.Msg)
 }
 
 func getMsg(event *datatypes.Event) string {

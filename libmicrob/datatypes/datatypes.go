@@ -5,6 +5,14 @@ import (
 	"time"
 )
 
+type Conf struct {
+	WsHost   string
+	WsPort   int
+	WsKey    string
+	Name     string
+	Services []string
+}
+
 type Server struct {
 	Name       string
 	WsHost     string

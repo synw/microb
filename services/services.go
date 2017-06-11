@@ -34,17 +34,15 @@ func Dispatch(cmd *datatypes.Command, c chan *datatypes.Command) {
 	return
 }
 
-func InitServices(dev bool, verbosity int) []*terr.Trace {
+func InitServices(dev bool, verbosity int, servs []string) []*terr.Trace {
 	var trs []*terr.Trace
 	if state.Verbosity > 0 {
 		fmt.Println("Initializing services ...")
 	}
-	servs := state.Conf["services"].([]interface{})
 	servs = append(servs, "info")
 	// declare services
-	for _, el := range servs {
+	for _, name := range servs {
 		// register service
-		name := el.(string)
 		state.Services[name] = All[name]
 		// register service commands
 		ValidCommands = append(ValidCommands, All[name].Cmds...)

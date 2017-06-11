@@ -13,19 +13,24 @@ var Debug = true
 var Verbosity int = 1
 var Cli *centcom.Cli
 var Server = &datatypes.Server{}
-var Conf map[string]interface{}
+var Conf = &datatypes.Conf{}
 var Dev bool
 var Services = make(map[string]*datatypes.Service)
 var Logger *logrus.Logger
 
-func InitState(dev bool, verbosity int) *terr.Trace {
+func InitState(dev bool, verbosity int) (*datatypes.Conf, *terr.Trace) {
 	Verbosity = verbosity
 	Dev = dev
+	// conf
+	Conf, tr := conf.GetConf(dev)
+	if tr != nil {
+		return Conf, tr
+	}
 	// command channel server
-	server, trace := conf.GetServer(dev)
-	if trace != nil {
-		trace = terr.Pass("stateInit.State", trace)
-		return trace
+	server, tr := conf.GetServer(Conf)
+	if tr != nil {
+		tr = terr.Pass("stateInit.State", tr)
+		return Conf, tr
 	}
 	Server = server
 	// Websockets client
@@ -35,15 +40,10 @@ func InitState(dev bool, verbosity int) *terr.Trace {
 	cli, tr := initWsCli()
 	if tr != nil {
 		tr = terr.Pass("state.InitState", tr)
-		return tr
+		return Conf, tr
 	}
 	Cli = cli
-	// conf
-	Conf, tr = conf.GetConf(dev)
-	if tr != nil {
-		return tr
-	}
-	return nil
+	return Conf, nil
 }
 
 // internal methods
@@ -52,7 +52,7 @@ func initWsCli() (*centcom.Cli, *terr.Trace) {
 	cli := centcom.NewClient(Server.WsHost, Server.WsPort, Server.WsKey)
 	err := centcom.Connect(cli)
 	if err != nil {
-		trace := terr.New("InitCli", err)
+		trace := terr.New("initWsCli", err)
 		var cli *centcom.Cli
 		return cli, trace
 	}
