@@ -58,11 +58,12 @@ func InitServices(dev bool, verbosity int) []*terr.Trace {
 					msg := tr.Formatc()
 					events.Err(name, "services.InitServices", msg, tr.ToErr())
 					trs = append(trs, tr)
+				} else {
+					msg := color.BoldWhite(name) + " service initialized"
+					events.State(name, "services.Init", msg, nil)
 				}
 			}
 		}
-		msg := color.BoldWhite(name) + " service initialized"
-		events.State(name, "services.Init", msg, nil)
 	}
 	return trs
 }
@@ -96,13 +97,7 @@ func Call(m map[string]interface{}, name string, params ...interface{}) (result 
 		t := reflect.TypeOf(el.Interface())
 		if fmt.Sprintf("%s", t) == "*terr.Trace" {
 			if el.Elem().IsValid() == true {
-				v := el.Elem().FieldByName("Error")
-				fmt.Println(t, v)
-
-				p := fmt.Sprintf("%s", t)
-				fmt.Println(p)
-
-				err := errors.New("Unable to initilize service " + name)
+				err := errors.New("Unable to initilaize service " + name)
 				tr := terr.Add("services.Call", err)
 				return in, tr
 			}
