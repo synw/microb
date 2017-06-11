@@ -34,7 +34,8 @@ func Dispatch(cmd *datatypes.Command, c chan *datatypes.Command) {
 	return
 }
 
-func InitServices(dev bool, verbosity int) *terr.Trace {
+func InitServices(dev bool, verbosity int) []*terr.Trace {
+	var trs []*terr.Trace
 	if state.Verbosity > 0 {
 		fmt.Println("Initializing services ...")
 	}
@@ -56,14 +57,14 @@ func InitServices(dev bool, verbosity int) *terr.Trace {
 					tr = terr.Add("initServices", errors.New("Unable to initialize "+name+" service"))
 					msg := tr.Formatc()
 					events.Err(name, "services.InitServices", msg, tr.ToErr())
-					return tr
+					trs = append(trs, tr)
 				}
 			}
 		}
 		msg := color.BoldWhite(name) + " service initialized"
 		events.State(name, "services.Init", msg, nil)
 	}
-	return nil
+	return trs
 }
 
 func New(name string, cmds []string, deps ...[]*datatypes.Service) *datatypes.Service {
@@ -90,10 +91,22 @@ func Call(m map[string]interface{}, name string, params ...interface{}) (result 
 		in[k] = reflect.ValueOf(param)
 	}
 	result = f.Call(in)
-	err := result[0].Interface().(*terr.Trace)
-	if err != nil {
-		tr := terr.Add("services.Call", err)
-		return in, tr
+
+	for _, el := range result {
+		t := reflect.TypeOf(el.Interface())
+		if fmt.Sprintf("%s", t) == "*terr.Trace" {
+			if el.Elem().IsValid() == true {
+				v := el.Elem().FieldByName("Error")
+				fmt.Println(t, v)
+
+				p := fmt.Sprintf("%s", t)
+				fmt.Println(p)
+
+				err := errors.New("Unable to initilize service " + name)
+				tr := terr.Add("services.Call", err)
+				return in, tr
+			}
+		}
 	}
 	return in, nil
 }

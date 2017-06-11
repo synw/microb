@@ -43,9 +43,11 @@ func main() {
 		fmt.Println(terr.Ok("Initialized state"))
 	}
 	// init services
-	tr = services.InitServices(*dev, *verbosity)
-	if tr != nil {
-
+	trs := services.InitServices(*dev, *verbosity)
+	if trs != nil {
+		for _, tr = range trs {
+			tr.Printf("unable to inialize service")
+		}
 	}
 	events.Ready("microb", "main", "Services are ready", nil)
 	// connect on the commands channel
