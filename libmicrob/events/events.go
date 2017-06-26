@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/SKAhack/go-shortid"
 	color "github.com/acmacalister/skittles"
-	"github.com/synw/microb/libmicrob/log"
 	"github.com/synw/microb/libmicrob/state"
 	"github.com/synw/microb/libmicrob/types"
+	"github.com/synw/terr"
 	"time"
 )
 
@@ -30,6 +30,15 @@ func Err(service string, from string, msg string, err error, data ...map[string]
 	if len(data) > 0 {
 		dataset = data[0]
 	}
+	_ = New("error", service, from, msg, err, dataset)
+}
+
+func Terr(service string, from string, msg string, tr *terr.Trace, data ...map[string]interface{}) {
+	dataset := make(map[string]interface{})
+	if len(data) > 0 {
+		dataset = data[0]
+	}
+	err := tr.ToErr()
 	_ = New("error", service, from, msg, err, dataset)
 }
 
@@ -88,45 +97,4 @@ func CmdExec(cmd *types.Command) {
 	}
 	msg := ""
 	_ = New("commandExec", cmd.Service, cmd.From, msg, err, data)
-}
-
-// internal methods
-
-func handle(event *types.Event) {
-	if state.Verbosity > 0 {
-		if event.Msg != "" {
-			fmt.Println(getMsg(event))
-		}
-	}
-	log.New(event.Service, state.Conf.Name, event.Class, event.Msg)
-}
-
-func getMsg(event *types.Event) string {
-	out := getFormatedMsgNoTime(event)
-	return out
-}
-
-func getFormatedMsgNoTime(event *types.Event) string {
-	output_flags := getEventOutputFlags()
-	label := output_flags[event.Class]
-	sep := " "
-	if label == "" {
-		sep = ""
-	}
-	msg := event.Msg
-	out := label + sep + msg
-	return out
-}
-
-func getEventOutputFlags() map[string]string {
-	output_flags := make(map[string]string)
-	output_flags["ready"] = "[" + color.Green("ready") + "]"
-	output_flags["info"] = "[" + color.Blue("info") + "]"
-	output_flags["event"] = "[" + color.Yellow("event") + "]"
-	output_flags["command"] = "[=> " + color.Cyan("command") + "]"
-	output_flags["error"] = ""
-	output_flags["metric"] = "[" + color.Cyan("metric") + "]"
-	output_flags["state"] = "[" + color.Yellow("state") + "]"
-	output_flags["debug"] = "[" + color.Magenta("debug") + "]"
-	return output_flags
 }

@@ -1,6 +1,0 @@
-{
-	"http_domain": "localhost",
-	"http_host":"",
-	"http_port":8080,
-	"http_cors": ["*"]
-}
