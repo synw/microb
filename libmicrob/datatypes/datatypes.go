@@ -23,6 +23,7 @@ type Server struct {
 }
 
 type Event struct {
+	Id      string
 	Class   string
 	From    string
 	Service string

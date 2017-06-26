@@ -32,7 +32,7 @@ func (hook *Hook) Fire(entry *log.Entry) error {
 	data, _ := json.Marshal(d)
 
 	// TODO
-	channel := "$channel"
+	channel := "$logchan"
 
 	_, err := hook.Cli.Http.Publish(channel, data)
 	if err != nil {

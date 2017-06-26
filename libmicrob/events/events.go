@@ -3,6 +3,7 @@ package events
 import (
 	"errors"
 	"fmt"
+	"github.com/SKAhack/go-shortid"
 	color "github.com/acmacalister/skittles"
 	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/log"
@@ -10,13 +11,16 @@ import (
 	"time"
 )
 
+var g = shortid.Generator()
+
 func New(class string, service string, from string, msg string, err error, data ...map[string]interface{}) *datatypes.Event {
 	dataset := make(map[string]interface{})
 	if len(data) > 0 {
 		dataset = data[0]
 	}
 	now := time.Now()
-	event := &datatypes.Event{class, from, service, now, msg, err, dataset}
+	id := g.Generate()
+	event := &datatypes.Event{id, class, from, service, now, msg, err, dataset}
 	handle(event)
 	return event
 }
@@ -60,6 +64,7 @@ func Cmd(cmd *datatypes.Command) {
 	}
 	_ = New("command", cmd.Service, cmd.From, msg, err, data)
 }
+
 func CmdExec(cmd *datatypes.Command) {
 	data := map[string]interface{}{
 		"args":         cmd.Args,
