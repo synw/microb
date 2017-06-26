@@ -5,20 +5,20 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/synw/centcom"
 	"github.com/synw/microb/libmicrob/conf"
-	"github.com/synw/microb/libmicrob/datatypes"
+	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
 )
 
 var Debug = true
 var Verbosity int = 1
 var Cli *centcom.Cli
-var Server = &datatypes.Server{}
-var Conf = &datatypes.Conf{}
+var Server = &types.Server{}
+var Conf = &types.Conf{}
 var Dev bool
-var Services = make(map[string]*datatypes.Service)
+var Services = make(map[string]*types.Service)
 var Logger *logrus.Logger
 
-func InitState(dev bool, verbosity int) (*datatypes.Conf, *terr.Trace) {
+func InitState(dev bool, verbosity int) (*types.Conf, *terr.Trace) {
 	Verbosity = verbosity
 	Dev = dev
 	// conf
@@ -58,7 +58,7 @@ func initWsCli() (*centcom.Cli, *terr.Trace) {
 	}
 	cli.IsConnected = true
 	if Verbosity > 1 {
-		fmt.Println(terr.Ok("Websockets client connected"))
+		terr.Ok("Websockets client connected")
 	}
 	err = cli.CheckHttp()
 	if err != nil {
@@ -66,7 +66,7 @@ func initWsCli() (*centcom.Cli, *terr.Trace) {
 		return cli, trace
 	}
 	if Verbosity > 1 {
-		fmt.Println(terr.Ok("Websockets http transport ready"))
+		terr.Ok("Websockets http transport ready")
 	}
 	return cli, nil
 }

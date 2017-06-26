@@ -3,7 +3,7 @@ package conf
 import (
 	"errors"
 	"github.com/spf13/viper"
-	"github.com/synw/microb/libmicrob/datatypes"
+	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
 )
 
@@ -13,13 +13,13 @@ func GetComChan(name string) (string, string) {
 	return comchan_in, comchan_out
 }
 
-func GetServer(conf *datatypes.Conf) (*datatypes.Server, *terr.Trace) {
+func GetServer(conf *types.Conf) (*types.Server, *terr.Trace) {
 	comchan_in, comchan_out := GetComChan(conf.Name)
-	s := &datatypes.Server{conf.Name, conf.WsHost, conf.WsPort, conf.WsKey, comchan_in, comchan_out}
+	s := &types.Server{conf.Name, conf.WsHost, conf.WsPort, conf.WsKey, comchan_in, comchan_out}
 	return s, nil
 }
 
-func GetConf(dev bool) (*datatypes.Conf, *terr.Trace) {
+func GetConf(dev bool) (*types.Conf, *terr.Trace) {
 	name := "normal"
 	if dev {
 		name = "dev"
@@ -27,7 +27,7 @@ func GetConf(dev bool) (*datatypes.Conf, *terr.Trace) {
 	return getConf(name)
 }
 
-func getConf(name string) (*datatypes.Conf, *terr.Trace) {
+func getConf(name string) (*types.Conf, *terr.Trace) {
 	// set some defaults for conf
 	if name == "dev" {
 		viper.SetConfigName("dev_config")
@@ -43,7 +43,7 @@ func getConf(name string) (*datatypes.Conf, *terr.Trace) {
 	// get the actual conf
 	err := viper.ReadInConfig()
 	if err != nil {
-		conf := &datatypes.Conf{}
+		conf := &types.Conf{}
 		switch err.(type) {
 		case viper.ConfigParseError:
 			tr := terr.New("conf.getConf", err)
@@ -58,7 +58,7 @@ func getConf(name string) (*datatypes.Conf, *terr.Trace) {
 	for _, s := range viper.Get("services").([]interface{}) {
 		services = append(services, s.(string))
 	}
-	conf := &datatypes.Conf{
+	conf := &types.Conf{
 		viper.Get("centrifugo_host").(string),
 		int(viper.Get("centrifugo_port").(float64)),
 		viper.Get("centrifugo_key").(string),

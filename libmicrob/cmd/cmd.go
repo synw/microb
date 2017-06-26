@@ -6,15 +6,15 @@ import (
 	"errors"
 	"fmt"
 	"github.com/synw/centcom"
-	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/events"
+	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/microb/services"
 	"github.com/synw/terr"
 	"github.com/ventu-io/go-shortid"
 	"time"
 )
 
-func isValid(command *datatypes.Command) bool {
+func isValid(command *types.Command) bool {
 	is_valid := false
 	for _, com := range services.ValidCommands {
 		if com == command.Name {
@@ -25,7 +25,7 @@ func isValid(command *datatypes.Command) bool {
 	return is_valid
 }
 
-func Run(payload interface{}, cli *centcom.Cli, server *datatypes.Server) {
+func Run(payload interface{}, cli *centcom.Cli, server *types.Server) {
 	cmd, exec := CmdFromPayload(payload)
 	events.Cmd(cmd)
 	if exec == false {
@@ -35,7 +35,7 @@ func Run(payload interface{}, cli *centcom.Cli, server *datatypes.Server) {
 		fmt.Println("Invalid command", cmd)
 		return
 	}
-	c := make(chan *datatypes.Command)
+	c := make(chan *types.Command)
 	go services.Dispatch(cmd, c)
 	select {
 	case com := <-c:
@@ -49,12 +49,12 @@ func Run(payload interface{}, cli *centcom.Cli, server *datatypes.Server) {
 	}
 }
 
-func CmdFromPayload(payload interface{}) (*datatypes.Command, bool) {
+func CmdFromPayload(payload interface{}) (*types.Command, bool) {
 	pl := payload.(map[string]interface{})
 	status := pl["Status"].(string)
 	name := pl["Name"].(string)
 	serv := pl["Service"].(string)
-	var s *datatypes.Service
+	var s *types.Service
 	found := false
 	for i, srv := range services.All {
 		if srv.Name == serv {
@@ -63,7 +63,7 @@ func CmdFromPayload(payload interface{}) (*datatypes.Command, bool) {
 			break
 		}
 	}
-	cmd := &datatypes.Command{}
+	cmd := &types.Command{}
 	if !found {
 		err := errors.New("Service " + serv + "not found")
 		tr := terr.New("cmd.CmdFromPayload", err)
@@ -105,7 +105,7 @@ func printJson(b []byte) ([]byte, error) {
 	return out.Bytes(), err
 }
 
-func sendCommand(command *datatypes.Command, cli *centcom.Cli, server *datatypes.Server) *terr.Trace {
+func sendCommand(command *types.Command, cli *centcom.Cli, server *types.Server) *terr.Trace {
 	if command.Trace != nil {
 		command.ErrMsg = command.Trace.Formatc()
 		command.Status = "error"
@@ -127,14 +127,14 @@ func sendCommand(command *datatypes.Command, cli *centcom.Cli, server *datatypes
 	return nil
 }
 
-func New(name string, service string, from string, reason string, args ...interface{}) *datatypes.Command {
+func New(name string, service string, from string, reason string, args ...interface{}) *types.Command {
 	id, _ := shortid.Generate()
 	date := time.Now()
 	status := "pending"
 	var tr *terr.Trace
 	var rvs []interface{}
 	var err_msg string
-	command := &datatypes.Command{
+	command := &types.Command{
 		id,
 		service,
 		name,

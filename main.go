@@ -40,7 +40,7 @@ func main() {
 	events.State("main", "state.InitState", "Commands transport layer operational", nil)
 	defer centcom.Disconnect(state.Cli)
 	if state.Verbosity > 2 {
-		fmt.Println(terr.Ok("Initialized state"))
+		terr.Ok("Initialized state")
 	}
 	// init services
 	services, trs := services.InitServices(*dev, *verbosity, conf.Services)

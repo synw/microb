@@ -5,22 +5,22 @@ import (
 	"fmt"
 	"github.com/SKAhack/go-shortid"
 	color "github.com/acmacalister/skittles"
-	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/log"
 	"github.com/synw/microb/libmicrob/state"
+	"github.com/synw/microb/libmicrob/types"
 	"time"
 )
 
 var g = shortid.Generator()
 
-func New(class string, service string, from string, msg string, err error, data ...map[string]interface{}) *datatypes.Event {
+func New(class string, service string, from string, msg string, err error, data ...map[string]interface{}) *types.Event {
 	dataset := make(map[string]interface{})
 	if len(data) > 0 {
 		dataset = data[0]
 	}
 	now := time.Now()
 	id := g.Generate()
-	event := &datatypes.Event{id, class, from, service, now, msg, err, dataset}
+	event := &types.Event{id, class, from, service, now, msg, err, dataset}
 	handle(event)
 	return event
 }
@@ -49,7 +49,7 @@ func Ready(service string, from string, msg string, err error, data ...map[strin
 	_ = New("ready", service, from, msg, err, dataset)
 }
 
-func Cmd(cmd *datatypes.Command) {
+func Cmd(cmd *types.Command) {
 	msg := color.BoldWhite(cmd.Name) + " received " + fmt.Sprintf("%s", cmd.Date)
 	if cmd.Reason != "" {
 		msg = msg + " ( " + cmd.Reason + " )"
@@ -65,7 +65,7 @@ func Cmd(cmd *datatypes.Command) {
 	_ = New("command", cmd.Service, cmd.From, msg, err, data)
 }
 
-func CmdExec(cmd *datatypes.Command) {
+func CmdExec(cmd *types.Command) {
 	data := map[string]interface{}{
 		"args":         cmd.Args,
 		"returnValues": cmd.ReturnValues,
@@ -92,7 +92,7 @@ func CmdExec(cmd *datatypes.Command) {
 
 // internal methods
 
-func handle(event *datatypes.Event) {
+func handle(event *types.Event) {
 	if state.Verbosity > 0 {
 		if event.Msg != "" {
 			fmt.Println(getMsg(event))
@@ -101,12 +101,12 @@ func handle(event *datatypes.Event) {
 	log.New(event.Service, state.Conf.Name, event.Class, event.Msg)
 }
 
-func getMsg(event *datatypes.Event) string {
+func getMsg(event *types.Event) string {
 	out := getFormatedMsgNoTime(event)
 	return out
 }
 
-func getFormatedMsgNoTime(event *datatypes.Event) string {
+func getFormatedMsgNoTime(event *types.Event) string {
 	output_flags := getEventOutputFlags()
 	label := output_flags[event.Class]
 	sep := " "

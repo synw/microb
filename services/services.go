@@ -4,21 +4,21 @@ import (
 	"errors"
 	"fmt"
 	color "github.com/acmacalister/skittles"
-	"github.com/synw/microb/libmicrob/datatypes"
 	"github.com/synw/microb/libmicrob/events"
+	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
 	"reflect"
 )
 
 var ValidCommands []string
 
-func Dispatch(cmd *datatypes.Command, c chan *datatypes.Command) {
-	com := &datatypes.Command{}
+func Dispatch(cmd *types.Command, c chan *types.Command) {
+	com := &types.Command{}
 	found := false
 	for n, _ := range initDispatch {
 		if cmd.Service == n {
 			cm, _ := Call(initDispatch, n, cmd)
-			com = cm[0].Interface().(*datatypes.Command)
+			com = cm[0].Interface().(*types.Command)
 			found = true
 			break
 		}
@@ -33,9 +33,9 @@ func Dispatch(cmd *datatypes.Command, c chan *datatypes.Command) {
 	return
 }
 
-func InitServices(dev bool, verbosity int, servs []string) (map[string]*datatypes.Service, []*terr.Trace) {
+func InitServices(dev bool, verbosity int, servs []string) (map[string]*types.Service, []*terr.Trace) {
 	var trs []*terr.Trace
-	services := make(map[string]*datatypes.Service)
+	services := make(map[string]*types.Service)
 	if verbosity > 0 {
 		fmt.Println("Initializing services ...")
 	}
@@ -66,14 +66,14 @@ func InitServices(dev bool, verbosity int, servs []string) (map[string]*datatype
 	return services, trs
 }
 
-func New(name string, cmds []string, deps ...[]*datatypes.Service) *datatypes.Service {
-	req := []*datatypes.Service{}
+func New(name string, cmds []string, deps ...[]*types.Service) *types.Service {
+	req := []*types.Service{}
 	if len(deps) > 0 {
 		for _, dep := range deps[0] {
 			req = append(req, dep)
 		}
 	}
-	s := &datatypes.Service{name, cmds, req}
+	s := &types.Service{name, cmds, req}
 	return s
 }
 
@@ -113,7 +113,7 @@ func getAllValidCommands() []string {
 	return vc
 }
 
-func CmdIsValid(cmd *datatypes.Command) bool {
+func CmdIsValid(cmd *types.Command) bool {
 	name := cmd.Name
 	for _, c := range getAllValidCommands() {
 		if c == name {

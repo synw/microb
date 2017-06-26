@@ -1,4 +1,4 @@
-package datatypes
+package types
 
 import (
 	"github.com/synw/terr"

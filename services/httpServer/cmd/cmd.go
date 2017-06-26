@@ -1,13 +1,13 @@
 package cmd
 
 import (
-	"github.com/synw/microb/libmicrob/datatypes"
+	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/microb/services/httpServer/state/mutate"
 	"github.com/synw/terr"
 )
 
-func Dispatch(cmd *datatypes.Command) *datatypes.Command {
-	com := &datatypes.Command{}
+func Dispatch(cmd *types.Command) *types.Command {
+	com := &types.Command{}
 	// TODO: error handling
 	if cmd.Name == "start" {
 		res := Start(cmd)
@@ -18,7 +18,7 @@ func Dispatch(cmd *datatypes.Command) *datatypes.Command {
 	return com
 }
 
-func Start(cmd *datatypes.Command) *datatypes.Command {
+func Start(cmd *types.Command) *types.Command {
 	tr := mutate.StartHttpServer()
 	if tr != nil {
 		cmd.Trace = tr
@@ -33,7 +33,7 @@ func Start(cmd *datatypes.Command) *datatypes.Command {
 	return cmd
 }
 
-func Stop(cmd *datatypes.Command) *datatypes.Command {
+func Stop(cmd *types.Command) *types.Command {
 	tr := mutate.StopHttpServer()
 	if tr != nil {
 		cmd.Trace = tr

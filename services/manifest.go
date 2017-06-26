@@ -6,7 +6,7 @@ import (
 	dashboardCmd "github.com/synw/microb-dashboard/cmd"
 	dashboardState "github.com/synw/microb-dashboard/state"
 	infoCmd "github.com/synw/microb/libmicrob/cmd/info"
-	"github.com/synw/microb/libmicrob/datatypes"
+	"github.com/synw/microb/libmicrob/types"
 	httpCmd "github.com/synw/microb/services/httpServer/cmd"
 	httpState "github.com/synw/microb/services/httpServer/state"
 )
@@ -17,7 +17,7 @@ var dashboardCmds = []string{"start", "stop"}
 
 //var grgCmds = []string{"start", "stop"}
 
-var All = map[string]*datatypes.Service{
+var All = map[string]*types.Service{
 	"info":      New("info", infoCmds),
 	"http":      New("http", httpCmds),
 	"dashboard": New("dashboard", dashboardCmds),

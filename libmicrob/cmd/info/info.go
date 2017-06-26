@@ -1,11 +1,11 @@
 package base
 
 import (
-	"github.com/synw/microb/libmicrob/datatypes"
+	"github.com/synw/microb/libmicrob/types"
 )
 
-func Dispatch(cmd *datatypes.Command) *datatypes.Command {
-	com := &datatypes.Command{}
+func Dispatch(cmd *types.Command) *types.Command {
+	com := &types.Command{}
 	// TODO: error handling
 	if cmd.Name == "ping" {
 		return Ping(cmd)
@@ -13,7 +13,7 @@ func Dispatch(cmd *datatypes.Command) *datatypes.Command {
 	return com
 }
 
-func Ping(cmd *datatypes.Command) *datatypes.Command {
+func Ping(cmd *types.Command) *types.Command {
 	var resp []interface{}
 	resp = append(resp, "PONG")
 	cmd.ReturnValues = resp
