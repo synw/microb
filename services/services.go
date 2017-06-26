@@ -11,13 +11,18 @@ import (
 )
 
 var ValidCommands []string
+var isDev = false
 
 func Dispatch(cmd *types.Command, c chan *types.Command) {
 	com := &types.Command{}
 	found := false
-	for n, _ := range initDispatch {
+	di := dispatch
+	if isDev == true {
+		di = dispatchDev
+	}
+	for n, _ := range di {
 		if cmd.Service == n {
-			cm, _ := Call(initDispatch, n, cmd)
+			cm, _ := Call(di, n, cmd)
 			com = cm[0].Interface().(*types.Command)
 			found = true
 			break
@@ -34,6 +39,7 @@ func Dispatch(cmd *types.Command, c chan *types.Command) {
 }
 
 func InitServices(dev bool, verbosity int, servs []string) (map[string]*types.Service, []*terr.Trace) {
+	isDev = dev
 	var trs []*terr.Trace
 	services := make(map[string]*types.Service)
 	if verbosity > 0 {
@@ -43,14 +49,22 @@ func InitServices(dev bool, verbosity int, servs []string) (map[string]*types.Se
 	// declare services
 	for _, name := range servs {
 		// register service
-		services[name] = All[name]
+		s := All[name]
+		if dev == true {
+			s = AllDev[name]
+		}
+		services[name] = s
 		// register service commands
-		ValidCommands = append(ValidCommands, All[name].Cmds...)
+		ValidCommands = append(ValidCommands, s.Cmds...)
 		// init service state
-		for n, _ := range initState {
+		st := initState
+		if dev == true {
+			st = initStateDev
+		}
+		for n, _ := range st {
 			if name == n {
 				// initialize service state
-				_, tr := Call(initState, n, dev, verbosity)
+				_, tr := Call(st, n, dev, verbosity)
 				if tr != nil {
 					tr = terr.Add("initServices", errors.New("Unable to initialize "+name+" service"))
 					msg := tr.Formatc()

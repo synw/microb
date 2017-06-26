@@ -29,7 +29,7 @@ var initState = map[string]interface{}{
 	"dashboard": dashboardState.InitState,
 	//"goregraph": grgState.InitState,
 }
-var initDispatch = map[string]interface{}{
+var dispatch = map[string]interface{}{
 	"http":      httpCmd.Dispatch,
 	"info":      infoCmd.Dispatch,
 	"dashboard": dashboardCmd.Dispatch,
