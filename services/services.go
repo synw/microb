@@ -7,12 +7,47 @@ import (
 	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
-	"reflect"
 )
 
 var ValidCommands []string
 var isDev = false
 
+func GetService(name string) *types.Service {
+	serv := AllDev[name]
+	return serv
+}
+
+func InitServices(dev bool, verbosity int, servs []string) (map[string]*types.Service, []*terr.Trace) {
+	if verbosity > 0 {
+		fmt.Println("Initializing services ...")
+	}
+	services := make(map[string]*types.Service)
+	var trs []*terr.Trace
+	for _, name := range servs {
+		service := GetService(name)
+		tr := service.Init(dev, verbosity)
+		if tr != nil {
+			tr = terr.Add("initServices", errors.New("Unable to initialize "+name+" service"))
+			msg := tr.Formatc()
+			events.Err(name, "services.InitServices", msg, tr.ToErr())
+			trs = append(trs, tr)
+		} else {
+			msg := color.BoldWhite(name) + " service initialized"
+			events.State(name, "services.Init", msg, nil)
+		}
+		services[name] = service
+		ValidCommands = append(ValidCommands, service.Cmds...)
+	}
+	return services, trs
+}
+
+func Dispatch(cmd *types.Command, c chan *types.Command) {
+	service := GetService(cmd.Service)
+	com := service.Dispatch(cmd)
+	c <- com
+}
+
+/*
 func Dispatch(cmd *types.Command, c chan *types.Command) {
 	com := &types.Command{}
 	found := false
@@ -34,10 +69,16 @@ func Dispatch(cmd *types.Command, c chan *types.Command) {
 		tr := terr.New("services.Dispatch", err)
 		com.Trace = tr
 	}
+
+	if cmd.Service == "http" {
+		com = http.Service.Dispatch(cmd)
+	}
+
 	c <- com
 	return
 }
 
+/*
 func InitServices(dev bool, verbosity int, servs []string) (map[string]*types.Service, []*terr.Trace) {
 	isDev = dev
 	var trs []*terr.Trace
@@ -76,10 +117,13 @@ func InitServices(dev bool, verbosity int, servs []string) (map[string]*types.Se
 				}
 			}
 		}
+
+		http.Service.Init(true, 2)
+
 	}
 	return services, trs
-}
-
+}*/
+/*
 func New(name string, cmds []string, deps ...[]*types.Service) *types.Service {
 	req := []*types.Service{}
 	if len(deps) > 0 {
@@ -116,7 +160,7 @@ func Call(m map[string]interface{}, name string, params ...interface{}) (result 
 		}
 	}
 	return in, nil
-}
+}*/
 
 // used by cli
 func getAllValidCommands() []string {

@@ -37,6 +37,8 @@ type Service struct {
 	Name     string
 	Cmds     []string
 	Requires []*Service
+	Init     func(bool, int) *terr.Trace
+	Dispatch func(*Command) *Command
 }
 
 type Command struct {
