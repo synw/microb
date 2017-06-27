@@ -38,7 +38,7 @@ func Terr(service string, from string, msg string, tr *terr.Trace, data ...map[s
 	if len(data) > 0 {
 		dataset = data[0]
 	}
-	err := tr.ToErr()
+	err := errors.New(tr.Formatc())
 	_ = New("error", service, from, msg, err, dataset)
 }
 

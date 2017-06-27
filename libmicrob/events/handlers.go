@@ -14,6 +14,11 @@ func handle(event *types.Event) {
 			fmt.Println(getMsg(event))
 		}
 	}
+	if event.Err != nil {
+		if state.Verbosity > 0 {
+			fmt.Println(event.Err.Error())
+		}
+	}
 	log.New(event.Service, state.Conf.Name, event.Class, event.Msg)
 }
 
