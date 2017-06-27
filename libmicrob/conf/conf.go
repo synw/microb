@@ -54,7 +54,7 @@ func getConf(name string) (*types.Conf, *terr.Trace) {
 			return conf, tr
 		}
 	}
-	var services []string
+	services := []string{"info"}
 	for _, s := range viper.Get("services").([]interface{}) {
 		services = append(services, s.(string))
 	}

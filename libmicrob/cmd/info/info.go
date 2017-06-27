@@ -1,4 +1,4 @@
-package base
+package info
 
 import (
 	"github.com/synw/microb/libmicrob/types"
