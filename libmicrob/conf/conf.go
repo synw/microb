@@ -35,7 +35,7 @@ func getConf(name string) (*types.Conf, *terr.Trace) {
 		viper.SetConfigName("config")
 	}
 	viper.AddConfigPath(".")
-	viper.SetDefault("centrifugo_addr", "http://localhost:8001")
+	viper.SetDefault("centrifugo_addr", "localhost:8001")
 	viper.SetDefault("debug", false)
 	viper.SetDefault("name", "localhost")
 	viper.SetDefault("services", []string{})
