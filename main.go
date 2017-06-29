@@ -12,7 +12,6 @@ import (
 	"github.com/synw/microb/libmicrob/state"
 	"github.com/synw/microb/services"
 	"github.com/synw/terr"
-	"strconv"
 )
 
 var dev = flag.Bool("d", false, "Dev mode")
@@ -58,7 +57,7 @@ func main() {
 	}
 	// listen
 	go func() {
-		msg := color.BoldWhite("Ready") + ": listening for commands at " + state.Cli.Host + ":" + strconv.Itoa(state.Cli.Port) + " on channel " + state.Server.CmdChanIn + " ..."
+		msg := color.BoldWhite("Ready") + ": listening for commands at " + state.Cli.Addr + ":" + " on channel " + state.Server.CmdChanIn + " ..."
 		events.State("microb", "main", msg, nil)
 		for msg := range state.Cli.Channels {
 			if msg.Channel == state.Server.CmdChanIn {

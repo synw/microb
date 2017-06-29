@@ -15,7 +15,7 @@ func GetComChan(name string) (string, string) {
 
 func GetServer(conf *types.Conf) (*types.Server, *terr.Trace) {
 	comchan_in, comchan_out := GetComChan(conf.Name)
-	s := &types.Server{conf.Name, conf.WsHost, conf.WsPort, conf.WsKey, comchan_in, comchan_out}
+	s := &types.Server{conf.Name, conf.WsAddr, conf.WsKey, comchan_in, comchan_out}
 	return s, nil
 }
 
@@ -35,8 +35,7 @@ func getConf(name string) (*types.Conf, *terr.Trace) {
 		viper.SetConfigName("config")
 	}
 	viper.AddConfigPath(".")
-	viper.SetDefault("centrifugo_host", "localhost")
-	viper.SetDefault("centrifugo_port", 8001)
+	viper.SetDefault("centrifugo_addr", "http://localhost:8001")
 	viper.SetDefault("debug", false)
 	viper.SetDefault("name", "localhost")
 	viper.SetDefault("services", []string{})
@@ -59,8 +58,7 @@ func getConf(name string) (*types.Conf, *terr.Trace) {
 		services = append(services, s.(string))
 	}
 	conf := &types.Conf{
-		viper.Get("centrifugo_host").(string),
-		int(viper.Get("centrifugo_port").(float64)),
+		viper.Get("centrifugo_addr").(string),
 		viper.Get("centrifugo_key").(string),
 		viper.Get("name").(string),
 		services,

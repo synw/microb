@@ -49,7 +49,7 @@ func InitState(dev bool, verbosity int) (*types.Conf, *terr.Trace) {
 // internal methods
 
 func initWsCli() (*centcom.Cli, *terr.Trace) {
-	cli := centcom.NewClient(Server.WsHost, Server.WsPort, Server.WsKey)
+	cli := centcom.NewClient(Server.WsAddr, Server.WsKey)
 	err := centcom.Connect(cli)
 	if err != nil {
 		trace := terr.New("initWsCli", err)

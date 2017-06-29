@@ -1,6 +1,5 @@
 {
-	"centrifugo_host":"localhost",
-	"centrifugo_port":8001,
+	"centrifugo_addr":"http://localhost:8001",
 	"centrifugo_key":"secret_key",
 	"verbosity": 3,
 	"name": "localhost",

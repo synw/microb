@@ -6,8 +6,7 @@ import (
 )
 
 type Conf struct {
-	WsHost   string
-	WsPort   int
+	WsAddr   string
 	WsKey    string
 	Name     string
 	Services []string
@@ -15,8 +14,7 @@ type Conf struct {
 
 type Server struct {
 	Name       string
-	WsHost     string
-	WsPort     int
+	WsAddr     string
 	WsKey      string
 	CmdChanIn  string
 	CmdChanOut string
