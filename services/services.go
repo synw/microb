@@ -21,7 +21,7 @@ func GetService(name string) *types.Service {
 	return serv
 }
 
-func InitServices(dev bool, verbosity int, servs []string) (map[string]*types.Service, []*terr.Trace) {
+func InitServices(dev bool, verbosity int, servs []string, start bool) (map[string]*types.Service, []*terr.Trace) {
 	if verbosity > 0 {
 		fmt.Println("Initializing services ...")
 	}
@@ -32,7 +32,7 @@ func InitServices(dev bool, verbosity int, servs []string) (map[string]*types.Se
 			fmt.Println("Initializing service", name)
 		}
 		service := GetService(name)
-		tr := service.Init(dev, verbosity)
+		tr := service.Init(dev, verbosity, start)
 		if tr != nil {
 			tr = terr.Add("initServices", errors.New("Unable to initialize "+name+" service"))
 			msg := tr.Formatc()

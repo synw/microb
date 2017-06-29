@@ -13,7 +13,7 @@ var Service *types.Service = &types.Service{
 	dispatch,
 }
 
-func ini(dev bool, verbosity int) *terr.Trace {
+func ini(dev bool, verbosity int, start bool) *terr.Trace {
 	return nil
 }
 

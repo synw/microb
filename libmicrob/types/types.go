@@ -34,7 +34,7 @@ type Event struct {
 type Service struct {
 	Name     string
 	Cmds     []string
-	Init     func(bool, int) *terr.Trace
+	Init     func(bool, int, bool) *terr.Trace
 	Dispatch func(*Command) *Command
 }
 

@@ -16,7 +16,7 @@ import (
 
 var dev = flag.Bool("d", false, "Dev mode")
 var verbosity = flag.Int("v", 1, "Verbosity")
-var serve = flag.Bool("s", false, "Start http server")
+var start = flag.Bool("s", false, "Start services")
 
 func main() {
 	if state.Verbosity > 0 {
@@ -42,7 +42,7 @@ func main() {
 		terr.Ok("Initialized state")
 	}
 	// init services
-	services, trs := services.InitServices(*dev, *verbosity, conf.Services)
+	services, trs := services.InitServices(*dev, *verbosity, conf.Services, *start)
 	state.Services = services
 	if trs != nil {
 		for _, tr = range trs {
