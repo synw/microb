@@ -81,7 +81,7 @@ func Ping(cmd *types.Command) *types.Command {
 
 Check the [Microb http service](https://github.com/synw/microb-http)
 
-Then register your service in `microb/services/manifest.go` and compile Microb:
+Then register your service in `microb/services/manifest.go`:
 
    ```go
 package services
@@ -110,10 +110,12 @@ Declare it in `microb/config.json` to enable it:
 }
    ```
    
+Compile Microb
+   
 ## Run
 
    ```
-   ./microb -d -s -v1
+   ./microb -d -s -v 1
    ```
 
 Flags:
