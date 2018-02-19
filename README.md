@@ -15,20 +15,70 @@ A [terminal client](https://github.com/synw/microb-cli) is used to control Micro
    ```bash
    go get github.com/synw/microb
    go get github.com/synw/microb-cli
+   go get github.com/synw/terr
    ```
    
 [Install Centrifugo](https://fzambia.gitbooks.io/centrifugal/content/server/start.html)
 
 ## Usage
 
-To write a new service use this folder structure under `services/yourservice`:
+To write a new service you only need a `manifest/manifest.go` inside your project to declare the Microb service: 
+ex: an http service:
 
-- `datatypes`: the types used in the service
-- `commands`: all the commands used to mutate or observe the service
-- `conf`: the service's configuration
-- `state`: manage the service's state
+   ```go
+package manifest
 
-Check the http service example at `services/httpServer`
+import (
+	   "github.com/synw/microb-http/cmd"
+	   "github.com/synw/microb-http/state"
+	   "github.com/synw/microb/libmicrob/types"
+	   "github.com/synw/terr"
+)
+
+var Service *types.Service = &types.Service{
+	   "http", // name of the service
+	   []string{"start", "stop", "parse_templates"}, //commands
+	   ini, // function to initialize
+	   dispatch, //function to dispatch commands
+}
+
+func ini(dev bool, verbosity int, start bool) *terr.Trace {
+	   return state.Init(dev, verbosity, start)
+}
+
+func dispatch(c *types.Command) *types.Command {
+	   return cmd.Dispatch(c)
+}
+   ```
+   
+Then you can write commands that will be run from the client using a `cmds` package: ex: a simple ping command in 
+`cmds/infos/info.go`:
+
+   ```go
+package info
+
+import (
+	   "github.com/synw/microb/libmicrob/types"
+)
+
+func Dispatch(cmd *types.Command) *types.Command {
+	   com := &types.Command{}
+	   if cmd.Name == "ping" {
+	   	return Ping(cmd)
+	   }
+	   return com
+}
+
+func Ping(cmd *types.Command) *types.Command {
+	   var resp []interface{}
+	   resp = append(resp, "PONG")
+	   cmd.ReturnValues = resp
+	   cmd.Status = "success"
+	   return cmd
+}
+   ```
+
+Check the [Microb http service](https://github.com/synw/microb-http)
 
 Then register your service in `services/manifest.go` and compile. Write the cli commands and compile the client.
 
