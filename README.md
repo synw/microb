@@ -81,7 +81,46 @@ func Ping(cmd *types.Command) *types.Command {
 
 Check the [Microb http service](https://github.com/synw/microb-http)
 
-Then register your service in `services/manifest.go` and compile. Write the cli commands and compile the client.
+Then register your service in `microb/services/manifest.go` and compile Microb:
+
+   ```go
+package services
+
+import (
+	   http "github.com/synw/microb-http/manifest"
+	   "github.com/synw/microb/libmicrob/types"
+	   "github.com/synw/microb/services/info"
+)
+
+var All = map[string]*types.Service{
+	   "info": info.Service,
+	   "http": http.Service,
+}
+   ```
+   
+Declare it in `microb/config.json` to enable it:
+
+   ```javascript
+{
+	   "centrifugo_addr":"localhost:8001",
+	   "centrifugo_key":"secret_key",
+	   "verbosity": 1,
+	   "name": "localhost",
+	   "services": ["http"]
+}
+   ```
+   
+## Run
+
+   ```
+   ./microb -d -s -v1
+   ```
+
+Flags:
+
+- `d`: for dev mode. It will use `dev_config.json`
+- `s`: to start the services instead of doing it from the client
+- `v`: verbosity level
 
 #### External libraries
 
