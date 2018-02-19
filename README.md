@@ -1,6 +1,7 @@
 # Microb
 
-Toolbox to manage observable services
+Platform to manage observable services. A service can receive and execute commands from the 
+[Microb terminal client](https://github.com/synw/microb-cli)
 
 #### Dependencies
 
