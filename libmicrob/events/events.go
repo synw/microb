@@ -1,11 +1,8 @@
 package events
 
 import (
-	"errors"
-	"fmt"
 	"github.com/SKAhack/go-shortid"
-	color "github.com/acmacalister/skittles"
-	"github.com/synw/microb/libmicrob/state"
+	"github.com/synw/microb/libmicrob/msgs"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
 	"time"
@@ -13,88 +10,31 @@ import (
 
 var g = shortid.Generator()
 
-func New(class string, service string, from string, msg string, err error, data ...map[string]interface{}) *types.Event {
-	dataset := make(map[string]interface{})
-	if len(data) > 0 {
-		dataset = data[0]
-	}
-	now := time.Now()
+func New(msg string, args ...map[string]interface{}) *types.Event {
+	class, service, cmd, trace, data := getEventArgs(args...)
+	date := time.Now()
 	id := g.Generate()
-	event := &types.Event{id, class, from, service, now, msg, err, dataset}
-	handle(event)
+	event := &types.Event{id, class, date, msg, service, cmd, trace, data}
+	msgs.Debug(event)
+	//handle(event)
 	return event
 }
 
-func Err(service string, from string, msg string, err error, data ...map[string]interface{}) {
-	dataset := make(map[string]interface{})
-	if len(data) > 0 {
-		dataset = data[0]
-	}
-	_ = New("error", service, from, msg, err, dataset)
-}
-
-func Terr(service string, from string, msg string, tr *terr.Trace, data ...map[string]interface{}) {
-	dataset := make(map[string]interface{})
-	if len(data) > 0 {
-		dataset = data[0]
-	}
-	err := errors.New(tr.Formatc())
-	_ = New("error", service, from, msg, err, dataset)
-}
-
-func State(service string, from string, msg string, err error, data ...map[string]interface{}) {
-	dataset := make(map[string]interface{})
-	if len(data) > 0 {
-		dataset = data[0]
-	}
-	_ = New("state", service, from, msg, err, dataset)
-}
-
-func Ready(service string, from string, msg string, err error, data ...map[string]interface{}) {
-	dataset := make(map[string]interface{})
-	if len(data) > 0 {
-		dataset = data[0]
-	}
-	_ = New("ready", service, from, msg, err, dataset)
-}
-
-func Cmd(cmd *types.Command) {
-	msg := color.BoldWhite(cmd.Name) + " received " + fmt.Sprintf("%s", cmd.Date)
-	if cmd.Reason != "" {
-		msg = msg + " ( " + cmd.Reason + " )"
-	}
-	data := map[string]interface{}{
-		"args":         cmd.Args,
-		"returnValues": cmd.ReturnValues,
-	}
-	var err error
-	if cmd.ErrMsg != "" {
-		err = errors.New(cmd.ErrMsg)
-	}
-	_ = New("command", cmd.Service, cmd.From, msg, err, data)
-}
-
-func CmdExec(cmd *types.Command) {
-	data := map[string]interface{}{
-		"args":         cmd.Args,
-		"returnValues": cmd.ReturnValues,
-	}
-	var err error
-	if cmd.ErrMsg != "" {
-		err = errors.New(cmd.ErrMsg)
-	}
-	status := cmd.Status
-	if status == "error" {
-		status = color.BoldRed("error")
-		if state.Verbosity > 0 {
-			fmt.Println(" ->", status, cmd.Trace.Format())
-		}
-	} else if status == "success" {
-		status = color.Green("success")
-		if state.Verbosity > 0 {
-			fmt.Println(" ->", status, cmd.ReturnValues)
+func getEventArgs(args ...map[string]interface{}) (class string, service *types.Service, cmd *types.Cmd, trace *terr.Trace, data map[string]interface{}) {
+	eclass := "default"
+	eservice := &types.Service{}
+	ecmd := &types.Cmd{}
+	etrace := &terr.Trace{}
+	edata := make(map[string]interface{})
+	if len(args) > 0 {
+		for _, arg := range args {
+			msgs.Debug(arg)
+			for k, v := range arg {
+				if k == "class" {
+					eclass = v.(string)
+				}
+			}
 		}
 	}
-	msg := ""
-	_ = New("commandExec", cmd.Service, cmd.From, msg, err, data)
+	return eclass, eservice, ecmd, etrace, edata
 }

@@ -5,49 +5,30 @@ import (
 	"time"
 )
 
-type Conf struct {
-	WsAddr   string
-	WsKey    string
+type Service struct {
 	Name     string
-	Services []string
+	Cmds     []Cmd
+	Init     func(bool, int, bool) *terr.Trace
+	Dispatch func(*Cmd) *Cmd
 }
 
-type Server struct {
-	Name       string
-	WsAddr     string
-	WsKey      string
-	CmdChanIn  string
-	CmdChanOut string
+type Cmd struct {
+	Id           string
+	Name         string
+	Date         time.Time
+	Args         []interface{}
+	Status       string
+	Trace        *terr.Trace
+	ReturnValues []interface{}
 }
 
 type Event struct {
 	Id      string
 	Class   string
-	From    string
-	Service string
 	Date    time.Time
 	Msg     string
-	Err     error
+	Service *Service
+	Cmd     *Cmd
+	Trace   *terr.Trace
 	Data    map[string]interface{}
-}
-
-type Service struct {
-	Name     string
-	Cmds     []string
-	Init     func(bool, int, bool) *terr.Trace
-	Dispatch func(*Command) *Command
-}
-
-type Command struct {
-	Id           string
-	Service      string
-	Name         string
-	From         string
-	Reason       string
-	Date         time.Time
-	Args         []interface{}
-	Status       string
-	Trace        *terr.Trace
-	ErrMsg       string
-	ReturnValues []interface{}
 }
