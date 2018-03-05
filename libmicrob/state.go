@@ -52,6 +52,19 @@ func Init(verb int, dev bool) (*types.Conf, *terr.Trace) {
 	return config, nil
 }
 
+func initVerb() {
+	Verb.State = fsm.NewFSM(
+		"one",
+		fsm.Events{
+			{Name: "setZero", Src: []string{"zero", "one"}, Dst: "zero"},
+			{Name: "setOne", Src: []string{"zero", "one"}, Dst: "one"},
+		},
+		fsm.Callbacks{
+			"enter_state": func(e *fsm.Event) { Verb.Mutate(e) },
+		},
+	)
+}
+
 func initWsCli() (*centcom.Cli, *terr.Trace) {
 	cli := centcom.NewClient(server.Addr, server.Key)
 	err := centcom.Connect(cli)
@@ -69,17 +82,4 @@ func initWsCli() (*centcom.Cli, *terr.Trace) {
 	}
 	Ok("Websockets http transport ready")
 	return cli, nil
-}
-
-func initVerb() {
-	Verb.State = fsm.NewFSM(
-		"one",
-		fsm.Events{
-			{Name: "setZero", Src: []string{"zero", "one"}, Dst: "zero"},
-			{Name: "setOne", Src: []string{"zero", "one"}, Dst: "one"},
-		},
-		fsm.Callbacks{
-			"enter_state": func(e *fsm.Event) { Verb.Mutate(e) },
-		},
-	)
 }

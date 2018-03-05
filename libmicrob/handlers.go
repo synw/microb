@@ -5,7 +5,7 @@ import (
 )
 
 func handle(event *types.Event) {
-	if Verb.State.Current() != "zero" {
-		Print(event.Msg, event.Class)
+	if Verbose() == true {
+		PrintEvent(event)
 	}
 }

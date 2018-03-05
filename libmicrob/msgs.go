@@ -3,12 +3,26 @@ package libmicrob
 import (
 	"fmt"
 	color "github.com/acmacalister/skittles"
+	"github.com/synw/microb/libmicrob/types"
 )
 
 func State(txt string) {
 	if Verbose() == true {
 		msg := "[" + color.Yellow("State") + "] " + txt
 		fmt.Println(msg)
+	}
+}
+
+func Status(txt string) {
+	if Verbose() == true {
+		msg := "[" + color.Blue("Status") + "] " + txt
+		fmt.Println(msg)
+	}
+}
+
+func Msg(txt string) {
+	if Verbose() == true {
+		fmt.Println(txt)
 	}
 }
 
@@ -24,14 +38,14 @@ func Ok(txt string) {
 	}
 }
 
-func Print(txt string, class ...string) {
+func PrintEvent(event *types.Event) {
 	if Verbose() == true {
-		if len(class) > 0 {
-			if class[0] == "state" {
-				State(txt)
-			}
+		if event.Class == "state" {
+			State(event.Msg)
+		} else if event.Class == "status" {
+			Status(event.Msg)
 		} else {
-			msg := "[" + color.Blue(class) + "]" + txt
+			msg := "[" + color.Blue(event.Class) + "]" + event.Msg
 			fmt.Println(msg)
 		}
 	}
