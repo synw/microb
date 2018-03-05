@@ -20,6 +20,13 @@ func Status(txt string) {
 	}
 }
 
+func Ready(txt string) {
+	if Verbose() == true {
+		msg := "[" + color.Green("Ready") + "] " + txt
+		fmt.Println(msg)
+	}
+}
+
 func Msg(txt string) {
 	if Verbose() == true {
 		fmt.Println(txt)

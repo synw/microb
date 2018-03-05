@@ -9,7 +9,7 @@ import (
 
 var g = shortid.Generator()
 
-func state(mesg string) *types.Event {
+func State(mesg string) *types.Event {
 	args := make(map[string]interface{})
 	args["class"] = "state"
 	event := new_(mesg, args)

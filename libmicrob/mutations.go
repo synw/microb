@@ -5,5 +5,5 @@ import (
 )
 
 func (verb *VerbState) Mutate(e *fsm.Event) {
-	state("Verbosity set to " + e.Dst)
+	State("Verbosity set to " + e.Dst)
 }

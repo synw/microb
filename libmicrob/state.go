@@ -14,8 +14,8 @@ type VerbState struct {
 }
 
 var Verb = VerbState{}
-var server = &types.WsServer{}
-var cli *centcom.Cli
+var Server = &types.WsServer{}
+var Cli *centcom.Cli
 
 func Verbose() bool {
 	if Verb.State.Current() == "one" {
@@ -39,12 +39,12 @@ func Init(verb int, dev bool) (*types.Conf, *terr.Trace) {
 		tr = terr.Pass("Init", tr)
 		return config, tr
 	}
-	server, tr = conf.GetServer(config)
+	Server, tr = conf.GetServer(config)
 	if tr != nil {
 		tr = terr.Pass("Init", tr)
 		return config, tr
 	}
-	cli, tr = initWsCli()
+	Cli, tr = initWsCli()
 	if tr != nil {
 		tr = terr.Pass("Init", tr)
 		return config, tr
@@ -66,7 +66,7 @@ func initVerb() {
 }
 
 func initWsCli() (*centcom.Cli, *terr.Trace) {
-	cli := centcom.NewClient(server.Addr, server.Key)
+	cli := centcom.NewClient(Server.Addr, Server.Key)
 	err := centcom.Connect(cli)
 	if err != nil {
 		trace := terr.New("initWsCli", err)

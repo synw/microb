@@ -2,7 +2,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	color "github.com/acmacalister/skittles"
 	m "github.com/synw/microb/libmicrob"
+	events "github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/services"
 )
 
@@ -19,5 +22,23 @@ func main() {
 	m.Ok("State initialized")
 	// TODO : start services flag
 	services.Init(conf.Services, true)
-	m.Ok("Services initialized")
+	m.Ready("Services are ready")
+	// connect on the commands channel
+	err := m.Cli.Subscribe(m.Server.CmdChanIn)
+	if err != nil {
+		fmt.Println(err)
+	}
+	// listen
+	go func() {
+		msg := color.BoldWhite("Ready") + ": listening for commands at " + m.Cli.Addr + ":" + " on channel " + m.Server.CmdChanIn + " ..."
+		events.State(msg)
+		for msg := range m.Cli.Channels {
+			if msg.Channel == m.Server.CmdChanIn {
+				fmt.Println("PAYLOAD", msg.Payload.(map[string]interface{}))
+				//cmd.Run(msg.Payload, m.Cli, m.Server)
+			}
+		}
+	}()
+	// idle
+	select {}
 }

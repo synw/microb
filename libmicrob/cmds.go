@@ -8,7 +8,7 @@ import (
 )
 
 func New(name string, service string, from string, args ...interface{}) *types.Cmd {
-	// TOFIX
+	// TO FIX
 	//id, _ := sid.Generate()
 	id := "id"
 	date := time.Now()
