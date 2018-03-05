@@ -1,5 +1,5 @@
 dev_config.json
-libmicrob_ORI
+*_ORI
 manifest_dev.go
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
