@@ -1,8 +1,7 @@
-package events
+package libmicrob
 
 import (
 	"github.com/SKAhack/go-shortid"
-	"github.com/synw/microb/libmicrob/msgs"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
 	"time"
@@ -10,13 +9,19 @@ import (
 
 var g = shortid.Generator()
 
-func New(msg string, args ...map[string]interface{}) *types.Event {
+func state(mesg string) *types.Event {
+	args := make(map[string]interface{})
+	args["class"] = "state"
+	event := new_(mesg, args)
+	return event
+}
+
+func new_(msg string, args ...map[string]interface{}) *types.Event {
 	class, service, cmd, trace, data := getEventArgs(args...)
 	date := time.Now()
 	id := g.Generate()
 	event := &types.Event{id, class, date, msg, service, cmd, trace, data}
-	msgs.Debug(event)
-	//handle(event)
+	handle(event)
 	return event
 }
 
@@ -28,10 +33,17 @@ func getEventArgs(args ...map[string]interface{}) (class string, service *types.
 	edata := make(map[string]interface{})
 	if len(args) > 0 {
 		for _, arg := range args {
-			msgs.Debug(arg)
 			for k, v := range arg {
 				if k == "class" {
 					eclass = v.(string)
+				} else if k == "service" {
+					eservice = v.(*types.Service)
+				} else if k == "command" {
+					ecmd = v.(*types.Cmd)
+				} else if k == "trace" {
+					etrace = v.(*terr.Trace)
+				} else if k == "data" {
+					edata = v.(map[string]interface{})
 				}
 			}
 		}

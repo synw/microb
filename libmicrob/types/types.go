@@ -7,7 +7,7 @@ import (
 
 type Service struct {
 	Name     string
-	Cmds     []Cmd
+	Cmds     []string
 	Init     func(bool, int, bool) *terr.Trace
 	Dispatch func(*Cmd) *Cmd
 }
@@ -17,6 +17,7 @@ type Cmd struct {
 	Name         string
 	Date         time.Time
 	Args         []interface{}
+	From         string
 	Status       string
 	Trace        *terr.Trace
 	ReturnValues []interface{}
@@ -31,4 +32,11 @@ type Event struct {
 	Cmd     *Cmd
 	Trace   *terr.Trace
 	Data    map[string]interface{}
+}
+
+type Conf struct {
+	WsAddr   string
+	WsKey    string
+	Name     string
+	Services []string
 }

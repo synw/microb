@@ -2,20 +2,17 @@ package main
 
 import (
 	"flag"
-	//"github.com/synw/microb/libmicrob/msgs"
-	"github.com/synw/microb/libmicrob/state"
+	m "github.com/synw/microb/libmicrob"
+	"github.com/synw/microb/services"
 )
 
 var dev = flag.Bool("d", false, "Dev mode")
-var verbosity = flag.Int("v", 1, "Verbosity")
+var verb = flag.Int("v", 1, "Verbosity")
 
 func main() {
 	flag.Parse()
-	state.Init(*verbosity, *dev)
-	/*if state.Verb > 0 {
-		msgs.Print("Microb state initialized")
-		if state.Dev == true {
-			msgs.Print("Dev mode is on")
-		}
-	}*/
+	conf := m.Init(*verb, *dev)
+	m.Ok("Microb state initialized")
+	// TODO : start services flag
+	services.Init(conf.Services, true)
 }
