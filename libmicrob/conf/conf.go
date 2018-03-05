@@ -7,21 +7,9 @@ import (
 	"github.com/synw/terr"
 )
 
-func GetConf(dev string) (*types.Conf, *terr.Trace) {
-	name := "normal"
-	if dev != "zero" {
-		name = "dev"
-	}
-	return getConf(name)
-}
-
-func getConf(name string) (*types.Conf, *terr.Trace) {
+func GetConf() (*types.Conf, *terr.Trace) {
 	// set some defaults for conf
-	if name == "dev" {
-		viper.SetConfigName("dev_config")
-	} else {
-		viper.SetConfigName("config")
-	}
+	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
 	viper.SetDefault("centrifugo_addr", "localhost:8001")
 	viper.SetDefault("debug", false)

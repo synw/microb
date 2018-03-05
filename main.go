@@ -11,8 +11,12 @@ var verb = flag.Int("v", 1, "Verbosity")
 
 func main() {
 	flag.Parse()
-	conf := m.Init(*verb, *dev)
+	conf, tr := m.Init(*verb, *dev)
+	if tr != nil {
+		tr.Error()
+	}
 	m.Ok("Microb state initialized")
 	// TODO : start services flag
 	services.Init(conf.Services, true)
+	m.Ok("Microb services initialized")
 }

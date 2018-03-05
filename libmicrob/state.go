@@ -5,18 +5,14 @@ import (
 	"github.com/looplab/fsm"
 	"github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/types"
+	"github.com/synw/terr"
 )
-
-type DevState struct {
-	State *fsm.FSM
-}
 
 type VerbState struct {
 	State *fsm.FSM
 }
 
 var Verb = VerbState{}
-var Dev = DevState{}
 
 func Verbose() bool {
 	if Verb.State.Current() != "zero" {
@@ -25,15 +21,11 @@ func Verbose() bool {
 	return false
 }
 
-func Init(verb int, dev bool) *types.Conf {
+func Init(verb int, dev bool) (*types.Conf, *terr.Trace) {
 	if verb > 0 {
 		fmt.Println("Starting Microb instance ...")
 	}
-	initDev()
 	initVerb()
-	if dev == true {
-		Dev.State.Event("activate")
-	}
 	if verb == 0 {
 		Verb.State.Event("setZero")
 	} else if verb == 1 {
@@ -41,11 +33,12 @@ func Init(verb int, dev bool) *types.Conf {
 	} else if verb == 2 {
 		Verb.State.Event("setTwo")
 	}
-	conf, tr := conf.GetConf(Dev.State.Current())
+	conf, tr := conf.GetConf()
 	if tr != nil {
-		tr.Error()
+		terr.Pass("Init", tr)
+		return conf, tr
 	}
-	return conf
+	return conf, nil
 }
 
 func initVerb() {
@@ -58,19 +51,6 @@ func initVerb() {
 		},
 		fsm.Callbacks{
 			"enter_state": func(e *fsm.Event) { Verb.Mutate(e) },
-		},
-	)
-}
-
-func initDev() {
-	Dev.State = fsm.NewFSM(
-		"off",
-		fsm.Events{
-			{Name: "activate", Src: []string{"off"}, Dst: "on"},
-			{Name: "deactivate", Src: []string{"on"}, Dst: "off"},
-		},
-		fsm.Callbacks{
-			"enter_state": func(e *fsm.Event) { Dev.Mutate(e) },
 		},
 	)
 }
