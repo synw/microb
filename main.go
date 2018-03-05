@@ -15,8 +15,8 @@ func main() {
 	if tr != nil {
 		tr.Error()
 	}
-	m.Ok("Microb state initialized")
+	m.Ok("State initialized")
 	// TODO : start services flag
 	services.Init(conf.Services, true)
-	m.Ok("Microb services initialized")
+	m.Ok("Services initialized")
 }
