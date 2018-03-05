@@ -13,7 +13,8 @@ func main() {
 	flag.Parse()
 	conf, tr := m.Init(*verb, *dev)
 	if tr != nil {
-		tr.Error()
+		tr.Print()
+		return
 	}
 	m.Ok("State initialized")
 	// TODO : start services flag

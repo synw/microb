@@ -6,7 +6,7 @@ import (
 )
 
 func State(txt string) {
-	if Verb.State.Current() != "zero" {
+	if Verbose() == true {
 		msg := "[" + color.Yellow("State") + "] " + txt
 		fmt.Println(msg)
 	}
@@ -18,16 +18,18 @@ func Debug(obj interface{}) {
 }
 
 func Ok(txt string) {
-	if Verb.State.Current() != "zero" {
+	if Verbose() == true {
 		msg := "[" + color.Green("Ok") + "] " + txt
 		fmt.Println(msg)
 	}
 }
 
-func Print(txt string, class string) {
-	if Verb.State.Current() != "zero" {
-		if class == "state" {
-			State(txt)
+func Print(txt string, class ...string) {
+	if Verbose() == true {
+		if len(class) > 0 {
+			if class[0] == "state" {
+				State(txt)
+			}
 		} else {
 			msg := "[" + color.Blue(class) + "]" + txt
 			fmt.Println(msg)

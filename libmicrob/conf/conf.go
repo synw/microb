@@ -7,6 +7,18 @@ import (
 	"github.com/synw/terr"
 )
 
+func getComChan(name string) (string, string) {
+	comchan_in := "cmd:$" + name + "_in"
+	comchan_out := "cmd:$" + name + "_out"
+	return comchan_in, comchan_out
+}
+
+func GetServer(conf *types.Conf) (*types.WsServer, *terr.Trace) {
+	comchan_in, comchan_out := getComChan(conf.Name)
+	s := &types.WsServer{conf.Name, conf.Addr, conf.Key, comchan_in, comchan_out}
+	return s, nil
+}
+
 func GetConf() (*types.Conf, *terr.Trace) {
 	// set some defaults for conf
 	viper.SetConfigName("config")

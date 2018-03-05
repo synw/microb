@@ -3,6 +3,7 @@ package libmicrob
 import (
 	"fmt"
 	"github.com/looplab/fsm"
+	"github.com/synw/centcom"
 	"github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
@@ -13,9 +14,11 @@ type VerbState struct {
 }
 
 var Verb = VerbState{}
+var server = &types.WsServer{}
+var cli *centcom.Cli
 
 func Verbose() bool {
-	if Verb.State.Current() != "zero" {
+	if Verb.State.Current() == "one" {
 		return true
 	}
 	return false
@@ -28,26 +31,52 @@ func Init(verb int, dev bool) (*types.Conf, *terr.Trace) {
 	initVerb()
 	if verb == 0 {
 		Verb.State.Event("setZero")
-	} else if verb == 1 {
+	} else {
 		Verb.State.Event("setOne")
-	} else if verb == 2 {
-		Verb.State.Event("setTwo")
 	}
-	conf, tr := conf.GetConf()
+	config, tr := conf.GetConf()
 	if tr != nil {
-		terr.Pass("Init", tr)
-		return conf, tr
+		tr = terr.Pass("Init", tr)
+		return config, tr
 	}
-	return conf, nil
+	server, tr = conf.GetServer(config)
+	if tr != nil {
+		tr = terr.Pass("Init", tr)
+		return config, tr
+	}
+	cli, tr = initWsCli()
+	if tr != nil {
+		tr = terr.Pass("Init", tr)
+		return config, tr
+	}
+	return config, nil
+}
+
+func initWsCli() (*centcom.Cli, *terr.Trace) {
+	cli := centcom.NewClient(server.Addr, server.Key)
+	err := centcom.Connect(cli)
+	if err != nil {
+		trace := terr.New("initWsCli", err)
+		var cli *centcom.Cli
+		return cli, trace
+	}
+	cli.IsConnected = true
+	Ok("Websockets client connected")
+	err = cli.CheckHttp()
+	if err != nil {
+		trace := terr.New("InitCli", err)
+		return cli, trace
+	}
+	Ok("Websockets http transport ready")
+	return cli, nil
 }
 
 func initVerb() {
 	Verb.State = fsm.NewFSM(
 		"one",
 		fsm.Events{
-			{Name: "setZero", Src: []string{"zero", "one", "two"}, Dst: "zero"},
-			{Name: "setOne", Src: []string{"zero", "one", "two"}, Dst: "one"},
-			{Name: "setTwo", Src: []string{"zero", "one", "two"}, Dst: "two"},
+			{Name: "setZero", Src: []string{"zero", "one"}, Dst: "zero"},
+			{Name: "setOne", Src: []string{"zero", "one"}, Dst: "one"},
 		},
 		fsm.Callbacks{
 			"enter_state": func(e *fsm.Event) { Verb.Mutate(e) },

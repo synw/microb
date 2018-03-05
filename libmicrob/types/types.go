@@ -5,6 +5,14 @@ import (
 	"time"
 )
 
+type WsServer struct {
+	Name       string
+	Addr       string
+	Key        string
+	CmdChanIn  string
+	CmdChanOut string
+}
+
 type Service struct {
 	Name     string
 	Cmds     []string
@@ -35,8 +43,8 @@ type Event struct {
 }
 
 type Conf struct {
-	WsAddr   string
-	WsKey    string
+	Addr     string
+	Key      string
 	Name     string
 	Services []string
 }
