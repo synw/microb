@@ -29,15 +29,17 @@ func Init(verb int, dev bool) (*types.Conf, *terr.Trace) {
 		fmt.Println("Starting Microb instance ...")
 	}
 	initVerb()
-	if verb == 0 {
-		Verb.State.Event("setZero")
-	} else {
-		Verb.State.Event("setOne")
-	}
 	config, tr := conf.GetConf()
 	if tr != nil {
 		tr = terr.Pass("Init", tr)
 		return config, tr
+	}
+	if verb == 0 {
+		err := Verb.State.Event("setZero")
+		if err != nil {
+			tr := terr.New("Init", err)
+			return config, tr
+		}
 	}
 	Server, tr = conf.GetServer(config)
 	if tr != nil {
