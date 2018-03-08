@@ -1,4 +1,4 @@
-package libmicrob
+package cmd
 
 import (
 	//sid "github.com/SKAhack/go-shortid"
@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func New(name string, service string, from string, args ...interface{}) *types.Cmd {
+func New(name string, service *types.Service, from string, args ...interface{}) *types.Cmd {
 	// TO FIX
 	//id, _ := sid.Generate()
 	id := "id"
@@ -15,15 +15,18 @@ func New(name string, service string, from string, args ...interface{}) *types.C
 	status := "pending"
 	var tr *terr.Trace
 	var rvs []interface{}
+	var exec func(args ...interface{})
 	cmd := &types.Cmd{
 		id,
 		name,
 		date,
+		service,
 		args,
 		from,
 		status,
 		tr,
 		rvs,
+		exec,
 	}
 	return cmd
 }

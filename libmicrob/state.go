@@ -58,8 +58,8 @@ func initVerb() {
 	Verb.State = fsm.NewFSM(
 		"one",
 		fsm.Events{
-			{Name: "setZero", Src: []string{"zero", "one"}, Dst: "zero"},
-			{Name: "setOne", Src: []string{"zero", "one"}, Dst: "one"},
+			{Name: "setZero", Src: []string{"one"}, Dst: "zero"},
+			{Name: "setOne", Src: []string{"zero"}, Dst: "one"},
 		},
 		fsm.Callbacks{
 			"enter_state": func(e *fsm.Event) { Verb.Mutate(e) },

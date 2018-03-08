@@ -24,11 +24,13 @@ type Cmd struct {
 	Id           string
 	Name         string
 	Date         time.Time
+	Service      *Service
 	Args         []interface{}
 	From         string
 	Status       string
 	Trace        *terr.Trace
 	ReturnValues []interface{}
+	Exec         func(*Cmd) *Cmd
 }
 
 type Event struct {
