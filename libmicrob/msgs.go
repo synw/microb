@@ -53,6 +53,22 @@ func Ok(txt string, disp ...bool) {
 	}
 }
 
+func Timeout(txt string, disp ...bool) {
+	display := checkDisplay(disp)
+	if display == true {
+		msg := "[" + color.BoldRed("Timeout") + "] " + txt
+		fmt.Println(msg)
+	}
+}
+
+func Error(txt string, disp ...bool) {
+	display := checkDisplay(disp)
+	if display == true {
+		msg := "[" + color.BoldRed("Error") + "] " + txt
+		fmt.Println(msg)
+	}
+}
+
 func Debug(obj interface{}) {
 	msg := "[" + color.BoldRed("Debug") + "]"
 	fmt.Println(msg, obj)
@@ -70,6 +86,11 @@ func PrintEvent(event *types.Event, disp ...bool) {
 			fmt.Println(msg)
 		}
 	}
+}
+
+func Bold(txt string) string {
+	txt = color.BoldWhite(txt)
+	return txt
 }
 
 func checkDisplay(display []bool) bool {

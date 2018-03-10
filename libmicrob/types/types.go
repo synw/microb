@@ -28,9 +28,10 @@ type Cmd struct {
 	Args         []interface{}
 	From         string
 	Status       string
+	ErrMsg       string
 	Trace        *terr.Trace
 	ReturnValues []interface{}
-	Exec         func(*Cmd) *Cmd
+	Exec         interface{}
 }
 
 type Event struct {
