@@ -22,7 +22,8 @@ func main() {
 	}
 	m.Ok("State initialized")
 	// TODO : start services flag
-	services.Init(conf.Services, true)
+	srv, _ := services.Init(conf.Services, true)
+	m.Services = srv
 	m.Ready("Services are ready")
 	// connect on the commands channel
 	err := m.Cli.Subscribe(m.Server.CmdChanIn)

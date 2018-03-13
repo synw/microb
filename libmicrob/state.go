@@ -16,6 +16,7 @@ type VerbState struct {
 var Verb = VerbState{}
 var Server = &types.WsServer{}
 var Cli *centcom.Cli
+var Services map[string]*types.Service
 
 func Verbose() bool {
 	if Verb.State.Current() == "one" {

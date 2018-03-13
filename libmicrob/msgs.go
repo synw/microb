@@ -80,12 +80,12 @@ func PrintEvent(event *types.Event) {
 		} else if event.Class == "command_out" {
 			status := event.Cmd.Status
 			if status == "error" {
-				status = color.BoldRed("error")
+				status = color.BoldRed("Error")
 				if Verbose() {
 					fmt.Println("    |->", status, event.Cmd.Trace.Format())
 				}
 			} else if status == "success" {
-				status = color.Green("success")
+				status = color.Green("Success")
 				if Verbose() {
 					fmt.Println("    |->", status, event.Cmd.ReturnValues)
 				}
