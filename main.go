@@ -35,7 +35,7 @@ func main() {
 		events.State(msg)
 		for msg := range m.Cli.Channels {
 			if msg.Channel == m.Server.CmdChanIn {
-				m.Debug(msg.Payload.(map[string]interface{}))
+				//m.Debug(msg.Payload.(map[string]interface{}))
 				cmd.Run(msg.Payload)
 			}
 		}

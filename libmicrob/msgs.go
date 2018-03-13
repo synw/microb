@@ -74,8 +74,24 @@ func PrintEvent(event *types.Event) {
 			State(event.Msg)
 		} else if event.Class == "status" {
 			Status(event.Msg)
+		} else if event.Class == "command_in" {
+			msg := " => " + color.Blue("Incoming command") + " " + event.Msg
+			fmt.Println(msg)
+		} else if event.Class == "command_out" {
+			status := event.Cmd.Status
+			if status == "error" {
+				status = color.BoldRed("error")
+				if Verbose() {
+					fmt.Println("    |->", status, event.Cmd.Trace.Format())
+				}
+			} else if status == "success" {
+				status = color.Green("success")
+				if Verbose() {
+					fmt.Println("    |->", status, event.Cmd.ReturnValues)
+				}
+			}
 		} else {
-			msg := "[" + color.Blue(event.Class) + "]" + event.Msg
+			msg := "[" + color.Blue(event.Class) + "] " + event.Msg
 			fmt.Println(msg)
 		}
 	}

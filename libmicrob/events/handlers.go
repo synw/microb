@@ -1,4 +1,4 @@
-package libmicrob
+package events
 
 import (
 	m "github.com/synw/microb/libmicrob"

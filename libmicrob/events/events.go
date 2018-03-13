@@ -1,8 +1,12 @@
-package libmicrob
+package events
 
 import (
+	"errors"
+	"fmt"
 	"github.com/SKAhack/go-shortid"
+	color "github.com/acmacalister/skittles"
 	"github.com/synw/microb/libmicrob/types"
+	"github.com/synw/microb/services"
 	"github.com/synw/terr"
 	"time"
 )
@@ -16,6 +20,35 @@ func State(mesg string) *types.Event {
 	return event
 }
 
+func CmdExec(cmd *types.Cmd) {
+	Cmd(cmd, true)
+}
+
+func Cmd(cmd *types.Cmd, out ...bool) {
+	msg := color.BoldWhite(cmd.Name) + " received " + fmt.Sprintf("%s", cmd.Date)
+	data := map[string]interface{}{
+		"args":         cmd.Args,
+		"returnValues": cmd.ReturnValues,
+	}
+	var err error
+	if cmd.ErrMsg != "" {
+		err = errors.New(cmd.ErrMsg)
+	}
+	args := make(map[string]interface{})
+	args["service"] = cmd.Service
+	args["from"] = cmd.From
+	args["msg"] = msg
+	args["err"] = err
+	args["data"] = data
+	args["cmd"] = cmd
+	if len(out) > 0 {
+		args["class"] = "command_out"
+	} else {
+		args["class"] = "command_in"
+	}
+	_ = new_(msg, args)
+}
+
 func new_(msg string, args ...map[string]interface{}) *types.Event {
 	class, service, cmd, trace, data := getEventArgs(args...)
 	date := time.Now()
@@ -27,9 +60,9 @@ func new_(msg string, args ...map[string]interface{}) *types.Event {
 
 func getEventArgs(args ...map[string]interface{}) (class string, service *types.Service, cmd *types.Cmd, trace *terr.Trace, data map[string]interface{}) {
 	eclass := "default"
-	eservice := &types.Service{}
-	ecmd := &types.Cmd{}
-	etrace := &terr.Trace{}
+	var eservice *types.Service
+	var ecmd *types.Cmd
+	var etrace *terr.Trace
 	edata := make(map[string]interface{})
 	if len(args) > 0 {
 		for _, arg := range args {
@@ -37,11 +70,12 @@ func getEventArgs(args ...map[string]interface{}) (class string, service *types.
 				if k == "class" {
 					eclass = v.(string)
 				} else if k == "service" {
-					eservice = v.(*types.Service)
-				} else if k == "command" {
-					ecmd = v.(*types.Cmd)
+					srv := v.(string)
+					eservice = services.GetService(srv)
 				} else if k == "trace" {
 					etrace = v.(*terr.Trace)
+				} else if k == "cmd" {
+					ecmd = v.(*types.Cmd)
 				} else if k == "data" {
 					edata = v.(map[string]interface{})
 				}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	m "github.com/synw/microb/libmicrob"
+	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/microb/services"
 	"github.com/synw/terr"
@@ -13,7 +14,7 @@ import (
 
 func Run(payload interface{}) {
 	cmd := ConvertPayload(payload)
-	//events.Cmd(cmd)
+	events.Cmd(cmd)
 	/*if isValid(cmd) == false {
 		fmt.Println("Invalid command", cmd)
 		return
@@ -22,7 +23,7 @@ func Run(payload interface{}) {
 	go services.Dispatch(cmd, c)
 	select {
 	case com := <-c:
-		//events.CmdExec(cmd)
+		events.CmdExec(cmd)
 		tr := sendCommand(com)
 		if tr != nil {
 			msg := "Error executing the " + cmd.Name + " command"
@@ -65,14 +66,14 @@ func ConvertPayload(payload interface{}) *types.Cmd {
 	return cmd
 }
 
-func sendCommand(command *types.Cmd) *terr.Trace {
-	if command.Trace != nil {
-		command.ErrMsg = command.Trace.Formatc()
-		command.Status = "error"
+func sendCommand(cmd *types.Cmd) *terr.Trace {
+	if cmd.Trace != nil {
+		cmd.ErrMsg = cmd.Trace.Formatc()
+		cmd.Status = "error"
 	} else {
-		command.Status = "success"
+		cmd.Status = "success"
 	}
-	payload, err := json.Marshal(command)
+	payload, err := json.Marshal(cmd)
 	if err != nil {
 		msg := "Unable to marshall json: " + err.Error()
 		err := errors.New(msg)
@@ -88,10 +89,10 @@ func sendCommand(command *types.Cmd) *terr.Trace {
 }
 
 /*
-func isValid(command *types.Command) bool {
+func isValid(cmd *types.Command) bool {
 	is_valid := false
 	for _, com := range ValidCommands {
-		if com == command.Name {
+		if com == cmd.Name {
 			is_valid = true
 			break
 		}
