@@ -24,7 +24,7 @@ type Cmd struct {
 	Id           string
 	Name         string
 	Date         time.Time
-	Service      *Service
+	Service      string
 	Args         []interface{}
 	From         string
 	Status       string

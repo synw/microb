@@ -5,6 +5,7 @@ import (
 	"fmt"
 	color "github.com/acmacalister/skittles"
 	m "github.com/synw/microb/libmicrob"
+	"github.com/synw/microb/libmicrob/cmd"
 	events "github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/services"
 )
@@ -34,8 +35,8 @@ func main() {
 		events.State(msg)
 		for msg := range m.Cli.Channels {
 			if msg.Channel == m.Server.CmdChanIn {
-				fmt.Println("PAYLOAD", msg.Payload.(map[string]interface{}))
-				//cmd.Run(msg.Payload, m.Cli, m.Server)
+				m.Debug(msg.Payload.(map[string]interface{}))
+				cmd.Run(msg.Payload)
 			}
 		}
 	}()

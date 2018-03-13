@@ -6,77 +6,70 @@ import (
 	"github.com/synw/microb/libmicrob/types"
 )
 
-func Warning(txt string, disp ...bool) {
-	display := checkDisplay(disp)
+func Warning(txt string) {
 	msg := "[" + color.Magenta("Warning") + "] " + txt
-	if display == true {
+	if checkDisplay() == true {
 		fmt.Println(msg)
 	}
 }
 
-func Status(txt string, disp ...bool) {
-	display := checkDisplay(disp)
-	if display == true {
+func Status(txt string) {
+	if checkDisplay() == true {
 		msg := "[" + color.Blue("Status") + "] " + txt
 		fmt.Println(msg)
 	}
 }
 
-func State(txt string, disp ...bool) {
-	display := checkDisplay(disp)
-	if display == true {
+func State(txt string) {
+	if checkDisplay() == true {
 		msg := "[" + color.Yellow("State") + "] " + txt
 		fmt.Println(msg)
 	}
 }
 
-func Ready(txt string, disp ...bool) {
-	display := checkDisplay(disp)
-	if display == true {
+func Ready(txt string) {
+	if checkDisplay() == true {
 		msg := "[" + color.Green("Ready") + "] " + txt
 		fmt.Println(msg)
 	}
 }
 
-func Msg(txt string, disp ...bool) {
-	display := checkDisplay(disp)
-	if display == true {
+func Msg(txt string) {
+	if checkDisplay() == true {
 		fmt.Println(txt)
 	}
 }
 
-func Ok(txt string, disp ...bool) {
-	display := checkDisplay(disp)
-	if display == true {
+func Ok(txt string) {
+	if checkDisplay() == true {
 		msg := "[" + color.Green("Ok") + "] " + txt
 		fmt.Println(msg)
 	}
 }
 
-func Timeout(txt string, disp ...bool) {
-	display := checkDisplay(disp)
-	if display == true {
+func Timeout(txt string) {
+	if checkDisplay() == true {
 		msg := "[" + color.BoldRed("Timeout") + "] " + txt
 		fmt.Println(msg)
 	}
 }
 
-func Error(txt string, disp ...bool) {
-	display := checkDisplay(disp)
-	if display == true {
+func Error(txt string) {
+	if checkDisplay() == true {
 		msg := "[" + color.BoldRed("Error") + "] " + txt
 		fmt.Println(msg)
 	}
 }
 
-func Debug(obj interface{}) {
-	msg := "[" + color.BoldRed("Debug") + "]"
-	fmt.Println(msg, obj)
+func Debug(obj ...interface{}) {
+	for i, el := range obj {
+		msg := "[" + color.BoldRed("Debug") + "]"
+		fmt.Println(msg, i, el)
+	}
 }
 
-func PrintEvent(event *types.Event, disp ...bool) {
-	display := checkDisplay(disp)
-	if display == true {
+func PrintEvent(event *types.Event) {
+	if checkDisplay() == true {
 		if event.Class == "state" {
 			State(event.Msg)
 		} else if event.Class == "status" {
@@ -93,15 +86,9 @@ func Bold(txt string) string {
 	return txt
 }
 
-func checkDisplay(display []bool) bool {
-	if len(display) > 0 {
-		// To be able to use these functions in the client
-		// without relying on the current Microb instance's state
+func checkDisplay() bool {
+	if Verbose() == true {
 		return true
-	} else {
-		if Verbose() == true {
-			return true
-		}
 	}
 	return false
 }

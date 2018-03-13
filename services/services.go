@@ -19,3 +19,9 @@ func Init(servs []string, start bool) (map[string]*types.Service, *terr.Trace) {
 	}
 	return srv, nil
 }
+
+func Dispatch(cmd *types.Cmd, c chan *types.Cmd) {
+	serv := GetService(cmd.Service)
+	com := serv.Dispatch(cmd)
+	c <- com
+}

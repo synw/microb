@@ -1,4 +1,4 @@
-package info
+package infos
 
 import (
 	"github.com/synw/microb/libmicrob/types"
@@ -6,7 +6,7 @@ import (
 )
 
 var Service *types.Service = &types.Service{
-	"info",
+	"infos",
 	[]string{"ping"},
 	ini,
 	dispatch,
