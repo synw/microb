@@ -1,4 +1,4 @@
-package cmd
+package cmds
 
 import (
 	//sid "github.com/SKAhack/go-shortid"
@@ -14,6 +14,7 @@ import (
 
 func Run(payload interface{}) {
 	cmd := ConvertPayload(payload)
+	cmd.Exec = services.GetService(cmd.Service).Cmds[cmd.Name].Exec
 	events.Cmd(cmd)
 	/*if isValid(cmd) == false {
 		fmt.Println("Invalid command", cmd)
@@ -24,10 +25,13 @@ func Run(payload interface{}) {
 	select {
 	case com := <-c:
 		events.CmdExec(cmd)
+		// set to interface to be able to marshall json
+		com.Exec = nil
 		tr := sendCommand(com)
 		if tr != nil {
 			msg := "Error executing the " + cmd.Name + " command"
 			//events.Err(cmd.Service, cmd.From, msg, tr.ToErr())
+			tr.Print()
 			m.Error(msg)
 		}
 		close(c)
@@ -62,6 +66,7 @@ func ConvertPayload(payload interface{}) *types.Cmd {
 	if pl["ReturnValues"] != nil {
 		cmd.ReturnValues = pl["ReturnValues"].([]interface{})
 	}
+
 	cmd.Status = status
 	return cmd
 }

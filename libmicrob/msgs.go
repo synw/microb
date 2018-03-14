@@ -29,7 +29,7 @@ func State(txt string) {
 
 func Ready(txt string) {
 	if checkDisplay() == true {
-		msg := "[" + color.Green("Ready") + "] " + txt
+		msg := "[" + color.BoldGreen("Ready") + "] " + txt
 		fmt.Println(msg)
 	}
 }

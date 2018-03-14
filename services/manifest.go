@@ -2,8 +2,8 @@ package services
 
 import (
 	//http "github.com/synw/microb-http/manifest"
+	infos "github.com/synw/microb-infos/manifest"
 	"github.com/synw/microb/libmicrob/types"
-	"github.com/synw/microb/services/infos"
 )
 
 var services = map[string]*types.Service{

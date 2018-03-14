@@ -17,6 +17,7 @@ var Verb = VerbState{}
 var Server = &types.WsServer{}
 var Cli *centcom.Cli
 var Services map[string]*types.Service
+var ValidCmds map[string]*types.Cmd
 
 func Verbose() bool {
 	if Verb.State.Current() == "one" {
@@ -52,6 +53,7 @@ func Init(verb int, dev bool) (*types.Conf, *terr.Trace) {
 		tr = terr.Pass("Init", tr)
 		return config, tr
 	}
+
 	return config, nil
 }
 

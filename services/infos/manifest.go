@@ -7,7 +7,7 @@ import (
 
 var Service *types.Service = &types.Service{
 	"infos",
-	[]string{"ping"},
+	[]string{"use", "using", "ping", "services"},
 	ini,
 	dispatch,
 }

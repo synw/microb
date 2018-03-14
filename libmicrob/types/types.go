@@ -14,10 +14,10 @@ type WsServer struct {
 }
 
 type Service struct {
-	Name     string
-	Cmds     []string
-	Init     func(bool, int, bool) *terr.Trace
-	Dispatch func(*Cmd) *Cmd
+	Name string
+	Cmds map[string]*Cmd
+	Init func(bool) *terr.Trace
+	//Dispatch func(*Cmd) *Cmd
 }
 
 type Cmd struct {
@@ -32,6 +32,8 @@ type Cmd struct {
 	Trace        *terr.Trace
 	ReturnValues []interface{}
 	Exec         interface{}
+	ExecCli      interface{}
+	ExecAfter    interface{}
 }
 
 type Event struct {
