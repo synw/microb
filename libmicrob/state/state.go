@@ -3,53 +3,51 @@ package state
 import (
 	"fmt"
 	color "github.com/acmacalister/skittles"
-	"github.com/looplab/fsm"
 	"github.com/synw/centcom"
-	"github.com/synw/microb/libmicrob/conf"
+	config "github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/msgs"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/microb/services"
 	"github.com/synw/terr"
 )
 
-type VerbState struct {
-	State *fsm.FSM
-}
-
-var Verb = VerbState{}
-var Server = &types.WsServer{}
-var Cli *centcom.Cli
-var Services map[string]*types.Service
-var ValidCmds map[string]*types.Cmd
-var Conf *types.Conf
-
-func Init() *terr.Trace {
+func Init() (*types.State, *terr.Trace) {
+	state := &types.State{}
 	fmt.Println("Starting Microb instance ...")
 	// get config
-	Conf, tr := conf.GetConf()
+	//var tr *terr.Trace
+	conf, tr := config.GetConf()
+	state.Conf = conf
 	if tr != nil {
 		tr = terr.Pass("Init", tr)
-		return tr
+		return state, tr
 	}
 	// get server
-	Server, tr = conf.GetServer(Conf)
+	state.WsServer, tr = config.GetServer(state.Conf)
 	if tr != nil {
 		tr = terr.Pass("Init", tr)
-		return tr
+		return state, tr
 	}
-	Cli, tr = initWsCli()
+	state.Cli, tr = initWsCli(state)
 	if tr != nil {
 		tr = terr.Pass("Init", tr)
-		return tr
+		return state, tr
 	}
 	// get services
-	Services, tr = getServices(Conf.Services)
+	state.Services, tr = getServices(state.Conf.Services)
 	if tr != nil {
 		tr = terr.Pass("Init", tr)
-		return tr
+		return state, tr
 	}
 	msgs.Ready("Services are ready")
-	return nil
+	// get commands
+	state.Cmds = make(map[string]*types.Cmd)
+	for _, srv := range state.Services {
+		for cname, cmd := range srv.Cmds {
+			state.Cmds[cname] = cmd
+		}
+	}
+	return state, nil
 }
 
 func getServices(servs []string) (map[string]*types.Service, *terr.Trace) {
@@ -67,8 +65,8 @@ func getServices(servs []string) (map[string]*types.Service, *terr.Trace) {
 	return srvs, nil
 }
 
-func initWsCli() (*centcom.Cli, *terr.Trace) {
-	cli := centcom.NewClient(Server.Addr, Server.Key)
+func initWsCli(state *types.State) (*centcom.Cli, *terr.Trace) {
+	cli := centcom.NewClient(state.WsServer.Addr, state.WsServer.Key)
 	err := centcom.Connect(cli)
 	if err != nil {
 		trace := terr.New("initWsCli", err)

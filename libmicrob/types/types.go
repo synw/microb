@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/synw/centcom"
 	"github.com/synw/terr"
 	"time"
 )
@@ -18,6 +19,14 @@ type Service struct {
 	Cmds map[string]*Cmd
 	//Init func(bool) (*Service, error)
 	//Dispatch func(*Cmd) *Cmd
+}
+
+type State struct {
+	WsServer *WsServer
+	Cli      *centcom.Cli
+	Services map[string]*Service
+	Cmds     map[string]*Cmd
+	Conf     *Conf
 }
 
 type Cmd struct {
@@ -41,7 +50,7 @@ type Event struct {
 	Class   string
 	Date    time.Time
 	Msg     string
-	Service *Service
+	Service string
 	Cmd     *Cmd
 	Trace   *terr.Trace
 	Data    map[string]interface{}

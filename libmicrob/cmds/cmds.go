@@ -5,29 +5,29 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/synw/microb/libmicrob/events"
-	"github.com/synw/microb/libmicrob/state"
+	"github.com/synw/microb/libmicrob/msgs"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
 	//"time"
 )
 
-func Run(payload interface{}) {
+func Run(payload interface{}, state *types.State) {
 	cmd := ConvertPayload(payload)
 	//cmd.Exec = services.GetService(cmd.Service).Cmds[cmd.Name].Exec
-	cmd.Exec = state.Services[cmd.Service].Cmds[cmd.Name].Exec
+	exec := state.Cmds[cmd.Name].Exec.(func(*types.Cmd, chan *types.Cmd, *types.State))
 	events.Cmd(cmd)
-	/*if isValid(cmd) == false {
-		fmt.Println("Invalid command", cmd)
+	if isValid(cmd, state) == false {
+		msgs.Error("Invalid command " + cmd.Name)
 		return
 	}
 	c := make(chan *types.Cmd)
-	go services.Dispatch(cmd, c)
+	go exec(cmd, c, state)
 	select {
 	case com := <-c:
 		events.CmdExec(cmd)
 		// set to interface to be able to marshall json
 		com.Exec = nil
-		tr := sendCommand(com)
+		tr := sendCommand(com, state)
 		if tr != nil {
 			msg := "Error executing the " + cmd.Name + " command"
 			//events.Err(cmd.Service, cmd.From, msg, tr.ToErr())
@@ -35,7 +35,7 @@ func Run(payload interface{}) {
 			msgs.Error(msg)
 		}
 		close(c)
-	}*/
+	}
 }
 
 func ConvertPayload(payload interface{}) *types.Cmd {
@@ -71,7 +71,7 @@ func ConvertPayload(payload interface{}) *types.Cmd {
 	return cmd
 }
 
-func sendCommand(cmd *types.Cmd) *terr.Trace {
+func sendCommand(cmd *types.Cmd, state *types.State) *terr.Trace {
 	if cmd.Trace != nil {
 		cmd.ErrMsg = cmd.Trace.Formatc()
 		cmd.Status = "error"
@@ -85,7 +85,7 @@ func sendCommand(cmd *types.Cmd) *terr.Trace {
 		trace := terr.New("commands.SendCommand", err)
 		return trace
 	}
-	_, err = state.Cli.Http.Publish(state.Server.CmdChanOut, payload)
+	_, err = state.Cli.Http.Publish(state.WsServer.CmdChanOut, payload)
 	if err != nil {
 		trace := terr.New("commands.SendCommand", err)
 		return trace
@@ -93,17 +93,18 @@ func sendCommand(cmd *types.Cmd) *terr.Trace {
 	return nil
 }
 
-/*
-func isValid(cmd *types.Command) bool {
+func isValid(cmd *types.Cmd, state *types.State) bool {
 	is_valid := false
-	for _, com := range ValidCommands {
-		if com == cmd.Name {
+	for cname, _ := range state.Cmds {
+		if cname == cmd.Name {
 			is_valid = true
 			break
 		}
 	}
 	return is_valid
 }
+
+/*
 
 func getAllValidCommands() []string {
 	vc := []string{}

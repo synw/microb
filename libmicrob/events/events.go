@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/SKAhack/go-shortid"
 	color "github.com/acmacalister/skittles"
-	"github.com/synw/microb/libmicrob/state"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
 	"time"
@@ -58,9 +57,9 @@ func new_(msg string, args ...map[string]interface{}) *types.Event {
 	return event
 }
 
-func getEventArgs(args ...map[string]interface{}) (class string, service *types.Service, cmd *types.Cmd, trace *terr.Trace, data map[string]interface{}) {
+func getEventArgs(args ...map[string]interface{}) (string, string, *types.Cmd, *terr.Trace, map[string]interface{}) {
 	eclass := "default"
-	var eservice *types.Service
+	var eservice string
 	var ecmd *types.Cmd
 	var etrace *terr.Trace
 	edata := make(map[string]interface{})
@@ -70,8 +69,7 @@ func getEventArgs(args ...map[string]interface{}) (class string, service *types.
 				if k == "class" {
 					eclass = v.(string)
 				} else if k == "service" {
-					srv := v.(string)
-					eservice = state.Services[srv]
+					eservice = v.(string)
 				} else if k == "trace" {
 					etrace = v.(*terr.Trace)
 				} else if k == "cmd" {

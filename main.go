@@ -11,25 +11,25 @@ import (
 
 func main() {
 	flag.Parse()
-	tr := state.Init()
+	state, tr := state.Init()
 	if tr != nil {
 		tr.Print()
 		return
 	}
 	msgs.Ok("State initialized")
 	// connect on the commands channel
-	err := state.Cli.Subscribe(state.Server.CmdChanIn)
+	err := state.Cli.Subscribe(state.WsServer.CmdChanIn)
 	if err != nil {
 		fmt.Println(err)
 	}
 	// listen
 	go func() {
-		msg := "listening for commands at " + state.Cli.Addr + ":" + " on channel " + state.Server.CmdChanIn + " ..."
+		msg := "listening for commands at " + state.Cli.Addr + ":" + " on channel " + state.WsServer.CmdChanIn + " ..."
 		events.State(msg)
 		for msg := range state.Cli.Channels {
-			if msg.Channel == state.Server.CmdChanIn {
-				//m.Debug(msg.Payload.(map[string]interface{}))
-				cmds.Run(msg.Payload)
+			if msg.Channel == state.WsServer.CmdChanIn {
+				//msgs.Debug(msg.Payload.(map[string]interface{}))
+				cmds.Run(msg.Payload, state)
 			}
 		}
 	}()
