@@ -16,7 +16,7 @@ type WsServer struct {
 type Service struct {
 	Name string
 	Cmds map[string]*Cmd
-	Init func(bool) *terr.Trace
+	//Init func(bool) (*Service, error)
 	//Dispatch func(*Cmd) *Cmd
 }
 

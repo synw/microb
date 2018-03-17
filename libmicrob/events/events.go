@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/SKAhack/go-shortid"
 	color "github.com/acmacalister/skittles"
+	"github.com/synw/microb/libmicrob/state"
 	"github.com/synw/microb/libmicrob/types"
-	"github.com/synw/microb/services"
 	"github.com/synw/terr"
 	"time"
 )
@@ -71,7 +71,7 @@ func getEventArgs(args ...map[string]interface{}) (class string, service *types.
 					eclass = v.(string)
 				} else if k == "service" {
 					srv := v.(string)
-					eservice = services.GetService(srv)
+					eservice = state.Services[srv]
 				} else if k == "trace" {
 					etrace = v.(*terr.Trace)
 				} else if k == "cmd" {

@@ -6,7 +6,7 @@ import (
 	"github.com/synw/microb/libmicrob/types"
 )
 
-var services = map[string]*types.Service{
+var Services = map[string]*types.Service{
 	"infos": infos.Service,
 	//"http": http.Service,
 }

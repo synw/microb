@@ -1,74 +1,43 @@
 package services
 
 import (
-	"errors"
-	"fmt"
 	color "github.com/acmacalister/skittles"
-	"github.com/synw/microb/libmicrob/events"
+	"github.com/synw/microb/libmicrob/msgs"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
 )
 
-var ValidCommands []string
-var isDev = false
-
-func GetService(name string) *types.Service {
-	s := All
-	if isDev == true {
-		s = AllDev
-	}
-	serv := s[name]
-	return serv
-}
-
-func InitServices(dev bool, verbosity int, servs []string, start bool) (map[string]*types.Service, []*terr.Trace) {
-	if verbosity > 0 {
-		fmt.Println("Initializing services ...")
-	}
-	services := make(map[string]*types.Service)
-	var trs []*terr.Trace
+func Get(servs []string) (map[string]*types.Service, *terr.Trace) {
+	srvs := make(map[string]*types.Service)
+	manSrvs := services
 	for _, name := range servs {
-		if verbosity > 2 {
-			fmt.Println("Initializing service", name)
+		for k, v := range manSrvs {
+			if k == name {
+				srvs[k] = v
+				msgs.Status("Initializing " + color.BoldWhite(v.Name) + " service")
+				break
+			}
 		}
-		service := GetService(name)
-		tr := service.Init(dev, verbosity, start)
-		if tr != nil {
-			tr = terr.Add("initServices", errors.New("Unable to initialize "+name+" service"))
-			msg := tr.Formatc()
-			events.Err(name, "services.InitServices", msg, tr.ToErr())
-			trs = append(trs, tr)
-		} else {
-			msg := color.BoldWhite(name) + " service initialized"
-			events.State(name, "services.Init", msg, nil)
-		}
-		services[name] = service
-		ValidCommands = append(ValidCommands, service.Cmds...)
 	}
-	return services, trs
+	return srvs, nil
 }
 
-func Dispatch(cmd *types.Command, c chan *types.Command) {
-	service := GetService(cmd.Service)
-	com := service.Dispatch(cmd)
+/*
+func GetService(name string) *types.Service {
+	return services[name]
+}
+
+func Init(servs []string, start bool) (map[string]*types.Service, *terr.Trace) {
+	srv := make(map[string]*types.Service)
+	for _, name := range servs {
+		srv := GetService(name)
+		//srv.Init(m.Verbose())
+		m.Status("Initializing " + color.BoldWhite(srv.Name) + " service")
+	}
+	return srv, nil
+}
+
+func Dispatch(cmd *types.Cmd, c chan *types.Cmd) {
+	com := cmd.Exec.(func(*types.Cmd) *types.Cmd)(cmd)
 	c <- com
-}
-
-// used by cli
-func getAllValidCommands() []string {
-	vc := []string{}
-	for _, s := range All {
-		vc = append(vc, All[s.Name].Cmds...)
-	}
-	return vc
-}
-
-func CmdIsValid(cmd *types.Command) bool {
-	name := cmd.Name
-	for _, c := range getAllValidCommands() {
-		if c == name {
-			return true
-		}
-	}
-	return false
-}
+}*/

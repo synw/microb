@@ -4,22 +4,22 @@ import (
 	//sid "github.com/SKAhack/go-shortid"
 	"encoding/json"
 	"errors"
-	m "github.com/synw/microb/libmicrob"
 	"github.com/synw/microb/libmicrob/events"
+	"github.com/synw/microb/libmicrob/state"
 	"github.com/synw/microb/libmicrob/types"
-	"github.com/synw/microb/services"
 	"github.com/synw/terr"
 	//"time"
 )
 
 func Run(payload interface{}) {
 	cmd := ConvertPayload(payload)
-	cmd.Exec = services.GetService(cmd.Service).Cmds[cmd.Name].Exec
+	//cmd.Exec = services.GetService(cmd.Service).Cmds[cmd.Name].Exec
+	cmd.Exec = state.Services[cmd.Service].Cmds[cmd.Name].Exec
 	events.Cmd(cmd)
 	/*if isValid(cmd) == false {
 		fmt.Println("Invalid command", cmd)
 		return
-	}*/
+	}
 	c := make(chan *types.Cmd)
 	go services.Dispatch(cmd, c)
 	select {
@@ -32,10 +32,10 @@ func Run(payload interface{}) {
 			msg := "Error executing the " + cmd.Name + " command"
 			//events.Err(cmd.Service, cmd.From, msg, tr.ToErr())
 			tr.Print()
-			m.Error(msg)
+			msgs.Error(msg)
 		}
 		close(c)
-	}
+	}*/
 }
 
 func ConvertPayload(payload interface{}) *types.Cmd {
@@ -85,7 +85,7 @@ func sendCommand(cmd *types.Cmd) *terr.Trace {
 		trace := terr.New("commands.SendCommand", err)
 		return trace
 	}
-	_, err = m.Cli.Http.Publish(m.Server.CmdChanOut, payload)
+	_, err = state.Cli.Http.Publish(state.Server.CmdChanOut, payload)
 	if err != nil {
 		trace := terr.New("commands.SendCommand", err)
 		return trace
