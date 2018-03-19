@@ -54,10 +54,15 @@ func getServices(servs []string) (map[string]*types.Service, *terr.Trace) {
 	srvs := make(map[string]*types.Service)
 	manSrvs := services.Services
 	for _, name := range servs {
-		for k, v := range manSrvs {
+		for k, srv := range manSrvs {
 			if k == name {
-				srvs[k] = v
-				msgs.Status("Initializing " + color.BoldWhite(v.Name) + " service")
+				srvs[k] = srv
+				msgs.Status("Initializing " + color.BoldWhite(srv.Name) + " service")
+				err := srv.Init()
+				if err != nil {
+					tr := terr.New("state.getServices", err)
+					return srvs, tr
+				}
 				break
 			}
 		}

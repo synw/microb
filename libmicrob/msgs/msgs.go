@@ -17,10 +17,8 @@ func Status(txt string) {
 }
 
 func State(txt string) {
-
 	msg := "[" + color.Yellow("State") + "] " + txt
 	fmt.Println(msg)
-
 }
 
 func Ready(txt string) {

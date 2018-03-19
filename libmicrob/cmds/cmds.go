@@ -1,20 +1,20 @@
 package cmds
 
 import (
-	//sid "github.com/SKAhack/go-shortid"
 	"encoding/json"
 	"errors"
+	"github.com/SKAhack/go-shortid"
 	"github.com/synw/microb/libmicrob/events"
 	"github.com/synw/microb/libmicrob/msgs"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
-	//"time"
 )
+
+var g = shortid.Generator()
 
 func Run(payload interface{}, state *types.State) {
 	cmd := ConvertPayload(payload)
-	//cmd.Exec = services.GetService(cmd.Service).Cmds[cmd.Name].Exec
-	exec := state.Cmds[cmd.Name].Exec.(func(*types.Cmd, chan *types.Cmd, *types.State))
+	exec := state.Cmds[cmd.Name].Exec.(func(*types.Cmd, chan *types.Cmd, ...interface{}))
 	events.Cmd(cmd)
 	if isValid(cmd, state) == false {
 		msgs.Error("Invalid command " + cmd.Name)
@@ -38,6 +38,18 @@ func Run(payload interface{}, state *types.State) {
 	}
 }
 
+/*
+func getService(cmd *types.Cmd, state *types.State) *types.Service {
+	var srv *types.Service
+	for sname, serv := range state.Services {
+		if sname == cmd.Name {
+			srv := serv
+			return srv, nil
+		}
+	}
+	return nil
+}*/
+
 func ConvertPayload(payload interface{}) *types.Cmd {
 	pl := payload.(map[string]interface{})
 	status := pl["Status"].(string)
@@ -49,6 +61,7 @@ func ConvertPayload(payload interface{}) *types.Cmd {
 		args = pl["Args"].([]interface{})
 	}
 	cmd := &types.Cmd{
+		Id:      g.Generate(),
 		Name:    name,
 		From:    from,
 		Args:    args,
@@ -103,24 +116,3 @@ func isValid(cmd *types.Cmd, state *types.State) bool {
 	}
 	return is_valid
 }
-
-/*
-
-func getAllValidCommands() []string {
-	vc := []string{}
-	for _, s := range All {
-		vc = append(vc, All[s.Name].Cmds...)
-	}
-	return vc
-}
-
-func CmdIsValid(cmd *types.Command) bool {
-	name := cmd.Name
-	for _, c := range getAllValidCommands() {
-		if c == name {
-			return true
-		}
-	}
-	return false
-}
-*/
