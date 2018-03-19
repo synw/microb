@@ -3,5 +3,5 @@
 	"centrifugo_key":"secret_key",
 	"verbosity": 3,
 	"name": "localhost",
-	"services": ["infos"]
+	"services": ["infos", "http"]
 }
