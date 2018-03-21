@@ -12,14 +12,50 @@ import (
 
 var g = shortid.Generator()
 
+func checkServiceCmd(cmd *types.Cmd, state *types.State) (*types.Cmd, bool) {
+	isValid := false
+	for _, srv := range state.Services {
+		if srv.Name == cmd.Name {
+			cmd.Service = cmd.Name
+			cmd.Name = cmd.Args[0].(string)
+			if len(cmd.Args) > 1 {
+				cmd.Args = cmd.Args[1:]
+			}
+			isValid = true
+			break
+		}
+	}
+	return cmd, isValid
+}
+
+func getCmd(cmd *types.Cmd, state *types.State) (*types.Cmd, bool) {
+	for sname, srv := range state.Services {
+		if sname == cmd.Service {
+			for cname, scmd := range srv.Cmds {
+				if cname == cmd.Name {
+					cmd.Exec = scmd.Exec
+					return cmd, true
+				}
+			}
+		}
+	}
+	return cmd, false
+}
+
 func Run(payload interface{}, state *types.State) {
 	cmd := ConvertPayload(payload)
-	exec := state.Cmds[cmd.Name].Exec.(func(*types.Cmd, chan *types.Cmd, ...interface{}))
-	events.Cmd(cmd)
-	if isValid(cmd, state) == false {
+	msgs.Debug("111", cmd.Args, cmd.Name, cmd.Service)
+
+	cmd, isValid := getCmd(cmd, state)
+	if isValid == false {
 		msgs.Error("Invalid command " + cmd.Name)
 		return
 	}
+	msgs.Debug("222", cmd.Args, cmd.Service)
+
+	exec := state.Cmds[cmd.Name].Exec.(func(*types.Cmd, chan *types.Cmd, ...interface{}))
+	events.Cmd(cmd)
+
 	c := make(chan *types.Cmd)
 	go exec(cmd, c, state)
 	select {
@@ -37,18 +73,6 @@ func Run(payload interface{}, state *types.State) {
 		close(c)
 	}
 }
-
-/*
-func getService(cmd *types.Cmd, state *types.State) *types.Service {
-	var srv *types.Service
-	for sname, serv := range state.Services {
-		if sname == cmd.Name {
-			srv := serv
-			return srv, nil
-		}
-	}
-	return nil
-}*/
 
 func ConvertPayload(payload interface{}) *types.Cmd {
 	pl := payload.(map[string]interface{})
@@ -79,7 +103,6 @@ func ConvertPayload(payload interface{}) *types.Cmd {
 	if pl["ReturnValues"] != nil {
 		cmd.ReturnValues = pl["ReturnValues"].([]interface{})
 	}
-
 	cmd.Status = status
 	return cmd
 }
@@ -104,15 +127,4 @@ func sendCommand(cmd *types.Cmd, state *types.State) *terr.Trace {
 		return trace
 	}
 	return nil
-}
-
-func isValid(cmd *types.Cmd, state *types.State) bool {
-	is_valid := false
-	for cname, _ := range state.Cmds {
-		if cname == cmd.Name {
-			is_valid = true
-			break
-		}
-	}
-	return is_valid
 }

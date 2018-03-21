@@ -9,9 +9,12 @@ import (
 	"github.com/synw/microb/libmicrob/state"
 )
 
+var dev = flag.Bool("d", false, "Dev mode")
+var start = flag.Bool("s", false, "Start the services")
+
 func main() {
 	flag.Parse()
-	state, tr := state.Init()
+	state, tr := state.Init(*dev, *start)
 	if tr != nil {
 		tr.Print()
 		return

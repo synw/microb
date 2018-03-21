@@ -17,7 +17,7 @@ type WsServer struct {
 type Service struct {
 	Name string
 	Cmds map[string]*Cmd
-	Init func() error
+	Init func(bool, bool) error
 }
 
 type State struct {

@@ -13,7 +13,7 @@ func getCmds() map[string]*types.Cmd {
 	return cmds
 }
 
-func initService() error {
+func initService(dev bool, start bool) error {
 	return nil
 }
 
@@ -39,7 +39,7 @@ func runCmds(cmd *types.Cmd, c chan *types.Cmd, args ...interface{}) {
 	for _, service := range state.Services {
 		cmds = append(cmds, "# "+msgs.Bold(service.Name)+" service:")
 		for _, cmd := range service.Cmds {
-			cmds = append(cmds, "    - "+cmd.Name)
+			cmds = append(cmds, "  - "+cmd.Name)
 		}
 	}
 	var rvs []interface{}

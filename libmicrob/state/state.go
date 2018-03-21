@@ -1,7 +1,6 @@
 package state
 
 import (
-	"fmt"
 	color "github.com/acmacalister/skittles"
 	"github.com/synw/centcom"
 	config "github.com/synw/microb/libmicrob/conf"
@@ -11,9 +10,9 @@ import (
 	"github.com/synw/terr"
 )
 
-func Init() (*types.State, *terr.Trace) {
+func Init(dev bool, start bool) (*types.State, *terr.Trace) {
 	state := &types.State{}
-	fmt.Println("Starting Microb instance ...")
+	msgs.Msg("Starting Microb instance ...")
 	// get config
 	//var tr *terr.Trace
 	conf, tr := config.GetConf()
@@ -34,7 +33,7 @@ func Init() (*types.State, *terr.Trace) {
 		return state, tr
 	}
 	// get services
-	state.Services, tr = getServices(state.Conf.Services)
+	state.Services, tr = getServices(state.Conf.Services, dev, start)
 	if tr != nil {
 		tr = terr.Pass("Init", tr)
 		return state, tr
@@ -50,7 +49,7 @@ func Init() (*types.State, *terr.Trace) {
 	return state, nil
 }
 
-func getServices(servs []string) (map[string]*types.Service, *terr.Trace) {
+func getServices(servs []string, dev bool, start bool) (map[string]*types.Service, *terr.Trace) {
 	srvs := make(map[string]*types.Service)
 	manSrvs := services.Services
 	for _, name := range servs {
@@ -58,7 +57,7 @@ func getServices(servs []string) (map[string]*types.Service, *terr.Trace) {
 			if k == name {
 				srvs[k] = srv
 				msgs.Status("Initializing " + color.BoldWhite(srv.Name) + " service")
-				err := srv.Init()
+				err := srv.Init(dev, start)
 				if err != nil {
 					tr := terr.New("state.getServices", err)
 					return srvs, tr
