@@ -19,11 +19,16 @@ func Run(payload interface{}, state *types.State) {
 		msgs.Error("Invalid command " + cmd.Name)
 		return
 	}
-	exec := state.Cmds[cmd.Name].Exec.(func(*types.Cmd, chan *types.Cmd, ...interface{}))
 	events.Cmd(cmd)
 	// execute the command
 	c := make(chan *types.Cmd)
-	go exec(cmd, c, state)
+	if cmd.Service == "infos" {
+		exec := state.Cmds[cmd.Name].Exec.(func(*types.Cmd, chan *types.Cmd, ...interface{}))
+		go exec(cmd, c, state)
+	} else {
+		exec := state.Cmds[cmd.Name].Exec.(func(*types.Cmd, chan *types.Cmd))
+		go exec(cmd, c)
+	}
 	select {
 	case com := <-c:
 		events.CmdExec(cmd)
