@@ -12,6 +12,75 @@ import (
 
 var g = shortid.Generator()
 
+func Run(payload interface{}, state *types.State) {
+	cmd := ConvertPayload(payload)
+	cmd, isValid := getCmd(cmd, state)
+	if isValid == false {
+		msgs.Error("Invalid command " + cmd.Name)
+		return
+	}
+	exec := state.Cmds[cmd.Name].Exec.(func(*types.Cmd, chan *types.Cmd, ...interface{}))
+	events.Cmd(cmd)
+	// execute the command
+	c := make(chan *types.Cmd)
+	go exec(cmd, c, state)
+	select {
+	case com := <-c:
+		events.CmdExec(cmd)
+		// set to interface to be able to marshall json
+		com.Exec = nil
+		tr := sendCommand(com, state)
+		if tr != nil {
+			msg := "Error executing the " + cmd.Name + " command"
+			//events.Err(cmd.Service, cmd.From, msg, tr.ToErr())
+			tr.Print()
+			msgs.Error(msg)
+		}
+		close(c)
+	}
+}
+
+func ConvertPayload(payload interface{}) *types.Cmd {
+	pl := payload.(map[string]interface{})
+	status := pl["Status"].(string)
+	name := pl["Name"].(string)
+	serv := pl["Service"].(string)
+	from := pl["From"].(string)
+	errMsg := pl["ErrMsg"].(string)
+	var tr *terr.Trace
+	if errMsg != "" {
+		err := errors.New("Can not convert payload")
+		tr = terr.New("cmds.ConvertPayload", err)
+	}
+	var args []interface{}
+	if pl["Args"] != nil {
+		args = pl["Args"].([]interface{})
+	}
+	cmd := &types.Cmd{
+		Id:      g.Generate(),
+		Name:    name,
+		From:    from,
+		Args:    args,
+		Status:  status,
+		Service: serv,
+		ErrMsg:  errMsg,
+		Trace:   tr,
+	}
+	if args != nil {
+		cmd.Args = args
+	}
+	if pl["ErrMsg"].(string) != "" {
+		msg := pl["ErrMsg"].(string)
+		err := errors.New(msg)
+		cmd.Trace = terr.New("cmd.ConvertPayload", err)
+	}
+	if pl["ReturnValues"] != nil {
+		cmd.ReturnValues = pl["ReturnValues"].([]interface{})
+	}
+	cmd.Status = status
+	return cmd
+}
+
 func checkServiceCmd(cmd *types.Cmd, state *types.State) (*types.Cmd, bool) {
 	isValid := false
 	for _, srv := range state.Services {
@@ -40,71 +109,6 @@ func getCmd(cmd *types.Cmd, state *types.State) (*types.Cmd, bool) {
 		}
 	}
 	return cmd, false
-}
-
-func Run(payload interface{}, state *types.State) {
-	cmd := ConvertPayload(payload)
-	msgs.Debug("111", cmd.Args, cmd.Name, cmd.Service)
-
-	cmd, isValid := getCmd(cmd, state)
-	if isValid == false {
-		msgs.Error("Invalid command " + cmd.Name)
-		return
-	}
-	msgs.Debug("222", cmd.Args, cmd.Service)
-
-	exec := state.Cmds[cmd.Name].Exec.(func(*types.Cmd, chan *types.Cmd, ...interface{}))
-	events.Cmd(cmd)
-
-	c := make(chan *types.Cmd)
-	go exec(cmd, c, state)
-	select {
-	case com := <-c:
-		events.CmdExec(cmd)
-		// set to interface to be able to marshall json
-		com.Exec = nil
-		tr := sendCommand(com, state)
-		if tr != nil {
-			msg := "Error executing the " + cmd.Name + " command"
-			//events.Err(cmd.Service, cmd.From, msg, tr.ToErr())
-			tr.Print()
-			msgs.Error(msg)
-		}
-		close(c)
-	}
-}
-
-func ConvertPayload(payload interface{}) *types.Cmd {
-	pl := payload.(map[string]interface{})
-	status := pl["Status"].(string)
-	name := pl["Name"].(string)
-	serv := pl["Service"].(string)
-	from := pl["From"].(string)
-	var args []interface{}
-	if pl["Args"] != nil {
-		args = pl["Args"].([]interface{})
-	}
-	cmd := &types.Cmd{
-		Id:      g.Generate(),
-		Name:    name,
-		From:    from,
-		Args:    args,
-		Status:  status,
-		Service: serv,
-	}
-	if args != nil {
-		cmd.Args = args
-	}
-	if pl["ErrMsg"].(string) != "" {
-		msg := pl["ErrMsg"].(string)
-		err := errors.New(msg)
-		cmd.Trace = terr.New("cmd.CmdFromPayload", err)
-	}
-	if pl["ReturnValues"] != nil {
-		cmd.ReturnValues = pl["ReturnValues"].([]interface{})
-	}
-	cmd.Status = status
-	return cmd
 }
 
 func sendCommand(cmd *types.Cmd, state *types.State) *terr.Trace {

@@ -69,10 +69,10 @@ func PrintEvent(event *types.Event) {
 		status := event.Cmd.Status
 		if status == "error" {
 			status = color.BoldRed("Error")
-			fmt.Println("    |->", status, event.Cmd.Trace.Format())
+			fmt.Println("  |->", status, event.Cmd.Trace.Format())
 		} else if status == "success" {
 			status = color.Green("Success")
-			fmt.Println("    |->", status, event.Cmd.ReturnValues)
+			fmt.Println("  |->", status, event.Cmd.ReturnValues)
 		}
 	} else {
 		msg := "[" + color.Blue(event.Class) + "] " + event.Msg
