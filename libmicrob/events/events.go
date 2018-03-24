@@ -12,41 +12,22 @@ import (
 
 var g = shortid.Generator()
 
-func New(class string, service string, from string, msg string, err error, data ...map[string]interface{}) *types.Event {
-	dataset := make(map[string]interface{})
-	if len(data) > 0 {
-		dataset = data[0]
-	}
-	now := time.Now()
-	id := g.Generate()
-	var cmd *types.Cmd
-	event := &types.Event{id, class, now, msg, service, cmd, nil, dataset}
-	handle(event)
-	return event
-}
-
-func State(mesg string) *types.Event {
+func State(service string, mesg string) *types.Event {
 	args := make(map[string]interface{})
+	args["service"] = service
 	args["class"] = "state"
 	event := new_(mesg, args)
 	return event
 }
 
-func Err(service string, from string, msg string, err error, data ...map[string]interface{}) {
-	dataset := make(map[string]interface{})
-	if len(data) > 0 {
-		dataset = data[0]
-	}
-	_ = New("error", service, from, msg, err, dataset)
-}
-
-func Terr(service string, from string, msg string, tr *terr.Trace, data ...map[string]interface{}) {
-	dataset := make(map[string]interface{})
-	if len(data) > 0 {
-		dataset = data[0]
-	}
-	err := errors.New(tr.Formatc())
-	_ = New("error", service, from, msg, err, dataset)
+func Error(service string, mesg string, tr *terr.Trace) *types.Event {
+	args := make(map[string]interface{})
+	args["msg"] = mesg
+	args["service"] = service
+	args["class"] = "error"
+	args["trace"] = tr
+	event := new_(mesg, args)
+	return event
 }
 
 func CmdExec(cmd *types.Cmd) {

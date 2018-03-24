@@ -62,6 +62,8 @@ func PrintEvent(event *types.Event) {
 		State(event.Msg)
 	} else if event.Class == "status" {
 		Status(event.Msg)
+	} else if event.Class == "error" {
+		Error(event.Msg)
 	} else if event.Class == "command_in" {
 		msg := " => " + color.Blue("Incoming command") + " " + event.Msg
 		fmt.Println(msg)

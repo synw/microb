@@ -37,9 +37,7 @@ func Run(payload interface{}, state *types.State) {
 		tr := sendCommand(com, state)
 		if tr != nil {
 			msg := "Error executing the " + cmd.Name + " command"
-			//events.Err(cmd.Service, cmd.From, msg, tr.ToErr())
-			tr.Print()
-			msgs.Error(msg)
+			events.Error(cmd.Service, msg, tr)
 		}
 		close(c)
 	}
