@@ -20,12 +20,17 @@ func State(service string, mesg string) *types.Event {
 	return event
 }
 
-func Error(service string, mesg string, tr *terr.Trace) *types.Event {
+func Error(service string, mesg string, tr *terr.Trace, logLvls ...string) *types.Event {
 	args := make(map[string]interface{})
 	args["msg"] = mesg
 	args["service"] = service
 	args["class"] = "error"
 	args["trace"] = tr
+	logLvl := "error"
+	if len(logLvls) > 0 {
+		logLvl = logLvls[0]
+	}
+	args["logLvl"] = logLvl
 	event := new_(mesg, args)
 	return event
 }
@@ -60,19 +65,20 @@ func Cmd(cmd *types.Cmd, out ...bool) {
 }
 
 func new_(msg string, args ...map[string]interface{}) *types.Event {
-	class, service, cmd, trace, data := getEventArgs(args...)
+	class, service, cmd, trace, logLvl, data := getEventArgs(args...)
 	date := time.Now()
 	id := g.Generate()
-	event := &types.Event{id, class, date, msg, service, cmd, trace, data}
+	event := &types.Event{id, class, date, msg, service, cmd, trace, logLvl, data}
 	handle(event)
 	return event
 }
 
-func getEventArgs(args ...map[string]interface{}) (string, string, *types.Cmd, *terr.Trace, map[string]interface{}) {
+func getEventArgs(args ...map[string]interface{}) (string, string, *types.Cmd, *terr.Trace, string, map[string]interface{}) {
 	eclass := "default"
 	var eservice string
 	var ecmd *types.Cmd
 	var etrace *terr.Trace
+	logLvl := "default"
 	edata := make(map[string]interface{})
 	if len(args) > 0 {
 		for _, arg := range args {
@@ -87,9 +93,11 @@ func getEventArgs(args ...map[string]interface{}) (string, string, *types.Cmd, *
 					ecmd = v.(*types.Cmd)
 				} else if k == "data" {
 					edata = v.(map[string]interface{})
+				} else if k == "logLvl" {
+					logLvl = v.(string)
 				}
 			}
 		}
 	}
-	return eclass, eservice, ecmd, etrace, edata
+	return eclass, eservice, ecmd, etrace, logLvl, edata
 }

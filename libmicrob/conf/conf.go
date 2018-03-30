@@ -27,6 +27,8 @@ func GetConf() (*types.Conf, *terr.Trace) {
 	viper.SetDefault("debug", false)
 	viper.SetDefault("name", "localhost")
 	viper.SetDefault("services", []string{})
+	viper.SetDefault("redis_addr", ":6379")
+	viper.SetDefault("redis_db", 0)
 	// get the actual conf
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -50,6 +52,8 @@ func GetConf() (*types.Conf, *terr.Trace) {
 		viper.Get("centrifugo_key").(string),
 		viper.Get("name").(string),
 		services,
+		viper.Get("redis_addr").(string),
+		viper.Get("redis_db").(int),
 	}
 	return conf, nil
 }

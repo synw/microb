@@ -52,12 +52,15 @@ type Event struct {
 	Service string
 	Cmd     *Cmd
 	Trace   *terr.Trace
+	LogLvl  string
 	Data    map[string]interface{}
 }
 
 type Conf struct {
-	Addr     string
-	Key      string
-	Name     string
-	Services []string
+	Addr      string
+	Key       string
+	Name      string
+	Services  []string
+	RedisAddr string
+	RedisDb   int
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/synw/microb/libmicrob/msgs"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/microb/services"
+	"github.com/synw/microb/services/logs"
 	"github.com/synw/terr"
 )
 
@@ -32,6 +33,8 @@ func Init(dev bool, start bool) (*types.State, *terr.Trace) {
 		tr = terr.Pass("Init", tr)
 		return state, tr
 	}
+	// initialize logger
+	logs.Init(conf)
 	// get services
 	state.Services, tr = getServices(state.Conf.Services, dev, start)
 	if tr != nil {
