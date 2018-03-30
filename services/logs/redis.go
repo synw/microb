@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
+	"github.com/synw/microb/libmicrob/msgs"
+	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
 	"time"
 )
@@ -11,11 +13,14 @@ import (
 var pool *redis.Pool
 var host string
 var db int
+var hostname string
 
-func initRedis(redisAddr string, redisDb int) *terr.Trace {
-	host = redisAddr
-	db = redisDb
-	pool = newPool(redisAddr)
+func initRedis(conf *types.Conf) *terr.Trace {
+	msgs.Status("Initializing Redis connection")
+	host = conf.RedisAddr
+	db = conf.RedisDb
+	pool = newPool(conf.RedisAddr)
+	hostname = conf.Name
 	conn := getConn()
 	defer conn.Close()
 	_, err := conn.Do("PING")
@@ -50,15 +55,22 @@ func newPool(redisAddr string) *redis.Pool {
 	}
 }
 
-func getKeys(key string) ([]byte, error) {
+func getKeys(key string) ([]interface{}, error) {
 	conn := getConn()
 	defer conn.Close()
-	var data []byte
-	data, err := redis.Bytes(conn.Do("LRANGE", 0, -1))
+	var data interface{}
+	data, err := conn.Do("LRANGE", key, 0, -1)
+	var keys []interface{}
 	if err != nil {
-		return data, fmt.Errorf("error getting key %s: %v", key, err)
+		return keys, fmt.Errorf("error getting key %s: %v", key, err)
 	}
-	return data, err
+	// delete the list
+	_, err = conn.Do("DEL", key)
+	if err != nil {
+		return keys, errors.New("Can not delete key " + key)
+	}
+	keys = data.([]interface{})
+	return keys, err
 }
 
 func setKey(key string, value []byte) error {

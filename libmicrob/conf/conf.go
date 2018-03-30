@@ -5,7 +5,18 @@ import (
 	"github.com/spf13/viper"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
+	"os"
+	"path/filepath"
 )
+
+func getBasePath() string {
+	ex, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+	cp := filepath.Dir(ex)
+	return cp
+}
 
 func getComChan(name string) (string, string) {
 	comchan_in := "cmd:$" + name + "_in"
@@ -29,6 +40,8 @@ func GetConf() (*types.Conf, *terr.Trace) {
 	viper.SetDefault("services", []string{})
 	viper.SetDefault("redis_addr", ":6379")
 	viper.SetDefault("redis_db", 0)
+	dbpath := getBasePath() + "/logs.db"
+	viper.SetDefault("logsDbAddr", dbpath)
 	// get the actual conf
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -54,6 +67,7 @@ func GetConf() (*types.Conf, *terr.Trace) {
 		services,
 		viper.Get("redis_addr").(string),
 		viper.Get("redis_db").(int),
+		viper.Get("logsDbAddr").(string),
 	}
 	return conf, nil
 }

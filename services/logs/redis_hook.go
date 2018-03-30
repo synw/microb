@@ -2,11 +2,8 @@ package logs
 
 import (
 	"encoding/json"
-	//"github.com/SKAhack/go-shortid"
 	log "github.com/Sirupsen/logrus"
 )
-
-//var g = shortid.Generator()
 
 type RedisHook struct {
 	Host string
@@ -31,7 +28,7 @@ func (hook *RedisHook) Fire(entry *log.Entry) error {
 	d["event_class"] = "log"
 	data, _ := json.Marshal(d)
 	// send to Redis
-	key := "log"
+	key := "log_" + hostname
 	err := setKey(key, data)
 	if err != nil {
 		return err

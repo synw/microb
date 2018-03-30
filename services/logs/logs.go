@@ -21,11 +21,18 @@ var logger = logrus.New()
 func Init(conf *types.Conf) {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	// initialize Redis connection
-	tr := initRedis(conf.RedisAddr, conf.RedisDb)
+	tr := initRedis(conf)
 	if tr != nil {
 		tr.Fatal()
 	}
-	msgs.Ok("Redis connection is initialized")
+	// initialize the lgos database
+	tr = initDb(conf)
+	if tr != nil {
+		tr.Fatal()
+	}
+	// run the worker to process the logs
+	key := "log_" + conf.Name
+	go processLogs(key)
 	//hook := NewCentHook(cli, logChans)
 	hook := newRedisHook()
 	logger.Hooks.Add(hook)

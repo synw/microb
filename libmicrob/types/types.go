@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/jinzhu/gorm"
 	"github.com/synw/centcom"
 	"github.com/synw/terr"
 	"time"
@@ -56,11 +57,21 @@ type Event struct {
 	Data    map[string]interface{}
 }
 
+type Log struct {
+	gorm.Model
+	Date    time.Time
+	Service string
+	Level   string
+	Msg     string
+	Class   string
+}
+
 type Conf struct {
-	Addr      string
-	Key       string
-	Name      string
-	Services  []string
-	RedisAddr string
-	RedisDb   int
+	Addr       string
+	Key        string
+	Name       string
+	Services   []string
+	RedisAddr  string
+	RedisDb    int
+	LogsDbAddr string
 }
