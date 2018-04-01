@@ -29,7 +29,7 @@ func main() {
 	// listen
 	go func() {
 		msg := "listening for commands at " + state.Cli.Addr + ":" + " on channel " + state.WsServer.CmdChanIn + " ..."
-		events.State("Microb", msg)
+		events.State("microb", msg)
 		for msg := range state.Cli.Channels {
 			if msg.Channel == state.WsServer.CmdChanIn {
 				//msgs.Debug(msg.Payload.(map[string]interface{}))

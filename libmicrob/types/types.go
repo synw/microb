@@ -59,7 +59,7 @@ type Event struct {
 
 type Log struct {
 	gorm.Model
-	Date    time.Time
+	//CreatedAt time.Time
 	Service string
 	Level   string
 	Msg     string

@@ -4,6 +4,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/synw/microb/libmicrob/msgs"
 	"github.com/synw/microb/libmicrob/types"
+	"io/ioutil"
 	"time"
 )
 
@@ -37,7 +38,7 @@ func Init(conf *types.Conf) {
 	hook := newRedisHook()
 	logger.Hooks.Add(hook)
 	msgs.Ok("Logger initialized")
-	//logger.Out = ioutil.Discard
+	logger.Out = ioutil.Discard
 }
 
 func Event(event *types.Event) {

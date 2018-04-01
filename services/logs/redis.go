@@ -12,13 +12,13 @@ import (
 
 var pool *redis.Pool
 var host string
-var db int
+var redisDb int
 var hostname string
 
 func initRedis(conf *types.Conf) *terr.Trace {
 	msgs.Status("Initializing Redis connection")
 	host = conf.RedisAddr
-	db = conf.RedisDb
+	redisDb = conf.RedisDb
 	pool = newPool(conf.RedisAddr)
 	hostname = conf.Name
 	conn := getConn()
@@ -33,7 +33,7 @@ func initRedis(conf *types.Conf) *terr.Trace {
 
 func getConn() redis.Conn {
 	conn := pool.Get()
-	conn.Do("SELECT", db)
+	conn.Do("SELECT", redisDb)
 	return conn
 }
 

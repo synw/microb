@@ -27,5 +27,6 @@ func processLogs(key string) {
 			}
 			vals = append(vals, data)
 		}
+		saveToDb(vals)
 	}
 }
