@@ -5,6 +5,7 @@ import (
 	"github.com/synw/centcom"
 	config "github.com/synw/microb/libmicrob/conf"
 	"github.com/synw/microb/libmicrob/msgs"
+	"github.com/synw/microb/libmicrob/redis"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/microb/services"
 	"github.com/synw/microb/services/logs"
@@ -33,10 +34,15 @@ func Init(dev bool, start bool) (*types.State, *terr.Trace) {
 		tr = terr.Pass("Init", tr)
 		return state, tr
 	}
+	// initialize Redis connection
+	tr = redis.InitRedis(conf)
+	if tr != nil {
+		tr.Fatal()
+	}
 	// initialize logger
 	logs.Init(conf)
 	// get services
-	state.Services, tr = getServices(state.Conf.Services, dev, start)
+	state.Services, tr = initServices(state.Conf.Services, dev, start)
 	if tr != nil {
 		tr = terr.Pass("Init", tr)
 		return state, tr
@@ -52,7 +58,7 @@ func Init(dev bool, start bool) (*types.State, *terr.Trace) {
 	return state, nil
 }
 
-func getServices(servs []string, dev bool, start bool) (map[string]*types.Service, *terr.Trace) {
+func initServices(servs []string, dev bool, start bool) (map[string]*types.Service, *terr.Trace) {
 	srvs := make(map[string]*types.Service)
 	manSrvs := services.Services
 	for _, name := range servs {

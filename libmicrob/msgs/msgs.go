@@ -4,6 +4,7 @@ import (
 	"fmt"
 	color "github.com/acmacalister/skittles"
 	"github.com/synw/microb/libmicrob/types"
+	"github.com/synw/terr"
 )
 
 func Warning(txt string) {
@@ -45,6 +46,10 @@ func Error(txt string) {
 	fmt.Println(msg)
 }
 
+func Tr(tr *terr.Trace) {
+	tr.Printc()
+}
+
 func Debug(obj ...interface{}) {
 	for i, el := range obj {
 		msg := "[" + color.BoldRed("Debug") + "]"
@@ -64,6 +69,9 @@ func PrintEvent(event *types.Event) {
 		Status(event.Msg)
 	} else if event.Class == "error" {
 		Error(event.Msg)
+		if event.Trace != nil {
+			Tr(event.Trace)
+		}
 	} else if event.Class == "command_in" {
 		msg := " => " + color.Blue("Incoming command") + " " + event.Msg
 		fmt.Println(msg)

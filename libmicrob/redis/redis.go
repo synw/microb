@@ -1,4 +1,4 @@
-package logs
+package redis
 
 import (
 	"errors"
@@ -13,15 +13,15 @@ import (
 var pool *redis.Pool
 var host string
 var redisDb int
-var hostname string
+var Hostname string
 
-func initRedis(conf *types.Conf) *terr.Trace {
+func InitRedis(conf *types.Conf) *terr.Trace {
 	msgs.Status("Initializing Redis connection")
 	host = conf.RedisAddr
 	redisDb = conf.RedisDb
 	pool = newPool(conf.RedisAddr)
-	hostname = conf.Name
-	conn := getConn()
+	Hostname = conf.Name
+	conn := GetConn()
 	defer conn.Close()
 	_, err := conn.Do("PING")
 	if err != nil {
@@ -31,7 +31,7 @@ func initRedis(conf *types.Conf) *terr.Trace {
 	return nil
 }
 
-func getConn() redis.Conn {
+func GetConn() redis.Conn {
 	conn := pool.Get()
 	conn.Do("SELECT", redisDb)
 	return conn
@@ -55,8 +55,8 @@ func newPool(redisAddr string) *redis.Pool {
 	}
 }
 
-func getKeys(key string) ([]interface{}, error) {
-	conn := getConn()
+func GetKeys(key string) ([]interface{}, error) {
+	conn := GetConn()
 	defer conn.Close()
 	var data interface{}
 	data, err := conn.Do("LRANGE", key, 0, -1)
@@ -73,8 +73,29 @@ func getKeys(key string) ([]interface{}, error) {
 	return keys, err
 }
 
-func setKey(key string, value []byte) error {
-	conn := getConn()
+func GetKey(skey string) (interface{}, error) {
+	conn := GetConn()
+	defer conn.Close()
+	var data interface{}
+	data, err := conn.Do("GET", skey)
+	var key interface{}
+	if err != nil {
+		//msg := "Can not get key " + skey + " from Redis"
+		tr := terr.New("services.logs.redis.Set", err)
+		err = tr.ToErr()
+		return key, fmt.Errorf("error getting key %s: %v", skey, err)
+	}
+	// delete the list
+	_, err = conn.Do("DEL", skey)
+	if err != nil {
+		return key, errors.New("Can not delete key " + skey)
+	}
+	key = data.(interface{})
+	return key, err
+}
+
+func PushKey(key string, value []byte) error {
+	conn := GetConn()
 	defer conn.Close()
 	_, err := conn.Do("RPUSH", key, value)
 	if err != nil {

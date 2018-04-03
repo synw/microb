@@ -2,6 +2,7 @@ package logs
 
 import (
 	"encoding/json"
+	"github.com/synw/microb/libmicrob/redis"
 	"github.com/synw/terr"
 	"time"
 )
@@ -11,7 +12,7 @@ func processLogs(key string) {
 		duration := time.Second * 2
 		time.Sleep(duration)
 		// get the data from Redis
-		keys, err := getKeys(key)
+		keys, err := redis.GetKeys(key)
 		if err != nil {
 			tr := terr.New("services.logs.worker.processLogs", err)
 			tr.Fatal()

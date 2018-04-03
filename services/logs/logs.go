@@ -21,13 +21,8 @@ var logger = logrus.New()
 
 func Init(conf *types.Conf) {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
-	// initialize Redis connection
-	tr := initRedis(conf)
-	if tr != nil {
-		tr.Fatal()
-	}
 	// initialize the lgos database
-	tr = initDb(conf)
+	tr := initDb(conf)
 	if tr != nil {
 		tr.Fatal()
 	}

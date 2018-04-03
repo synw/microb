@@ -3,6 +3,7 @@ package logs
 import (
 	"encoding/json"
 	log "github.com/Sirupsen/logrus"
+	"github.com/synw/microb/libmicrob/redis"
 )
 
 type RedisHook struct {
@@ -28,8 +29,8 @@ func (hook *RedisHook) Fire(entry *log.Entry) error {
 	d["event_class"] = "log"
 	data, _ := json.Marshal(d)
 	// send to Redis
-	key := "log_" + hostname
-	err := setKey(key, data)
+	key := "log_" + redis.Hostname
+	err := redis.PushKey(key, data)
 	if err != nil {
 		return err
 	}
