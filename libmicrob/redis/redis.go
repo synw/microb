@@ -62,7 +62,7 @@ func GetKeys(key string) ([]interface{}, error) {
 	data, err := conn.Do("LRANGE", key, 0, -1)
 	var keys []interface{}
 	if err != nil {
-		return keys, fmt.Errorf("error getting key %s: %v", key, err)
+		return keys, fmt.Errorf("Error getting key %s: %v", key, err)
 	}
 	// delete the list
 	_, err = conn.Do("DEL", key)
@@ -83,7 +83,7 @@ func GetKey(skey string) (interface{}, error) {
 		//msg := "Can not get key " + skey + " from Redis"
 		tr := terr.New("services.logs.redis.Set", err)
 		err = tr.ToErr()
-		return key, fmt.Errorf("error getting key %s: %v", skey, err)
+		return key, fmt.Errorf("Error getting key %s: %v", skey, err)
 	}
 	// delete the list
 	_, err = conn.Do("DEL", skey)
@@ -111,7 +111,7 @@ func PushKey(key string, value []byte) error {
 		err := errors.New(msg)
 		tr := terr.New("services.logs.redis.Set", err)
 		err = tr.ToErr()
-		return fmt.Errorf("error setting key %s to %s: %v", key, v, err)
+		return fmt.Errorf("Error setting key %s to %s: %v", key, v, err)
 	}
 	return nil
 }

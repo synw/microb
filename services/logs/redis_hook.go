@@ -20,7 +20,7 @@ func newRedisHook() *RedisHook {
 func (hook *RedisHook) Fire(entry *log.Entry) error {
 	d := make(map[string]interface{})
 	t := entry.Time
-	msg := "Log " + " from " + entry.Data["service"].(string) + " " + entry.Message
+	msg := entry.Message
 	level := entry.Level.String()
 	d["date"] = t
 	d["message"] = msg
