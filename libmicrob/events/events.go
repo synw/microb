@@ -20,6 +20,14 @@ func State(service string, mesg string) *types.Event {
 	return event
 }
 
+func Info(service string, mesg string) *types.Event {
+	args := make(map[string]interface{})
+	args["service"] = service
+	args["class"] = "info"
+	event := new_(mesg, args)
+	return event
+}
+
 func Error(service string, mesg string, tr *terr.Trace, logLvls ...string) *types.Event {
 	args := make(map[string]interface{})
 	args["msg"] = mesg

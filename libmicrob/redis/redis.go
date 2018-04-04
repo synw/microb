@@ -90,7 +90,11 @@ func GetKey(skey string) (interface{}, error) {
 	if err != nil {
 		return key, errors.New("Can not delete key " + skey)
 	}
-	key = data.(interface{})
+	if data != nil {
+		key = data.(interface{})
+	} else {
+		err = errors.New("No key " + skey)
+	}
 	return key, err
 }
 
