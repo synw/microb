@@ -66,7 +66,7 @@ Make a `cmds.go` file to define your service commands:
 	   return cmd
    }
    
-   func runHello(cmd *types.Cmd, c chan *types.Cmd, args ...interface{}) {
+   func runHello(cmd *types.Cmd, c chan *types.Cmd) {
        // this function will be run on command call
 	   var resp []interface{}
 	   resp = append(resp, "Hello world")
