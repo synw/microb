@@ -23,7 +23,7 @@ A [terminal client](https://github.com/synw/microb-cli) is used to control Micro
 ## Usage
 
 Create a Go package for your service and put a `manifest` folder in it. First file is for service
-initilization: create a `init.go` file: example for a hello world service:
+initilization: create an `init.go` file: example for a hello world service:
 
    ```go
    package hello_world
@@ -77,6 +77,24 @@ Make a `cmds.go` file to define your service commands:
    }
    ```
    
+Declare the service in Microb: open `services/manifest.go` in the Microb package:
+   
+   ```go
+   package services
+
+   import (
+       "github.com/synw/microb/libmicrob/types"
+	   http "github.com/synw/microb-http/manifest"
+	   infos "github.com/synw/microb/services/infos"
+   )
+
+   var Services = map[string]*types.Service{
+	   "infos": infos.Service,
+	   "http":  http.Service,
+	   "hello_world":  hello_world.Service,
+   }
+   ```
+
 Now declare the service client-side: `go get github.com/synw/microb-cli` and open
 `services/manifest.go` to add your service:
 
