@@ -99,6 +99,15 @@ Now declare the service client-side: `go get github.com/synw/microb-cli` and ope
    }
    ```
    
+Update the client and server `config.json` to enable your service:
+
+   ```
+   {
+   ...
+   "services":["infos", "http", "hello_world"]
+   }
+   ```
+   
 Compile the client and the server and it's ready to use: sending the command `hello` from
 the client will return "Hello world"
 
