@@ -109,7 +109,7 @@ the client will return "Hello world"
 
 ## Screenshot
 
-![Screenshot](https://github.com/synw/microb/docs/img/screenshot.png)
+![Screenshot](https://raw.githubusercontent.com/synw/microb/master/docs/img/screenshot.png)
 
 #### External libraries
 
