@@ -117,8 +117,8 @@ The upper terminal shows the server output and the lower one shows the client ou
 
 - [Viper](https://github.com/spf13/viper): configuration management
 - [Centrifuge-go](https://github.com/centrifugal/centrifuge-go): Centrifugo server side drivers
-- [Redigo](https://github.com/garyburd/redigo): drivers for Redis
+- [Redigo](https://github.com/gomodule/redigo): drivers for Redis
 - [Gocent](https://github.com/centrifugal/gocent): Centrifugo client side drivers
 - [Fsm](https://github.com/looplab/fsm): finite state machine lib
-- [Go-short-id](https://github.com/ventu-io/go-shortid): unique ids generation
+- [Go-short-id](https://github.com/SKAhack/go-shortid): unique ids generation
 - [Skittles](https://godoc.org/github.com/acmacalister/skittles): terminal colors
