@@ -20,10 +20,14 @@ A [terminal client](https://github.com/synw/microb-cli) is used to control Micro
    
 [Install Centrifugo](https://fzambia.gitbooks.io/centrifugal/content/server/start.html)
 
-## Usage
+## Example usage
 
-Create a Go package for your service and put a `manifest` folder in it. First file is for service
-initilization: create an `init.go` file: example for a hello world service:
+Let's do a hello world service. Create a `hello_world` Go package for your service and
+a `manifest` folder in it.
+
+### 1. Initialize the service
+
+Create an `init.go` file in the manifest folder:
 
    ```go
    package hello_world
@@ -44,8 +48,10 @@ initilization: create an `init.go` file: example for a hello world service:
 	   return nil
    }
    ```
+
+### 2. Create some commands
    
-Make a `cmds.go` file to define your service commands:
+Create a `cmds.go` file in the manifest folder to define your service commands:
 
    ```go
    package hello_world
@@ -76,8 +82,11 @@ Make a `cmds.go` file to define your service commands:
 	   c <- cmd
    }
    ```
+
+### 3. Declare the service server side
    
-Declare the service in Microb: open `services/manifest.go` in the Microb package:
+Declare the service in Microb: open `services/manifest.go` in the Microb package and
+add your service:
    
    ```go
    package services
@@ -86,6 +95,7 @@ Declare the service in Microb: open `services/manifest.go` in the Microb package
        "github.com/synw/microb/libmicrob/types"
 	   http "github.com/synw/microb-http/manifest"
 	   infos "github.com/synw/microb/services/infos"
+	   hello_world "github.com/me/hello_world/manifest"
    )
 
    var Services = map[string]*types.Service{
@@ -95,8 +105,10 @@ Declare the service in Microb: open `services/manifest.go` in the Microb package
    }
    ```
 
+### 4. Declare the service client side
+
 Now declare the service client-side: `go get github.com/synw/microb-cli` and open
-`services/manifest.go` to add your service:
+`services/manifest.go` to add your service in the same way:
 
    ```go
    package services
@@ -105,7 +117,7 @@ Now declare the service client-side: `go get github.com/synw/microb-cli` and ope
        "github.com/synw/microb/libmicrob/types"
 	   http "github.com/synw/microb-http/manifest"
 	   infos "github.com/synw/microb/services/infos"
-	   hello "github.com/me/hello_world/manifest"
+	   hello_world "github.com/me/hello_world/manifest"
    )
 
    var services = map[string]*types.Service{
@@ -113,9 +125,11 @@ Now declare the service client-side: `go get github.com/synw/microb-cli` and ope
       "infos": infos.Service,
       "http":  http.Service,
       // declare my service
-      "hello_world":  hello.Service,
+      "hello_world":  hello_world.Service,
    }
    ```
+
+### 5. Update the config files
    
 Update the client and server `config.json` to enable your service:
 
@@ -125,6 +139,8 @@ Update the client and server `config.json` to enable your service:
    "services":["infos", "http", "hello_world"]
    }
    ```
+
+### Final step: compilation
    
 Compile the client and the server and it's ready to use: sending the command `hello` from
 the client will return "Hello world"
