@@ -107,6 +107,10 @@ the client will return "Hello world"
 - [Http](https://github.com/synw/microb-http): an http server
 - [Mail](https://github.com/synw/microb-mail): send mails
 
+## Screenshot
+
+![Screenshot](https://github.com/synw/microb/docs/img/screenshot.png)
+
 #### External libraries
 
 - [Viper](https://github.com/spf13/viper): configuration management
