@@ -109,6 +109,8 @@ the client will return "Hello world"
 
 ## Screenshot
 
+The upper terminal shows the server output and the lower one shows the client output:
+
 ![Screenshot](https://raw.githubusercontent.com/synw/microb/master/docs/img/screenshot.png)
 
 #### External libraries
