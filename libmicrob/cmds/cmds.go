@@ -12,6 +12,15 @@ import (
 
 var g = shortid.Generator()
 
+/*func Error(service string, msg string, cmd *types.Cmd, tr *terr.Trace) (cmd *types.Cmd) {
+	events.Error(service, msg, tr)
+	cmd.Status = "error"
+	cmd.ErrMsg = tr.Format()
+	cmd.Trace = tr
+	cmd.Service = service
+	return cmd
+}*/
+
 func Run(payload interface{}, state *types.State) {
 	cmd := ConvertPayload(payload)
 	cmd, isValid := getCmd(cmd, state)

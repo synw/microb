@@ -16,15 +16,17 @@ func main() {
 	flag.Parse()
 	state, tr := state.Init(*dev, *start)
 	if tr != nil {
-		tr.Print()
+		events.Error("microb", "Can not intialize state", tr, "fatal")
 		return
 	}
 	msgs.Ok("State initialized")
 	// connect on the commands channel
+	msgs.Status("Connecting to websockets server")
 	err := state.Cli.Subscribe(state.WsServer.CmdChanIn)
 	if err != nil {
 		tr := terr.New("main", err)
-		events.Error("Microb", "Can not suscribe to command channel", tr)
+		events.Error("microb", "Can not suscribe to command channel", tr, "fatal")
+		return
 	}
 	// listen
 	go func() {
