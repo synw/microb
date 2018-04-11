@@ -2,6 +2,7 @@ package logs
 
 import (
 	"encoding/json"
+	//"fmt"
 	"github.com/synw/microb/libmicrob/redis"
 	"github.com/synw/terr"
 	"time"
@@ -26,6 +27,12 @@ func processLogs(key string) {
 				tr := terr.New("services.logs.worker.processLogs", err)
 				tr.Fatal()
 			}
+			/*fmt.Println("Log ----------------------")
+			for k, v := range data {
+				fmt.Println("K", k, v)
+			}*/
+			class := data["data"].(map[string]interface{})["class"].(string)
+			data["event_class"] = class
 			vals = append(vals, data)
 		}
 		saveToDb(vals)
