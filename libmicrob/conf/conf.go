@@ -40,7 +40,7 @@ func GetConf() (*types.Conf, *terr.Trace) {
 	viper.SetDefault("services", []string{})
 	viper.SetDefault("redis_addr", ":6379")
 	viper.SetDefault("redis_db", 0)
-	dbpath := getBasePath() + "/logs.sqlite"
+	dbpath := getBasePath() + "/db/logs.sqlite"
 	viper.SetDefault("logsDbAddr", dbpath)
 	// get the actual conf
 	err := viper.ReadInConfig()

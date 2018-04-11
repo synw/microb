@@ -13,7 +13,7 @@ var database *gorm.DB
 func connect(conf *types.Conf) (*gorm.DB, *terr.Trace) {
 	db, err := gorm.Open("sqlite3", conf.LogsDbAddr)
 	if err != nil {
-		tr := terr.New("services.logs.db.initDb", err)
+		tr := terr.New("services.logs.db.connect", err)
 		return db, tr
 	}
 	return db, nil
