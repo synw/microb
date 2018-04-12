@@ -59,7 +59,6 @@ type Event struct {
 
 type Log struct {
 	gorm.Model
-	//CreatedAt time.Time
 	Service string
 	Level   string
 	Msg     string
