@@ -49,6 +49,11 @@ func Run(payload interface{}, state *types.State) {
 			msg := "Error executing the " + cmd.Name + " command"
 			events.Error(cmd.Service, msg, tr)
 		}
+		if cmd.Trace != nil {
+			msg := "Error executing the " + cmd.Name + " command "
+			msg = msg + " from the " + cmd.Service + " service"
+			events.Error(cmd.Service, msg, tr)
+		}
 		close(c)
 	}
 }

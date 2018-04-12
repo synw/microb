@@ -6,6 +6,6 @@ import (
 
 func getLogs(limit int) []types.Log {
 	logData := []types.Log{}
-	database.Limit(limit).Order("created_at asc").Find(&logData)
+	database.Limit(limit).Order("created_at desc").Find(&logData)
 	return logData
 }

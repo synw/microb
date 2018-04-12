@@ -53,15 +53,16 @@ func Cmd(cmd *types.Cmd, out ...bool) {
 		"args":         cmd.Args,
 		"returnValues": cmd.ReturnValues,
 	}
-	var err error
+	var tr *terr.Trace
 	if cmd.ErrMsg != "" {
-		err = errors.New(cmd.ErrMsg)
+		err := errors.New(cmd.ErrMsg)
+		tr = terr.New("events.Cmd", err)
 	}
 	args := make(map[string]interface{})
 	args["service"] = cmd.Service
 	args["from"] = cmd.From
 	args["msg"] = msg
-	args["err"] = err
+	args["trace"] = tr
 	args["data"] = data
 	args["cmd"] = cmd
 	if len(out) > 0 {
