@@ -37,7 +37,7 @@ func saveToDb(keys []map[string]interface{}) *terr.Trace {
 		service := data["service"].(string)
 		level := key["level"].(string)
 		msg := key["message"].(string)
-		class := key["event_class"].(string)
+		class := key["class"].(string)
 		entry := &types.Log{
 			Service: service,
 			Level:   level,

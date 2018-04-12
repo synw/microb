@@ -20,7 +20,7 @@ func get() *types.Cmd {
 func runGet(cmd *types.Cmd, c chan *types.Cmd) {
 	var resp []interface{}
 	logData := getLogs(10)
-	msg := "Found logs:\n"
+	msg := "Found logs:"
 	resp = append(resp, msg)
 	for _, log := range logData {
 		date := jodaTime.Format("dd/MM/YYYY HH'h'mm:ss", log.CreatedAt)

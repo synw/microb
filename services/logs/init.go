@@ -67,7 +67,7 @@ func New(service string, level string, msg string, classes ...string) {
 		logobj.Debug(msg)
 	} else if level == "info" {
 		logobj.Info(msg)
-	} else if level == "warn" {
+	} else if level == "warning" {
 		logobj.Warn(msg)
 	} else if level == "error" {
 		logobj.Error(msg)

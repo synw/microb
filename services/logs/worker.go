@@ -32,7 +32,7 @@ func processLogs(key string) {
 				fmt.Println("K", k, v)
 			}*/
 			class := data["data"].(map[string]interface{})["class"].(string)
-			data["event_class"] = class
+			data["class"] = class
 			vals = append(vals, data)
 		}
 		saveToDb(vals)
