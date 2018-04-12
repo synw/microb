@@ -32,7 +32,7 @@ func Run(payload interface{}, state *types.State) {
 	events.Cmd(cmd)
 	// execute the command
 	c := make(chan *types.Cmd)
-	if cmd.Service == "infos" {
+	if cmd.ExecCli != nil {
 		exec := state.Cmds[cmd.Name].Exec.(func(*types.Cmd, chan *types.Cmd, ...interface{}))
 		go exec(cmd, c, state)
 	} else {
