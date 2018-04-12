@@ -8,6 +8,7 @@ import (
 	"github.com/synw/microb/libmicrob/msgs"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
+	"time"
 )
 
 var g = shortid.Generator()
@@ -59,6 +60,12 @@ func ConvertPayload(payload interface{}) *types.Cmd {
 	serv := pl["Service"].(string)
 	from := pl["From"].(string)
 	errMsg := pl["ErrMsg"].(string)
+	dateStr := pl["Date"].(string)
+	date, err := time.Parse(time.RFC3339, dateStr)
+	if err != nil {
+		tr := terr.New("cmds.ConvertPayload", err)
+		events.Error("microb", "Can not parse date from json payload", tr)
+	}
 	var tr *terr.Trace
 	if errMsg != "" {
 		err := errors.New("Can not convert payload")
@@ -71,6 +78,7 @@ func ConvertPayload(payload interface{}) *types.Cmd {
 	cmd := &types.Cmd{
 		Id:      g.Generate(),
 		Name:    name,
+		Date:    date,
 		From:    from,
 		Args:    args,
 		Status:  status,
