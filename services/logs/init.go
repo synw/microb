@@ -17,7 +17,18 @@ var logChans = map[string]string{
 	"panic": "$logchan",
 }
 
+var Service *types.Service = &types.Service{
+	"logs",
+	getCmds(),
+	initService,
+}
+
 var logger = logrus.New()
+
+func initService(dev bool, start bool) error {
+	// as it uses config the logger is initialized from the state
+	return nil
+}
 
 func Init(conf *types.Conf) {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
