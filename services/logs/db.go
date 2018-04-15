@@ -38,11 +38,15 @@ func saveToDb(keys []map[string]interface{}) *terr.Trace {
 		level := key["level"].(string)
 		msg := key["message"].(string)
 		class := key["class"].(string)
+		cmd := key["command"].(string)
+		cmdStatus := key["command_status"].(string)
 		entry := &types.Log{
-			Service: service,
-			Level:   level,
-			Msg:     msg,
-			Class:   class,
+			Service:       service,
+			Level:         level,
+			Msg:           msg,
+			Class:         class,
+			Command:       cmd,
+			CommandStatus: cmdStatus,
 		}
 		database.Create(entry)
 	}

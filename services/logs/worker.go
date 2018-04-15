@@ -32,7 +32,11 @@ func processLogs(key string) {
 				fmt.Println("K", k, v)
 			}*/
 			class := data["data"].(map[string]interface{})["class"].(string)
+			cmdName := data["data"].(map[string]interface{})["command"].(string)
+			cmdStatus := data["data"].(map[string]interface{})["command_status"].(string)
 			data["class"] = class
+			data["command"] = cmdName
+			data["command_status"] = cmdStatus
 			vals = append(vals, data)
 		}
 		saveToDb(vals)

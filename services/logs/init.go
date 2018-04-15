@@ -48,21 +48,35 @@ func Init(conf *types.Conf) {
 }
 
 func Event(event *types.Event) {
-	New(event.Service, event.LogLvl, event.Msg, event.Class)
+	if event.Cmd != nil {
+		if event.Cmd.LogMsg != "" {
+			event.Msg = event.Cmd.LogMsg
+		}
+	}
+	New(event)
 }
 
-func New(service string, level string, msg string, classes ...string) {
-	class := "info"
-	if len(classes) > 0 {
-		class = classes[0]
+func New(event *types.Event) {
+	if event.Class == "" {
+		event.Class = "info"
 	}
 	now := time.Now().UnixNano() / int64(time.Millisecond)
+	cmdName := ""
+	cmdStatus := ""
+	if event.Cmd != nil {
+		cmdName = event.Cmd.Name
+		cmdStatus = event.Cmd.Status
+	}
 	logobj := logger.WithFields(logrus.Fields{
-		"service": service,
-		"level":   level,
-		"date":    now,
-		"class":   class,
+		"service":        event.Service,
+		"level":          event.LogLvl,
+		"date":           now,
+		"class":          event.Class,
+		"command":        cmdName,
+		"command_status": cmdStatus,
 	})
+	level := event.LogLvl
+	msg := event.Msg
 	if level == "debug" {
 		logobj.Debug(msg)
 	} else if level == "info" {

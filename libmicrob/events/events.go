@@ -48,8 +48,9 @@ func CmdExec(cmd *types.Cmd) {
 }
 
 func Cmd(cmd *types.Cmd, out ...bool) {
-	msg := color.BoldWhite(cmd.Name) + " received from service " + cmd.Service + " "
+	msg := color.BoldWhite(cmd.Name) + " from " + cmd.Service + " "
 	msg = msg + fmt.Sprintf("%s", cmd.Date)
+	cmd.LogMsg = cmd.Name + " received from service " + cmd.Service + " "
 	data := map[string]interface{}{
 		"args":         cmd.Args,
 		"returnValues": cmd.ReturnValues,
@@ -62,7 +63,7 @@ func Cmd(cmd *types.Cmd, out ...bool) {
 	args := make(map[string]interface{})
 	args["service"] = cmd.Service
 	args["from"] = cmd.From
-	args["msg"] = msg
+	//args["msg"] = msg
 	args["trace"] = tr
 	args["data"] = data
 	args["cmd"] = cmd
@@ -74,9 +75,9 @@ func Cmd(cmd *types.Cmd, out ...bool) {
 			if i < len(cmd.ReturnValues)+1 {
 				rvs = rvs + "\n"
 			}
-			msg = rvs
 		}
-		args["msg"] = rvs
+		msg = rvs
+		cmd.LogMsg = rvs
 	} else {
 		args["class"] = "command_in"
 	}

@@ -41,8 +41,6 @@ func Run(payload interface{}, state *types.State) {
 		go exec(cmd, c, state)
 	} else {
 		exec := state.Cmds[cname].Exec.(func(*types.Cmd, chan *types.Cmd, ...interface{}))
-		msgs.Debug(cmd)
-
 		go exec(cmd, c, state)
 	}
 	select {

@@ -38,6 +38,7 @@ type Cmd struct {
 	From         string
 	Status       string
 	ErrMsg       string
+	LogMsg       string
 	Trace        *terr.Trace
 	ReturnValues []interface{}
 	Exec         interface{}
@@ -59,10 +60,12 @@ type Event struct {
 
 type Log struct {
 	gorm.Model
-	Service string
-	Level   string
-	Msg     string
-	Class   string
+	Service       string
+	Level         string
+	Msg           string
+	Class         string
+	Command       string
+	CommandStatus string
 }
 
 type Conf struct {
