@@ -23,6 +23,9 @@ var g = shortid.Generator()
 }*/
 
 func Run(payload interface{}, state *types.State) {
+	/*
+		Runs a command from a json payload
+	*/
 	cmd := ConvertPayload(payload)
 	cmd, isValid := getCmd(cmd, state)
 	if isValid == false {
@@ -32,12 +35,15 @@ func Run(payload interface{}, state *types.State) {
 	events.Cmd(cmd)
 	// execute the command
 	c := make(chan *types.Cmd)
+	cname := cmd.Service + "_" + cmd.Name
 	if cmd.ExecCli != nil {
-		exec := state.Cmds[cmd.Name].Exec.(func(*types.Cmd, chan *types.Cmd, ...interface{}))
+		exec := state.Cmds[cname].ExecCli.(func(*types.Cmd, chan *types.Cmd, ...interface{}))
 		go exec(cmd, c, state)
 	} else {
-		exec := state.Cmds[cmd.Name].Exec.(func(*types.Cmd, chan *types.Cmd))
-		go exec(cmd, c)
+		exec := state.Cmds[cname].Exec.(func(*types.Cmd, chan *types.Cmd, ...interface{}))
+		msgs.Debug(cmd)
+
+		go exec(cmd, c, state)
 	}
 	select {
 	case com := <-c:
@@ -59,6 +65,9 @@ func Run(payload interface{}, state *types.State) {
 }
 
 func ConvertPayload(payload interface{}) *types.Cmd {
+	/*
+		Converts a json payload to a command
+	*/
 	pl := payload.(map[string]interface{})
 	status := pl["Status"].(string)
 	name := pl["Name"].(string)
@@ -107,6 +116,9 @@ func ConvertPayload(payload interface{}) *types.Cmd {
 }
 
 func checkServiceCmd(cmd *types.Cmd, state *types.State) (*types.Cmd, bool) {
+	/*
+		Checks if a service is valid from a command
+	*/
 	isValid := false
 	for _, srv := range state.Services {
 		if srv.Name == cmd.Name {
@@ -123,6 +135,9 @@ func checkServiceCmd(cmd *types.Cmd, state *types.State) (*types.Cmd, bool) {
 }
 
 func getCmd(cmd *types.Cmd, state *types.State) (*types.Cmd, bool) {
+	/*
+		Get command for service
+	*/
 	for sname, srv := range state.Services {
 		if sname == cmd.Service {
 			for cname, scmd := range srv.Cmds {
@@ -137,6 +152,9 @@ func getCmd(cmd *types.Cmd, state *types.State) (*types.Cmd, bool) {
 }
 
 func sendCommand(cmd *types.Cmd, state *types.State) *terr.Trace {
+	/*
+		Sends the command results back to the client
+	*/
 	if cmd.Trace != nil {
 		cmd.ErrMsg = cmd.Trace.Formatc()
 		cmd.Status = "error"

@@ -41,7 +41,7 @@ func eXcommands() *types.Cmd {
 	return cmd
 }
 
-func runState(cmd *types.Cmd, c chan *types.Cmd) {
+func runState(cmd *types.Cmd, c chan *types.Cmd, args ...interface{}) {
 	var resp []interface{}
 	logData := getState(10)
 	msg := "State log:"
@@ -57,7 +57,7 @@ func runState(cmd *types.Cmd, c chan *types.Cmd) {
 	c <- cmd
 }
 
-func runDbCommands(cmd *types.Cmd, c chan *types.Cmd) {
+func runDbCommands(cmd *types.Cmd, c chan *types.Cmd, args ...interface{}) {
 	var resp []interface{}
 	logData := getCommandsFromDb(10)
 	msg := "Commands log:"
@@ -73,7 +73,7 @@ func runDbCommands(cmd *types.Cmd, c chan *types.Cmd) {
 	c <- cmd
 }
 
-func runWarns(cmd *types.Cmd, c chan *types.Cmd) {
+func runWarns(cmd *types.Cmd, c chan *types.Cmd, args ...interface{}) {
 	var resp []interface{}
 	logData := getWarns(10)
 	msg := "Found warnings:"
@@ -89,7 +89,7 @@ func runWarns(cmd *types.Cmd, c chan *types.Cmd) {
 	c <- cmd
 }
 
-func runErrs(cmd *types.Cmd, c chan *types.Cmd) {
+func runErrs(cmd *types.Cmd, c chan *types.Cmd, args ...interface{}) {
 	var resp []interface{}
 	logData := getErrs(10)
 	msg := "Found errors:"
@@ -105,7 +105,7 @@ func runErrs(cmd *types.Cmd, c chan *types.Cmd) {
 	c <- cmd
 }
 
-func runGet(cmd *types.Cmd, c chan *types.Cmd) {
+func runGet(cmd *types.Cmd, c chan *types.Cmd, args ...interface{}) {
 	var resp []interface{}
 	logData := getLogs(10)
 	msg := "Found logs:"

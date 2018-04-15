@@ -48,7 +48,8 @@ func CmdExec(cmd *types.Cmd) {
 }
 
 func Cmd(cmd *types.Cmd, out ...bool) {
-	msg := color.BoldWhite(cmd.Name) + " received " + fmt.Sprintf("%s", cmd.Date)
+	msg := color.BoldWhite(cmd.Name) + " received from service " + cmd.Service + " "
+	msg = msg + fmt.Sprintf("%s", cmd.Date)
 	data := map[string]interface{}{
 		"args":         cmd.Args,
 		"returnValues": cmd.ReturnValues,
@@ -67,6 +68,15 @@ func Cmd(cmd *types.Cmd, out ...bool) {
 	args["cmd"] = cmd
 	if len(out) > 0 {
 		args["class"] = "command_out"
+		var rvs string
+		for i, val := range cmd.ReturnValues {
+			rvs = rvs + val.(string)
+			if i < len(cmd.ReturnValues)+1 {
+				rvs = rvs + "\n"
+			}
+			msg = rvs
+		}
+		args["msg"] = rvs
 	} else {
 		args["class"] = "command_in"
 	}

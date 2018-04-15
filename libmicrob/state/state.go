@@ -52,7 +52,7 @@ func Init(dev bool, start bool) (*types.State, *terr.Trace) {
 	state.Cmds = make(map[string]*types.Cmd)
 	for _, srv := range state.Services {
 		for cname, cmd := range srv.Cmds {
-			state.Cmds[cname] = cmd
+			state.Cmds[srv.Name+"_"+cname] = cmd
 		}
 	}
 	return state, nil
