@@ -7,41 +7,41 @@ import (
 	"github.com/synw/terr"
 )
 
-func Warning(txt string) {
+func Warning(txt string, output ...string) {
 	msg := "[" + color.Magenta("Warning") + "] " + txt
 	fmt.Println(msg)
 }
 
-func Status(txt string) {
+func Status(txt string, output ...string) {
 	msg := "[" + color.Blue("Status") + "] " + txt
 	fmt.Println(msg)
 }
 
-func State(txt string) {
+func State(txt string, output ...string) {
 	msg := "[" + color.Yellow("State") + "] " + txt
 	fmt.Println(msg)
 }
 
-func Ready(txt string) {
+func Ready(txt string, output ...string) {
 	msg := "[" + color.BoldGreen("Ready") + "] " + txt
 	fmt.Println(msg)
 }
 
-func Msg(txt string) {
+func Msg(txt string, output ...string) {
 	fmt.Println(txt)
 }
 
-func Ok(txt string) {
+func Ok(txt string, output ...string) {
 	msg := "[" + color.Green("Ok") + "] " + txt
 	fmt.Println(msg)
 }
 
-func Timeout(txt string) {
+func Timeout(txt string, output ...string) {
 	msg := "[" + color.BoldRed("Timeout") + "] " + txt
 	fmt.Println(msg)
 }
 
-func Error(txt string) {
+func Error(txt string, output ...string) {
 	msg := "[" + color.BoldRed("Error") + "] " + txt
 	fmt.Println(msg)
 }
@@ -57,7 +57,7 @@ func Debug(obj ...interface{}) {
 	}
 }
 
-func Bold(txt string) string {
+func Bold(txt string, output ...string) string {
 	txt = color.BoldWhite(txt)
 	return txt
 }
@@ -73,20 +73,28 @@ func PrintEvent(event *types.Event) {
 			Tr(event.Trace)
 		}
 	} else if event.Class == "command_in" {
-		msg := " => " + color.Blue("Incoming command") + " " + event.Msg
-		fmt.Println(msg)
+		if event.Cmd.From == "cli" {
+			msg := " => " + color.Blue("Incoming command") + " " + event.Msg
+			fmt.Println(msg)
+		}
 	} else if event.Class == "command_out" {
 		status := event.Cmd.Status
 		if status == "error" {
-			status = color.BoldRed("Error")
-			fmt.Println("  |->", status, event.Cmd.Trace.Format())
+			if event.Cmd.From == "cli" {
+				status = color.BoldRed("Error")
+				fmt.Println("  |->", status, event.Cmd.Trace.Format())
+			}
 		} else if status == "success" {
-			status = color.Green("Success")
-			fmt.Println("  |->", status, event.Cmd.ReturnValues)
+			if event.Cmd.From == "cli" {
+				status = color.Green("Success")
+				fmt.Println("  |->", status, event.Cmd.ReturnValues)
+			}
 		}
 	} else {
-		msg := "[" + color.Blue(event.Class) + "] " + event.Msg
-		fmt.Println(msg)
+		if event.Cmd.From == "cli" {
+			msg := "[" + color.Blue(event.Class) + "] " + event.Msg
+			fmt.Println(msg)
+		}
 	}
 
 }
