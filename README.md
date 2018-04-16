@@ -149,6 +149,14 @@ Update the client and server `config.json` to enable your service:
 Compile the client and the server and it's ready to use: sending the command `hello` from
 the client will return "Hello world"
 
+## Cli commands for the logs service
+
+- **get**: get the last logs
+- **errors**: get the last errors
+- **warnings**: get the last warnings
+- **cmds**: get the last commands
+- **state**: get the last state changes
+
 ## Available sevices
 
 - [Http](https://github.com/synw/microb-http): an http server
