@@ -26,7 +26,7 @@ func Run(payload interface{}, state *types.State) {
 	/*
 		Runs a command from a json payload
 	*/
-	cmd := ConvertPayload(payload)
+	cmd := ConvertPayload(payload, state.Conf.Name)
 	cmd, isValid := getCmd(cmd, state)
 	if isValid == false {
 		msgs.Error("Invalid command " + cmd.Name)
@@ -62,7 +62,7 @@ func Run(payload interface{}, state *types.State) {
 	}
 }
 
-func ConvertPayload(payload interface{}) *types.Cmd {
+func ConvertPayload(payload interface{}, domain string) *types.Cmd {
 	/*
 		Converts a json payload to a command
 	*/
@@ -92,6 +92,7 @@ func ConvertPayload(payload interface{}) *types.Cmd {
 		Name:    name,
 		Date:    date,
 		From:    from,
+		Domain:  domain,
 		Args:    args,
 		Status:  status,
 		Service: serv,

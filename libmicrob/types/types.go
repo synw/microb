@@ -34,6 +34,7 @@ type Cmd struct {
 	Name         string
 	Date         time.Time
 	Service      string
+	Domain       string
 	Args         []interface{}
 	From         string
 	Status       string
