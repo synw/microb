@@ -1,7 +1,10 @@
 # Microb
 
 A microbiota where to deploy observable Go services. A service can receive and execute commands from the 
-[Microb terminal client](https://github.com/synw/microb-cli)
+[Microb terminal client](https://github.com/synw/microb-cli). Features:
+
+- **Remote commands**: all services can have remote commands to talk to the Microb server
+- **Logs**: all logs are stored in an sqlite database
 
 #### Dependencies
 
@@ -18,7 +21,8 @@ A [terminal client](https://github.com/synw/microb-cli) is used to control Micro
    go get github.com/synw/microb
    ```
    
-[Install Centrifugo](https://fzambia.gitbooks.io/centrifugal/content/server/start.html)
+[Install Centrifugo](https://fzambia.gitbooks.io/centrifugal/content/server/start.html) and 
+Redis
 
 ## Example usage
 
