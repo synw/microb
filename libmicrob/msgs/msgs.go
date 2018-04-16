@@ -86,14 +86,21 @@ func PrintEvent(event *types.Event) {
 			}
 		} else if status == "success" {
 			if event.Cmd.From == "cli" {
-				status = color.Green("Success")
-				fmt.Println("  |->", status, event.Cmd.ReturnValues)
+				status = "  |-> " + color.Green("Success")
+				for i, val := range event.Cmd.ReturnValues {
+					msg := fmt.Sprintf(" %.120s ", val)
+					if i == 0 {
+						msg = status + " " + msg
+					}
+					fmt.Println(msg)
+				}
 			}
 		}
 	} else {
 		if event.Cmd.From == "cli" {
-			msg := "[" + color.Blue(event.Class) + "] " + event.Msg
-			fmt.Println(msg)
+			msg := event.Msg
+			endMsg := "[" + color.Blue(event.Class) + "] " + msg
+			fmt.Println(endMsg)
 		}
 	}
 
