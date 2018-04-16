@@ -8,5 +8,7 @@ import (
 
 func handle(event *types.Event) {
 	msgs.PrintEvent(event)
-	logs.Event(event)
+	if event.Service != "logs" {
+		logs.Event(event)
+	}
 }
