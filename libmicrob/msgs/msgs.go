@@ -73,28 +73,24 @@ func PrintEvent(event *types.Event) {
 			Tr(event.Trace)
 		}
 	} else if event.Class == "command_in" {
-		if event.Cmd.From == "cli" {
-			msg := " => " + color.Blue("Incoming command") + " " + event.Msg
-			fmt.Println(msg)
-		}
+		msg := " => " + color.Blue("Incoming command") + " " + event.Msg
+		fmt.Println(msg)
 	} else if event.Class == "command_out" {
 		status := event.Cmd.Status
 		if status == "error" {
-			if event.Cmd.From == "cli" {
-				status = color.BoldRed("Error")
-				fmt.Println("  |->", status, event.Cmd.Trace.Format())
-			}
+			status = color.BoldRed("Error")
+			fmt.Println("  |->", status, event.Cmd.Trace.Format())
+
 		} else if status == "success" {
-			if event.Cmd.From == "cli" {
-				status = "  |-> " + color.Green("Success")
-				for i, val := range event.Cmd.ReturnValues {
-					msg := fmt.Sprintf(" %.120s ", val)
-					if i == 0 {
-						msg = status + " " + msg
-					}
-					fmt.Println(msg)
+			status = "  |-> " + color.Green("Success")
+			for i, val := range event.Cmd.ReturnValues {
+				msg := fmt.Sprintf(" %.120s ", val)
+				if i == 0 {
+					msg = status + " " + msg
 				}
+				fmt.Println(msg)
 			}
+
 		}
 	} else {
 		if event.Cmd.From == "cli" {
