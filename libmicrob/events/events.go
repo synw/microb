@@ -70,11 +70,11 @@ func Cmd(cmd *types.Cmd, out ...bool) {
 	if len(out) > 0 {
 		args["class"] = "command_out"
 		var rvs string
-		for i, val := range cmd.ReturnValues {
+		for _, val := range cmd.ReturnValues {
 			rvs = rvs + val.(string)
-			if i < len(cmd.ReturnValues)+1 {
+			/*if i < (len(cmd.ReturnValues) + 1) {
 				rvs = rvs + "\n"
-			}
+			}*/
 		}
 		msg = rvs
 		cmd.LogMsg = rvs
