@@ -7,8 +7,14 @@ import (
 )
 
 func handle(event *types.Event) {
-	msgs.PrintEvent(event)
-	if event.Service != "logs" {
+	log := true
+	if event.Cmd != nil {
+		if event.Cmd.NoLog == true {
+			log = false
+		}
+	}
+	if log == true {
 		logs.Event(event)
+		msgs.PrintEvent(event)
 	}
 }

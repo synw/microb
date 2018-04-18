@@ -41,6 +41,7 @@ type Cmd struct {
 	ErrMsg       string
 	LogMsg       string
 	Trace        *terr.Trace
+	NoLog        bool
 	ReturnValues []interface{}
 	Exec         interface{}
 	ExecCli      interface{}

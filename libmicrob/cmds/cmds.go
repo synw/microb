@@ -74,6 +74,10 @@ func ConvertPayload(payload interface{}) *types.Cmd {
 	errMsg := pl["ErrMsg"].(string)
 	dateStr := pl["Date"].(string)
 	domain := pl["Domain"].(string)
+	noLog := false
+	if _, ok := pl["NoLog"]; ok {
+		noLog = pl["NoLog"].(bool)
+	}
 	id := pl["Id"].(string)
 	if id == "" {
 		id = g.Generate()
@@ -103,6 +107,7 @@ func ConvertPayload(payload interface{}) *types.Cmd {
 		Service: serv,
 		ErrMsg:  errMsg,
 		Trace:   tr,
+		NoLog:   noLog,
 	}
 	if args != nil {
 		cmd.Args = args

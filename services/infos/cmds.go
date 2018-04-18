@@ -18,7 +18,7 @@ func initService(dev bool, start bool) error {
 }
 
 func ping() *types.Cmd {
-	cmd := &types.Cmd{Name: "ping", Exec: runPing}
+	cmd := &types.Cmd{Name: "ping", Exec: runPing, NoLog: true}
 	return cmd
 }
 
