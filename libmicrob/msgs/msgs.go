@@ -85,12 +85,20 @@ func PrintEvent(event *types.Event) {
 		} else if status == "success" {
 			status = "  |-> " + color.Green("Success")
 			var msg string
+			var maxWords = 13
+			var maxLines = 5
 			for i, val := range event.Cmd.ReturnValues {
+				if i == maxLines {
+					return
+				}
 				words := strings.Fields(val.(string))
 				line := ""
 				for ii, v := range words {
-					if ii < 13 {
+					if ii < maxWords {
 						line = line + " " + v
+					} else {
+						line = line + " (...)"
+						break
 					}
 				}
 				if i == 0 {
