@@ -57,8 +57,8 @@ func Debug(obj ...interface{}) {
 	}
 }
 
-func Bold(txt string, output ...string) string {
-	txt = color.BoldWhite(txt)
+func Bold(txt string) string {
+	txt = "<bold>" + txt + "</bold>"
 	return txt
 }
 

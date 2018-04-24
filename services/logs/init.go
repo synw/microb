@@ -30,7 +30,7 @@ func initService(dev bool, start bool) error {
 	return nil
 }
 
-func Init(conf *types.Conf) {
+func Init(conf *types.Conf, state *types.State) {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	// initialize the lgos database
 	tr := initDb(conf)
@@ -40,9 +40,12 @@ func Init(conf *types.Conf) {
 	// run the worker to process the logs
 	key := "log_" + conf.Name
 	go processLogs(key)
-	//hook := NewCentHook(cli, logChans)
-	hook := newRedisHook()
-	logger.Hooks.Add(hook)
+	channel := "$logs_" + conf.Name
+	chook := NewCentHook(state.Cli, logChans, channel, state.Conf.Name)
+	rhook := newRedisHook()
+	logger.Hooks.Add(chook)
+	msgs.State("Emiting logs on channel " + channel)
+	logger.Hooks.Add(rhook)
 	msgs.Ok("Logger initialized")
 	logger.Out = ioutil.Discard
 }

@@ -40,7 +40,7 @@ func Init(dev bool, start bool) (*types.State, *terr.Trace) {
 		tr.Fatal()
 	}
 	// initialize logger
-	logs.Init(conf)
+	logs.Init(conf, state)
 	// get services
 	state.Services, tr = initServices(state.Conf.Services, dev, start)
 	if tr != nil {

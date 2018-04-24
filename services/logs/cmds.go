@@ -12,8 +12,14 @@ func getCmds() map[string]*types.Cmd {
 	cmds["errors"] = errs()
 	cmds["warnings"] = warns()
 	cmds["state"] = state()
+	cmds["status"] = status()
 	cmds["cmds"] = eXcommands()
 	return cmds
+}
+
+func status() *types.Cmd {
+	cmd := &types.Cmd{Name: "status", Exec: runStatus, NoLog: true}
+	return cmd
 }
 
 func get() *types.Cmd {
@@ -39,6 +45,18 @@ func state() *types.Cmd {
 func eXcommands() *types.Cmd {
 	cmd := &types.Cmd{Name: "cmds", Exec: runDbCommands}
 	return cmd
+}
+
+func runStatus(cmd *types.Cmd, c chan *types.Cmd, args ...interface{}) {
+	var resp []interface{}
+	if emit == true {
+		resp = append(resp, "Emiting the logs")
+	} else {
+		resp = append(resp, "Not emiting the logs")
+	}
+	cmd.ReturnValues = resp
+	cmd.Status = "success"
+	c <- cmd
 }
 
 func runState(cmd *types.Cmd, c chan *types.Cmd, args ...interface{}) {
