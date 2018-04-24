@@ -94,9 +94,12 @@ func PrintEvent(event *types.Event) {
 					}
 				}
 				if i == 0 {
-					msg = status + " " + line + "\n"
+					msg = status + " " + line
 				} else {
-					msg = msg + line + "\n"
+					msg = msg + line
+				}
+				if i < len(event.Cmd.ReturnValues)-1 {
+					msg = msg + "\n"
 				}
 				//msg := fmt.Sprintf(" %.120s ", val)
 				fmt.Println(msg)
