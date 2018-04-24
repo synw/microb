@@ -23,27 +23,27 @@ func status() *types.Cmd {
 }
 
 func get() *types.Cmd {
-	cmd := &types.Cmd{Name: "get", Exec: runGet}
+	cmd := &types.Cmd{Name: "get", Exec: runGet, NoLog: true}
 	return cmd
 }
 
 func errs() *types.Cmd {
-	cmd := &types.Cmd{Name: "errors", Exec: runErrs}
+	cmd := &types.Cmd{Name: "errors", Exec: runErrs, NoLog: true}
 	return cmd
 }
 
 func warns() *types.Cmd {
-	cmd := &types.Cmd{Name: "warnings", Exec: runWarns}
+	cmd := &types.Cmd{Name: "warnings", Exec: runWarns, NoLog: true}
 	return cmd
 }
 
 func state() *types.Cmd {
-	cmd := &types.Cmd{Name: "state", Exec: runState}
+	cmd := &types.Cmd{Name: "state", Exec: runState, NoLog: true}
 	return cmd
 }
 
 func eXcommands() *types.Cmd {
-	cmd := &types.Cmd{Name: "cmds", Exec: runDbCommands}
+	cmd := &types.Cmd{Name: "cmds", Exec: runDbCommands, NoLog: true}
 	return cmd
 }
 
