@@ -5,6 +5,7 @@ import (
 	color "github.com/acmacalister/skittles"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
+	"strings"
 )
 
 func Warning(txt string, output ...string) {
@@ -83,11 +84,21 @@ func PrintEvent(event *types.Event) {
 
 		} else if status == "success" {
 			status = "  |-> " + color.Green("Success")
+			var msg string
 			for i, val := range event.Cmd.ReturnValues {
-				msg := fmt.Sprintf(" %.120s ", val)
-				if i == 0 {
-					msg = status + " " + msg
+				words := strings.Fields(val.(string))
+				line := ""
+				for ii, v := range words {
+					if ii < 13 {
+						line = line + " " + v
+					}
 				}
+				if i == 0 {
+					msg = status + " " + line + "\n"
+				} else {
+					msg = msg + line + "\n"
+				}
+				//msg := fmt.Sprintf(" %.120s ", val)
 				fmt.Println(msg)
 			}
 
