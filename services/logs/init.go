@@ -27,7 +27,6 @@ var Service *types.Service = &types.Service{
 var logger = logrus.New()
 
 func initService(dev bool, start bool) *terr.Trace {
-	// as it uses config the logger is initialized from the state
 	return nil
 }
 

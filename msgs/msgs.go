@@ -60,7 +60,7 @@ func Debug(obj ...interface{}) {
 }
 
 func Bold(txt string) string {
-	txt = "<bold>" + txt + "</bold>"
+	txt = color.BoldWhite(txt)
 	return txt
 }
 
@@ -68,62 +68,62 @@ func Bold(txt string) string {
 Prints an event
 */
 func Event(event *types.Event) {
-	if event.Class == "state" {
-		State(event.Msg)
-	} else if event.Class == "status" {
-		Status(event.Msg)
-	} else if event.Class == "error" {
-		Error(event.Msg)
-		event.Trace.Print()
-	} else if event.Class == "fatal" {
-		Fatal(event.Msg)
-		event.Trace.Print()
-	} else if event.Class == "command_in" {
-		msg := " => " + color.Blue("Incoming command") + " " + event.Msg
-		fmt.Println(msg)
-	} else if event.Class == "command_out" {
-		status := event.Cmd.Status
-		if status == "error" {
-			status = color.BoldRed("Error")
-			fmt.Println("  |->", status, event.Cmd.Trace.Error())
-
-		} else if status == "success" {
-			status = "  |-> " + color.Green("Success")
-			var msg string
-			var maxWords = 13
-			var maxLines = 5
-			for i, val := range event.Cmd.ReturnValues {
-				if i == maxLines {
-					return
-				}
-				words := strings.Fields(val.(string))
-				line := ""
-				for ii, v := range words {
-					if ii < maxWords {
-						line = line + " " + v
-					} else {
-						line = line + " (...)"
-						break
+	if event.Cmd != nil {
+		if event.Class == "command_out" {
+			if event.Cmd.Status == "error" {
+				status = color.BoldRed("Error")
+				fmt.Println("  |->", status, event.Cmd.Trace.Error())
+				return
+			} else if event.Cmd.Status == "success" {
+				status = "  |-> " + color.Green("Success")
+				var msg string
+				var maxWords = 13
+				var maxLines = 5
+				for i, val := range event.Cmd.ReturnValues {
+					if i == maxLines {
+						return
 					}
+					words := strings.Fields(val.(string))
+					line := ""
+					for ii, v := range words {
+						if ii < maxWords {
+							line = line + " " + v
+						} else {
+							line = line + " (...)"
+							break
+						}
+					}
+					if i == 0 {
+						msg = status + " " + line
+					} else {
+						msg = msg + line
+					}
+					if i < len(event.Cmd.ReturnValues)-1 {
+						msg = msg + "\n"
+					}
+					//msg := fmt.Sprintf(" %.120s ", val)
+					fmt.Println(msg)
 				}
-				if i == 0 {
-					msg = status + " " + line
-				} else {
-					msg = msg + line
-				}
-				if i < len(event.Cmd.ReturnValues)-1 {
-					msg = msg + "\n"
-				}
-				//msg := fmt.Sprintf(" %.120s ", val)
-				fmt.Println(msg)
 			}
-
+		} else {
+			if event.Cmd.From == "cli" {
+				msg := event.Msg
+				endMsg := "[" + color.Blue(event.Class) + "] " + msg
+				fmt.Println(endMsg)
+			}
 		}
 	} else {
-		if event.Cmd.From == "cli" {
-			msg := event.Msg
-			endMsg := "[" + color.Blue(event.Class) + "] " + msg
-			fmt.Println(endMsg)
+		if event.Class == "state" {
+			State(event.Msg)
+		} else if event.Class == "status" {
+			Status(event.Msg)
+		} else if event.Class == "error" {
+			Error(event.Msg)
+		} else if event.Class == "fatal" {
+			Fatal(event.Msg)
+		} else if event.Class == "command_in" {
+			msg := " => " + color.Blue("Incoming command") + " " + event.Msg
+			fmt.Println(msg)
 		}
 	}
 

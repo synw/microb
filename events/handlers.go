@@ -2,8 +2,8 @@ package events
 
 import (
 	"github.com/synw/microb/msgs"
-	"github.com/synw/microb/types"
 	"github.com/synw/microb/services/logs"
+	"github.com/synw/microb/types"
 )
 
 /*
@@ -16,11 +16,13 @@ func handle(event *types.Event) {
 		if event.Cmd.NoLog == true {
 			log = false
 		}
+		if event.Cmd.Trace != nil {
+			event.Msg = event.Cmd.ErrMsg
+		}
 	}
+	msgs.Event(event)
 	if log == true {
-		// print event
-		msgs.Event(event)
-		// log event
+		// log the event
 		logs.Event(event)
 	}
 }

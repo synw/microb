@@ -102,7 +102,8 @@ func Cmd(cmd *types.Cmd, out ...bool) {
 	} else {
 		args["class"] = "command_in"
 	}
-	_ = new_(msg, args)
+	event := new_(msg, args)
+	handle(event)
 }
 
 func new_(msg string, args ...map[string]interface{}) *types.Event {
