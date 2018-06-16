@@ -3,6 +3,7 @@ package infos
 import (
 	"github.com/synw/microb/libmicrob/msgs"
 	"github.com/synw/microb/libmicrob/types"
+	"github.com/synw/terr"
 )
 
 func getCmds() map[string]*types.Cmd {
@@ -13,7 +14,7 @@ func getCmds() map[string]*types.Cmd {
 	return cmds
 }
 
-func initService(dev bool, start bool) error {
+func initService(dev bool, start bool) *terr.Trace {
 	return nil
 }
 

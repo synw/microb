@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/SKAhack/go-shortid"
 	color "github.com/acmacalister/skittles"
+	//"github.com/synw/microb/libmicrob/msgs"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
 	"time"
@@ -13,32 +14,52 @@ import (
 var g = shortid.Generator()
 
 func State(service string, mesg string) *types.Event {
-	args := make(map[string]interface{})
-	args["service"] = service
-	args["class"] = "state"
-	event := new_(mesg, args)
+	event := build(service, mesg, nil, "state")
+	handle(event)
 	return event
 }
 
 func Info(service string, mesg string) *types.Event {
-	args := make(map[string]interface{})
-	args["service"] = service
-	args["class"] = "info"
-	event := new_(mesg, args)
+	event := build(service, mesg, nil, "info")
+	handle(event)
 	return event
 }
 
-func Error(service string, mesg string, tr *terr.Trace, logLvls ...string) *types.Event {
+func Warning(service string, mesg string, tr *terr.Trace) *types.Event {
+	event := build(service, mesg, tr, "warning")
+	handle(event)
+	return event
+}
+
+func Error(service string, mesg string, tr *terr.Trace) *types.Event {
+	event := build(service, mesg, tr, "error")
+	handle(event)
+	return event
+}
+
+func Fatal(service string, mesg string, tr *terr.Trace) *types.Event {
+	event := build(service, mesg, tr, "fatal")
+	handle(event)
+	return event
+}
+
+func Panic(service string, mesg string, tr *terr.Trace) *types.Event {
+	event := build(service, mesg, tr, "panic")
+	handle(event)
+	return event
+}
+
+func build(service string, mesg string, tr *terr.Trace, logLvls ...string) *types.Event {
 	args := make(map[string]interface{})
 	args["msg"] = mesg
 	args["service"] = service
-	args["class"] = "error"
 	args["trace"] = tr
 	logLvl := "error"
 	if len(logLvls) > 0 {
 		logLvl = logLvls[0]
 	}
 	args["logLvl"] = logLvl
+	args["class"] = logLvl
 	event := new_(mesg, args)
 	return event
 }
@@ -48,9 +69,9 @@ func CmdExec(cmd *types.Cmd) {
 }
 
 func Cmd(cmd *types.Cmd, out ...bool) {
-	msg := color.BoldWhite(cmd.Name) + " from " + cmd.Service + " "
-	msg = msg + fmt.Sprintf("%s", cmd.Date)
-	cmd.LogMsg = cmd.Name + " received from service " + cmd.Service + " "
+	msg := color.BoldWhite(cmd.Name) + " from " + cmd.Service
+	msg = msg + fmt.Sprintf("%s ", cmd.Date)
+	cmd.LogMsg = cmd.Name + " received from service " + cmd.Service
 	data := map[string]interface{}{
 		"args":         cmd.Args,
 		"returnValues": cmd.ReturnValues,
@@ -58,7 +79,7 @@ func Cmd(cmd *types.Cmd, out ...bool) {
 	var tr *terr.Trace
 	if cmd.ErrMsg != "" {
 		err := errors.New(cmd.ErrMsg)
-		tr = terr.New("events.Cmd", err)
+		tr = terr.New(err)
 	}
 	args := make(map[string]interface{})
 	args["service"] = cmd.Service
@@ -89,7 +110,6 @@ func new_(msg string, args ...map[string]interface{}) *types.Event {
 	date := time.Now()
 	id := g.Generate()
 	event := &types.Event{id, class, date, msg, service, cmd, trace, logLvl, data}
-	handle(event)
 	return event
 }
 

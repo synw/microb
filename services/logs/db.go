@@ -13,7 +13,7 @@ var database *gorm.DB
 func connect(conf *types.Conf) (*gorm.DB, *terr.Trace) {
 	db, err := gorm.Open("sqlite3", conf.LogsDbAddr)
 	if err != nil {
-		tr := terr.New("services.logs.db.connect", err)
+		tr := terr.New(err)
 		return db, tr
 	}
 	return db, nil
@@ -23,7 +23,7 @@ func initDb(conf *types.Conf) *terr.Trace {
 	msgs.Status("Initializing logs database")
 	db, tr := connect(conf)
 	if tr != nil {
-		tr := terr.Pass("services.logs.db.initDb", tr)
+		tr := tr.Add("Can not initialize logs database")
 		return tr
 	}
 	db.AutoMigrate(&types.Log{})
@@ -32,6 +32,7 @@ func initDb(conf *types.Conf) *terr.Trace {
 }
 
 func saveToDb(keys []map[string]interface{}) *terr.Trace {
+	tx := database.Begin()
 	for _, key := range keys {
 		data := key["data"].(map[string]interface{})
 		service := data["service"].(string)
@@ -48,7 +49,8 @@ func saveToDb(keys []map[string]interface{}) *terr.Trace {
 			Command:       cmd,
 			CommandStatus: cmdStatus,
 		}
-		database.Create(entry)
+		tx.Create(entry)
 	}
+	tx.Commit()
 	return nil
 }

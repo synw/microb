@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"errors"
 	"github.com/spf13/viper"
 	"github.com/synw/microb/libmicrob/types"
 	"github.com/synw/terr"
@@ -24,10 +23,10 @@ func getComChan(name string) (string, string) {
 	return comchan_in, comchan_out
 }
 
-func GetServer(conf *types.Conf) (*types.WsServer, *terr.Trace) {
+func GetServer(conf *types.Conf) *types.WsServer {
 	comchan_in, comchan_out := getComChan(conf.Name)
 	s := &types.WsServer{conf.Name, conf.Addr, conf.Key, comchan_in, comchan_out}
-	return s, nil
+	return s
 }
 
 func GetConf() (*types.Conf, *terr.Trace) {
@@ -48,11 +47,10 @@ func GetConf() (*types.Conf, *terr.Trace) {
 		conf := &types.Conf{}
 		switch err.(type) {
 		case viper.ConfigParseError:
-			tr := terr.New("conf.getConf", err)
+			tr := terr.New(err)
 			return conf, tr
 		default:
-			err := errors.New("Unable to locate config file")
-			tr := terr.New("conf.getConf", err)
+			tr := terr.New("Unable to locate config file")
 			return conf, tr
 		}
 	}

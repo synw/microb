@@ -4,6 +4,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/synw/microb/libmicrob/msgs"
 	"github.com/synw/microb/libmicrob/types"
+	"github.com/synw/terr"
 	"io/ioutil"
 	"time"
 )
@@ -25,17 +26,18 @@ var Service *types.Service = &types.Service{
 
 var logger = logrus.New()
 
-func initService(dev bool, start bool) error {
+func initService(dev bool, start bool) *terr.Trace {
 	// as it uses config the logger is initialized from the state
 	return nil
 }
 
-func Init(conf *types.Conf, state *types.State) {
+func Init(conf *types.Conf, state *types.State) *terr.Trace {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	// initialize the lgos database
 	tr := initDb(conf)
 	if tr != nil {
-		tr.Fatal()
+		tr.Fatal("Can not initilize logs database")
+		return tr
 	}
 	// run the worker to process the logs
 	key := "log_" + conf.Name
@@ -48,6 +50,7 @@ func Init(conf *types.Conf, state *types.State) {
 	logger.Hooks.Add(rhook)
 	msgs.Ok("Logger initialized")
 	logger.Out = ioutil.Discard
+	return nil
 }
 
 func Event(event *types.Event) {

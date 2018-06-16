@@ -25,7 +25,7 @@ func InitRedis(conf *types.Conf) *terr.Trace {
 	defer conn.Close()
 	_, err := conn.Do("PING")
 	if err != nil {
-		tr := terr.New("services.logs.redis.initRedis", err)
+		tr := terr.New(err)
 		return tr
 	}
 	return nil
@@ -80,9 +80,8 @@ func GetKey(skey string) (interface{}, error) {
 	data, err := conn.Do("GET", skey)
 	var key interface{}
 	if err != nil {
-		//msg := "Can not get key " + skey + " from Redis"
-		tr := terr.New("services.logs.redis.Set", err)
-		err = tr.ToErr()
+		tr := terr.New(err)
+		err = tr.Err()
 		return key, fmt.Errorf("Error getting key %s: %v", skey, err)
 	}
 	// delete the list
@@ -109,8 +108,8 @@ func PushKey(key string, value []byte) error {
 		}
 		msg := "Can not set key/value in Redis"
 		err := errors.New(msg)
-		tr := terr.New("services.logs.redis.Set", err)
-		err = tr.ToErr()
+		tr := terr.New(err)
+		err = tr.Err()
 		return fmt.Errorf("Error setting key %s to %s: %v", key, v, err)
 	}
 	return nil

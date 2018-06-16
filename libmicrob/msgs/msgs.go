@@ -4,7 +4,7 @@ import (
 	"fmt"
 	color "github.com/acmacalister/skittles"
 	"github.com/synw/microb/libmicrob/types"
-	"github.com/synw/terr"
+	//"github.com/synw/terr"
 	"strings"
 )
 
@@ -47,8 +47,9 @@ func Error(txt string, output ...string) {
 	fmt.Println(msg)
 }
 
-func Tr(tr *terr.Trace) {
-	tr.Printc()
+func Fatal(txt string, output ...string) {
+	msg := "[" + color.BoldRed("Fatal error") + "] " + txt
+	fmt.Println(msg)
 }
 
 func Debug(obj ...interface{}) {
@@ -63,16 +64,20 @@ func Bold(txt string) string {
 	return txt
 }
 
-func PrintEvent(event *types.Event) {
+/*
+Prints an event
+*/
+func Event(event *types.Event) {
 	if event.Class == "state" {
 		State(event.Msg)
 	} else if event.Class == "status" {
 		Status(event.Msg)
 	} else if event.Class == "error" {
 		Error(event.Msg)
-		if event.Trace != nil {
-			Tr(event.Trace)
-		}
+		event.Trace.Print()
+	} else if event.Class == "fatal" {
+		Fatal(event.Msg)
+		event.Trace.Print()
 	} else if event.Class == "command_in" {
 		msg := " => " + color.Blue("Incoming command") + " " + event.Msg
 		fmt.Println(msg)
@@ -80,7 +85,7 @@ func PrintEvent(event *types.Event) {
 		status := event.Cmd.Status
 		if status == "error" {
 			status = color.BoldRed("Error")
-			fmt.Println("  |->", status, event.Cmd.Trace.Format())
+			fmt.Println("  |->", status, event.Cmd.Trace.Error())
 
 		} else if status == "success" {
 			status = "  |-> " + color.Green("Success")

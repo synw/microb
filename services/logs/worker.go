@@ -10,13 +10,13 @@ import (
 
 func processLogs(key string) {
 	for {
-		duration := time.Second * 2
+		duration := time.Second * 10
 		time.Sleep(duration)
 		// get the data from Redis
 		keys, err := redis.GetKeys(key)
 		if err != nil {
-			tr := terr.New("services.logs.worker.processLogs", err)
-			tr.Fatal()
+			tr := terr.New(err)
+			tr.Fatal("Can not get keys in Redis")
 		}
 		// process the data
 		var vals []map[string]interface{}
@@ -24,8 +24,8 @@ func processLogs(key string) {
 			var data map[string]interface{}
 			err := json.Unmarshal(key.([]byte), &data)
 			if err != nil {
-				tr := terr.New("services.logs.worker.processLogs", err)
-				tr.Fatal()
+				tr := terr.New(err)
+				tr.Fatal("Can not unmarshal json")
 			}
 			/*fmt.Println("Log ----------------------")
 			for k, v := range data {

@@ -21,7 +21,7 @@ func Decode(txt string, output ...string) (string, *terr.Trace) {
 		r := strings.NewReader(txt)
 		doc, err := gc.NewDocumentFromReader(r)
 		if err != nil {
-			tr := terr.New("msgs.decoders.Decode", err)
+			tr := terr.New("msgs.decoders.Decode", err.Error())
 			return "", tr
 		}
 		found := false

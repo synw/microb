@@ -6,7 +6,11 @@ import (
 	"github.com/synw/microb/services/logs"
 )
 
+/*
+Handles the print and log actions on the event
+*/
 func handle(event *types.Event) {
+	// check if the event has to be logged
 	log := true
 	if event.Cmd != nil {
 		if event.Cmd.NoLog == true {
@@ -14,7 +18,9 @@ func handle(event *types.Event) {
 		}
 	}
 	if log == true {
+		// print event
+		msgs.Event(event)
+		// log event
 		logs.Event(event)
-		msgs.PrintEvent(event)
 	}
 }

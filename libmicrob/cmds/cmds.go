@@ -85,13 +85,13 @@ func ConvertPayload(payload interface{}) *types.Cmd {
 	}
 	date, err := time.Parse(time.RFC3339, dateStr)
 	if err != nil {
-		tr := terr.New("cmds.ConvertPayload", err)
+		tr := terr.New(err)
 		events.Error("microb", "Can not parse date from json payload", tr)
 	}
 	var tr *terr.Trace
 	if errMsg != "" {
 		err := errors.New("Can not convert payload")
-		tr = terr.New("cmds.ConvertPayload", err)
+		tr = terr.New(err)
 	}
 	var args []interface{}
 	if pl["Args"] != nil {
@@ -116,7 +116,7 @@ func ConvertPayload(payload interface{}) *types.Cmd {
 	if pl["ErrMsg"].(string) != "" {
 		msg := pl["ErrMsg"].(string)
 		err := errors.New(msg)
-		cmd.Trace = terr.New("cmd.ConvertPayload", err)
+		cmd.Trace = terr.New(err)
 	}
 	if pl["ReturnValues"] != nil {
 		cmd.ReturnValues = pl["ReturnValues"].([]interface{})
@@ -166,7 +166,10 @@ func sendCommand(cmd *types.Cmd, state *types.State) *terr.Trace {
 		Sends the command results back to the client
 	*/
 	if cmd.Trace != nil {
-		cmd.ErrMsg = cmd.Trace.Formatc()
+		cmd.ErrMsg = cmd.Trace.Msg()
+		var rvs []interface{}
+		rvs = append(rvs, cmd.Trace.Error())
+		cmd.ReturnValues = rvs
 		cmd.Status = "error"
 	} else {
 		cmd.Status = "success"
@@ -175,12 +178,16 @@ func sendCommand(cmd *types.Cmd, state *types.State) *terr.Trace {
 	if err != nil {
 		msg := "Unable to marshall json: " + err.Error()
 		err := errors.New(msg)
-		trace := terr.New("commands.SendCommand", err)
+		trace := terr.New(err)
+		cmd.Trace = trace
+		cmd.ErrMsg = cmd.Trace.Msg()
 		return trace
 	}
 	_, err = state.Cli.Http.Publish(state.WsServer.CmdChanOut, payload)
 	if err != nil {
-		trace := terr.New("commands.SendCommand", err)
+		trace := terr.New(err)
+		cmd.Trace = trace
+		cmd.ErrMsg = cmd.Trace.Msg()
 		return trace
 	}
 	return nil

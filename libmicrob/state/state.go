@@ -16,35 +16,34 @@ func Init(dev bool, start bool) (*types.State, *terr.Trace) {
 	state := &types.State{}
 	msgs.Msg("Starting Microb instance ...")
 	// get config
-	//var tr *terr.Trace
 	conf, tr := config.GetConf()
 	state.Conf = conf
 	if tr != nil {
-		tr = terr.Pass("Init", tr)
+		tr = tr.Add("Can not get config")
 		return state, tr
 	}
-	// get server
-	state.WsServer, tr = config.GetServer(state.Conf)
-	if tr != nil {
-		tr = terr.Pass("Init", tr)
-		return state, tr
-	}
+	// get server from config
+	state.WsServer = config.GetServer(state.Conf)
+	// init cli
 	state.Cli, tr = initWsCli(state)
 	if tr != nil {
-		tr = terr.Pass("Init", tr)
+		tr = tr.Add("Can not initialize cli")
 		return state, tr
 	}
 	// initialize Redis connection
 	tr = redis.InitRedis(conf)
 	if tr != nil {
-		tr.Fatal()
+		tr.Add("Can not initialize Redis")
 	}
 	// initialize logger
-	logs.Init(conf, state)
-	// get services
+	tr = logs.Init(conf, state)
+	if tr != nil {
+		tr.Add("Can not initialize Redis")
+	}
+	// initiialize services
 	state.Services, tr = initServices(state.Conf.Services, dev, start)
 	if tr != nil {
-		tr = terr.Pass("Init", tr)
+		tr = tr.Pass()
 		return state, tr
 	}
 	msgs.Ready("Services are ready")
@@ -66,9 +65,9 @@ func initServices(servs []string, dev bool, start bool) (map[string]*types.Servi
 			if k == name {
 				srvs[k] = srv
 				msgs.Status("Initializing " + color.BoldWhite(srv.Name) + " service")
-				err := srv.Init(dev, start)
-				if err != nil {
-					tr := terr.New("state.getServices", err)
+				tr := srv.Init(dev, start)
+				if tr != nil {
+					tr := tr.Pass()
 					return srvs, tr
 				}
 				break
@@ -82,16 +81,15 @@ func initWsCli(state *types.State) (*centcom.Cli, *terr.Trace) {
 	cli := centcom.NewClient(state.WsServer.Addr, state.WsServer.Key)
 	err := centcom.Connect(cli)
 	if err != nil {
-		trace := terr.New("initWsCli", err)
-		var cli *centcom.Cli
-		return cli, trace
+		tr := terr.New(err)
+		return cli, tr
 	}
 	cli.IsConnected = true
 	msgs.Ok("Websockets client connected")
 	err = cli.CheckHttp()
 	if err != nil {
-		trace := terr.New("InitCli", err)
-		return cli, trace
+		tr := terr.New(err)
+		return cli, tr
 	}
 	msgs.Ok("Websockets http transport ready")
 	return cli, nil
