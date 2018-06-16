@@ -162,11 +162,17 @@ the client will return "Hello world"
 - [Http](https://github.com/synw/microb-http): an http server
 - [Mail](https://github.com/synw/microb-mail): send mails
 
+## Stack and data flow
+
+Example of the http service:
+
+![Screenshot](docs/img/stack.png)
+
 ## Screenshot
 
 The upper terminal shows the server output and the lower one shows the client output:
 
-![Screenshot](https://raw.githubusercontent.com/synw/microb/master/docs/img/screenshot.png)
+![Screenshot](docs/img/screenshot.png)
 
 #### External libraries
 
