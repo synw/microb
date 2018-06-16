@@ -1,8 +1,8 @@
 package events
 
 import (
-	"github.com/synw/microb/libmicrob/msgs"
-	"github.com/synw/microb/libmicrob/types"
+	"github.com/synw/microb/msgs"
+	"github.com/synw/microb/types"
 	"github.com/synw/microb/services/logs"
 )
 

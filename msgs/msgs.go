@@ -3,7 +3,7 @@ package msgs
 import (
 	"fmt"
 	color "github.com/acmacalister/skittles"
-	"github.com/synw/microb/libmicrob/types"
+	"github.com/synw/microb/types"
 	//"github.com/synw/terr"
 	"strings"
 )

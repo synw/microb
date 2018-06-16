@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/SKAhack/go-shortid"
 	color "github.com/acmacalister/skittles"
-	//"github.com/synw/microb/libmicrob/msgs"
-	"github.com/synw/microb/libmicrob/types"
+	//"github.com/synw/microb/msgs"
+	"github.com/synw/microb/types"
 	"github.com/synw/terr"
 	"time"
 )

@@ -1,7 +1,7 @@
 package logs
 
 import (
-	"github.com/synw/microb/libmicrob/types"
+	"github.com/synw/microb/types"
 )
 
 func getLogs(limit int) []types.Log {

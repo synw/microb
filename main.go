@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"github.com/synw/microb/libmicrob/cmds"
-	"github.com/synw/microb/libmicrob/events"
-	"github.com/synw/microb/libmicrob/msgs"
-	"github.com/synw/microb/libmicrob/state"
+	"github.com/synw/microb/cmds"
+	"github.com/synw/microb/events"
+	"github.com/synw/microb/msgs"
+	"github.com/synw/microb/state"
 	"github.com/synw/terr"
 )
 

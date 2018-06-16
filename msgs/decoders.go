@@ -3,7 +3,7 @@ package msgs
 import (
 	gc "github.com/PuerkitoBio/goquery"
 	color "github.com/acmacalister/skittles"
-	//"github.com/synw/microb-cli/libmicrob/msgs"
+	//"github.com/synw/microb-cli/msgs"
 	"github.com/synw/terr"
 	"strings"
 )

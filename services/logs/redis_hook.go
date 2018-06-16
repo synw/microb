@@ -3,7 +3,7 @@ package logs
 import (
 	"encoding/json"
 	log "github.com/Sirupsen/logrus"
-	"github.com/synw/microb/libmicrob/redis"
+	"github.com/synw/microb/redis"
 )
 
 type RedisHook struct {

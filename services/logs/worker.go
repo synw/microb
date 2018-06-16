@@ -3,7 +3,7 @@ package logs
 import (
 	"encoding/json"
 	//"fmt"
-	"github.com/synw/microb/libmicrob/redis"
+	"github.com/synw/microb/redis"
 	"github.com/synw/terr"
 	"time"
 )

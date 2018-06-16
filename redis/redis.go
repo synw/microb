@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
-	"github.com/synw/microb/libmicrob/msgs"
-	"github.com/synw/microb/libmicrob/types"
+	"github.com/synw/microb/msgs"
+	"github.com/synw/microb/types"
 	"github.com/synw/terr"
 	"time"
 )

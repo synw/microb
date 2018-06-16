@@ -2,8 +2,8 @@ package logs
 
 import (
 	"github.com/Sirupsen/logrus"
-	"github.com/synw/microb/libmicrob/msgs"
-	"github.com/synw/microb/libmicrob/types"
+	"github.com/synw/microb/msgs"
+	"github.com/synw/microb/types"
 	"github.com/synw/terr"
 	"io/ioutil"
 	"time"

@@ -3,8 +3,8 @@ package logs
 import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/synw/microb/libmicrob/msgs"
-	"github.com/synw/microb/libmicrob/types"
+	"github.com/synw/microb/msgs"
+	"github.com/synw/microb/types"
 	"github.com/synw/terr"
 )
 

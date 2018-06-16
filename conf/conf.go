@@ -2,7 +2,7 @@ package conf
 
 import (
 	"github.com/spf13/viper"
-	"github.com/synw/microb/libmicrob/types"
+	"github.com/synw/microb/types"
 	"github.com/synw/terr"
 	"os"
 	"path/filepath"
