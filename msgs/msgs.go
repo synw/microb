@@ -68,6 +68,7 @@ func Bold(txt string) string {
 Prints an event
 */
 func Event(event *types.Event) {
+	status := "pending"
 	if event.Cmd != nil {
 		if event.Class == "command_out" {
 			if event.Cmd.Status == "error" {
@@ -112,18 +113,18 @@ func Event(event *types.Event) {
 				fmt.Println(endMsg)
 			}
 		}
+	} else if event.Class == "command_in" {
+		msg := " => " + color.Blue("Incoming command") + " " + event.Msg
+		fmt.Println(msg)
 	} else {
 		if event.Class == "state" {
 			State(event.Msg)
 		} else if event.Class == "status" {
 			Status(event.Msg)
 		} else if event.Class == "error" {
-			Error(event.Msg)
+			Error(event.Msg + "\n" + event.Trace.Msg())
 		} else if event.Class == "fatal" {
-			Fatal(event.Msg)
-		} else if event.Class == "command_in" {
-			msg := " => " + color.Blue("Incoming command") + " " + event.Msg
-			fmt.Println(msg)
+			Fatal(event.Msg + "\n" + event.Trace.Msg())
 		}
 	}
 

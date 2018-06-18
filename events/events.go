@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/SKAhack/go-shortid"
 	color "github.com/acmacalister/skittles"
-	//"github.com/synw/microb/msgs"
 	"github.com/synw/microb/types"
 	"github.com/synw/terr"
 	"time"
@@ -49,21 +48,6 @@ func Panic(service string, mesg string, tr *terr.Trace) *types.Event {
 	return event
 }
 
-func build(service string, mesg string, tr *terr.Trace, logLvls ...string) *types.Event {
-	args := make(map[string]interface{})
-	args["msg"] = mesg
-	args["service"] = service
-	args["trace"] = tr
-	logLvl := "error"
-	if len(logLvls) > 0 {
-		logLvl = logLvls[0]
-	}
-	args["logLvl"] = logLvl
-	args["class"] = logLvl
-	event := new_(mesg, args)
-	return event
-}
-
 func CmdExec(cmd *types.Cmd) {
 	Cmd(cmd, true)
 }
@@ -104,6 +88,21 @@ func Cmd(cmd *types.Cmd, out ...bool) {
 	}
 	event := new_(msg, args)
 	handle(event)
+}
+
+func build(service string, mesg string, tr *terr.Trace, logLvls ...string) *types.Event {
+	args := make(map[string]interface{})
+	args["msg"] = mesg
+	args["service"] = service
+	args["trace"] = tr
+	logLvl := "error"
+	if len(logLvls) > 0 {
+		logLvl = logLvls[0]
+	}
+	args["logLvl"] = logLvl
+	args["class"] = logLvl
+	event := new_(mesg, args)
+	return event
 }
 
 func new_(msg string, args ...map[string]interface{}) *types.Event {
