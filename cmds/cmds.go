@@ -51,18 +51,16 @@ func Run(payload interface{}, state *types.State) {
 			msg := "Error executing the " + cmd.Name + " command "
 			cmd.Trace.Add(msg)
 			msg = msg + " from the " + cmd.Service + " service"
-			events.CmdError(msg, cmd)
 		}
-		// fire an event
-		events.CmdOut(cmd)
 		// send back the command
+		events.CmdOut(cmd)
 		// set the Exec to nil to be able to marshall json
 		com.Exec = nil
 		tr := sendCommand(com, state)
 		if tr != nil {
 			msg := "Error sending back the " + cmd.Name + " command"
 			tr.Add(msg)
-			events.CmdError(msg, cmd)
+			events.Error("microb", msg, tr)
 		}
 		close(c)
 	}

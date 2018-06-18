@@ -50,21 +50,6 @@ func Panic(service string, mesg string, tr *terr.Trace) *types.Event {
 
 /* Commands */
 
-func CmdError(msg string, cmd *types.Cmd) {
-	args := make(map[string]interface{})
-	args["cmd"] = cmd
-	args["class"] = "command"
-	args["msg"] = msg
-	args["service"] = cmd.Service
-	if cmd.Trace != nil {
-		args["trace"] = cmd.Trace
-	}
-	event := build_(cmd.Name, args)
-	fmt.Println("HANDLE")
-	handle(event)
-	fmt.Println("END HANDLE")
-}
-
 func CmdIn(cmd *types.Cmd) {
 	msg := color.BoldWhite(cmd.Name) + " from " + cmd.Service
 	msg = msg + fmt.Sprintf("%s ", cmd.Date)

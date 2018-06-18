@@ -106,6 +106,9 @@ func Event(event *types.Event) {
 					fmt.Println(msg)
 				}
 			}
+		} else if event.Class == "command_in" {
+			msg := " => " + color.Blue("Incoming command") + " " + event.Msg
+			fmt.Println(msg)
 		} else {
 			if event.Cmd.From == "cli" {
 				msg := event.Msg
@@ -113,9 +116,6 @@ func Event(event *types.Event) {
 				fmt.Println(endMsg)
 			}
 		}
-	} else if event.Class == "command_in" {
-		msg := " => " + color.Blue("Incoming command") + " " + event.Msg
-		fmt.Println(msg)
 	} else if event.Class == "state" {
 		State(event.Msg)
 	} else if event.Class == "status" {

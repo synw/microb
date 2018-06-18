@@ -16,9 +16,7 @@ func handle(event *types.Event) {
 		}
 	}
 	// print the event
-	msgs.Msg("EVENT MSG")
 	msgs.Event(event)
-	msgs.Msg("END EVENT MSG")
 	// log the event
 	if log == true {
 		logs.Event(event)
