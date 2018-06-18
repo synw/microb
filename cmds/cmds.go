@@ -33,7 +33,7 @@ func Run(payload interface{}, state *types.State) {
 		msgs.Error("Invalid command " + cmd.Name)
 		return
 	}
-	events.Cmd(cmd)
+	events.CmdIn(cmd)
 	// execute the command
 	c := make(chan *types.Cmd)
 	cname := cmd.Service + "_" + cmd.Name
@@ -46,18 +46,23 @@ func Run(payload interface{}, state *types.State) {
 	}
 	select {
 	case com := <-c:
-		events.CmdExec(cmd)
-		// set to interface to be able to marshall json
+		// check for errors
+		if cmd.Trace != nil {
+			msg := "Error executing the " + cmd.Name + " command "
+			cmd.Trace.Add(msg)
+			msg = msg + " from the " + cmd.Service + " service"
+			events.CmdError(msg, cmd)
+		}
+		// fire an event
+		events.CmdOut(cmd)
+		// send back the command
+		// set the Exec to nil to be able to marshall json
 		com.Exec = nil
 		tr := sendCommand(com, state)
 		if tr != nil {
-			msg := "Error executing the " + cmd.Name + " command"
-			events.Error(cmd.Service, msg, tr)
-		}
-		if cmd.Trace != nil {
-			msg := "Error executing the " + cmd.Name + " command "
-			msg = msg + " from the " + cmd.Service + " service"
-			events.Error(cmd.Service, msg, tr)
+			msg := "Error sending back the " + cmd.Name + " command"
+			tr.Add(msg)
+			events.CmdError(msg, cmd)
 		}
 		close(c)
 	}

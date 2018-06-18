@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// Print an event
 func (event *Event) Print() {
 	var lines []string
 	lines = append(lines, "Event:")
@@ -18,7 +19,7 @@ func (event *Event) Print() {
 		lines = append(lines, "- Not a command")
 	}
 	lines = append(lines, "- Log level: "+event.LogLvl)
-	if len(event.Trace.Errors) > 0 {
+	if event.Trace != nil {
 		lines = append(lines, "- Trace: \n"+event.Trace.Msg())
 	} else {
 		lines = append(lines, "- No errors")

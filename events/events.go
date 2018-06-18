@@ -48,11 +48,24 @@ func Panic(service string, mesg string, tr *terr.Trace) *types.Event {
 	return event
 }
 
-func CmdExec(cmd *types.Cmd) {
-	Cmd(cmd, true)
+/* Commands */
+
+func CmdError(msg string, cmd *types.Cmd) {
+	args := make(map[string]interface{})
+	args["cmd"] = cmd
+	args["class"] = "command"
+	args["msg"] = msg
+	args["service"] = cmd.Service
+	if cmd.Trace != nil {
+		args["trace"] = cmd.Trace
+	}
+	event := build_(cmd.Name, args)
+	fmt.Println("HANDLE")
+	handle(event)
+	fmt.Println("END HANDLE")
 }
 
-func Cmd(cmd *types.Cmd, out ...bool) {
+func CmdIn(cmd *types.Cmd) {
 	msg := color.BoldWhite(cmd.Name) + " from " + cmd.Service
 	msg = msg + fmt.Sprintf("%s ", cmd.Date)
 	cmd.LogMsg = cmd.Name + " received from service " + cmd.Service
@@ -72,21 +85,38 @@ func Cmd(cmd *types.Cmd, out ...bool) {
 	args["trace"] = tr
 	args["data"] = data
 	args["cmd"] = cmd
-	if len(out) > 0 {
-		args["class"] = "command_out"
-		var rvs string
-		for _, val := range cmd.ReturnValues {
-			rvs = rvs + val.(string)
-			/*if i < (len(cmd.ReturnValues) + 1) {
-				rvs = rvs + "\n"
-			}*/
-		}
+	args["class"] = "command_in"
+	event := build_(msg, args)
+	handle(event)
+}
+
+func CmdOut(cmd *types.Cmd) {
+	msg := color.BoldWhite(cmd.Name) + " from " + cmd.Service
+	msg = msg + fmt.Sprintf("%s ", cmd.Date)
+	cmd.LogMsg = cmd.Name + " processed from service " + cmd.Service
+	data := map[string]interface{}{
+		"args":         cmd.Args,
+		"returnValues": cmd.ReturnValues,
+	}
+	var tr *terr.Trace
+	if cmd.ErrMsg != "" {
+		err := errors.New(cmd.ErrMsg)
+		tr = terr.New(err)
+	}
+	args := make(map[string]interface{})
+	args["service"] = cmd.Service
+	args["from"] = cmd.From
+	args["trace"] = tr
+	args["data"] = data
+	args["cmd"] = cmd
+	args["class"] = "command_out"
+	var rvs string
+	for _, val := range cmd.ReturnValues {
+		rvs = rvs + val.(string)
 		msg = rvs
 		cmd.LogMsg = rvs
-	} else {
-		args["class"] = "command_in"
 	}
-	event := new_(msg, args)
+	event := build_(msg, args)
 	handle(event)
 }
 
@@ -95,17 +125,18 @@ func build(service string, mesg string, tr *terr.Trace, logLvls ...string) *type
 	args["msg"] = mesg
 	args["service"] = service
 	args["trace"] = tr
+	//args.["cmd"] = cmd
 	logLvl := "error"
 	if len(logLvls) > 0 {
 		logLvl = logLvls[0]
 	}
 	args["logLvl"] = logLvl
 	args["class"] = logLvl
-	event := new_(mesg, args)
+	event := build_(mesg, args)
 	return event
 }
 
-func new_(msg string, args ...map[string]interface{}) *types.Event {
+func build_(msg string, args ...map[string]interface{}) *types.Event {
 	class, service, cmd, trace, logLvl, data := getEventArgs(args...)
 	date := time.Now()
 	id := g.Generate()
@@ -127,14 +158,14 @@ func getEventArgs(args ...map[string]interface{}) (string, string, *types.Cmd, *
 					eclass = v.(string)
 				} else if k == "service" {
 					eservice = v.(string)
-				} else if k == "trace" {
-					etrace = v.(*terr.Trace)
 				} else if k == "cmd" {
 					ecmd = v.(*types.Cmd)
-				} else if k == "data" {
-					edata = v.(map[string]interface{})
+				} else if k == "trace" {
+					etrace = v.(*terr.Trace)
 				} else if k == "logLvl" {
 					logLvl = v.(string)
+				} else if k == "data" {
+					edata = v.(map[string]interface{})
 				}
 			}
 		}

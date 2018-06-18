@@ -116,16 +116,14 @@ func Event(event *types.Event) {
 	} else if event.Class == "command_in" {
 		msg := " => " + color.Blue("Incoming command") + " " + event.Msg
 		fmt.Println(msg)
-	} else {
-		if event.Class == "state" {
-			State(event.Msg)
-		} else if event.Class == "status" {
-			Status(event.Msg)
-		} else if event.Class == "error" {
-			Error(event.Msg + "\n" + event.Trace.Msg())
-		} else if event.Class == "fatal" {
-			Fatal(event.Msg + "\n" + event.Trace.Msg())
-		}
+	} else if event.Class == "state" {
+		State(event.Msg)
+	} else if event.Class == "status" {
+		Status(event.Msg)
+	} else if event.Class == "error" {
+		Error(event.Msg + "\n" + event.Trace.Msg())
+	} else if event.Class == "fatal" {
+		Fatal(event.Msg + "\n" + event.Trace.Msg())
 	}
 
 }
