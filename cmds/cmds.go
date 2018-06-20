@@ -75,7 +75,6 @@ func ConvertPayload(payload interface{}) *types.Cmd {
 	name := pl["Name"].(string)
 	serv := pl["Service"].(string)
 	from := pl["From"].(string)
-	errMsg := pl["ErrMsg"].(string)
 	dateStr := pl["Date"].(string)
 	domain := pl["Domain"].(string)
 	noLog := false
@@ -91,11 +90,6 @@ func ConvertPayload(payload interface{}) *types.Cmd {
 		tr := terr.New(err)
 		events.Error("microb", "Can not parse date from json payload", tr)
 	}
-	var tr *terr.Trace
-	if errMsg != "" {
-		err := errors.New("Can not convert payload")
-		tr = terr.New(err)
-	}
 	var args []interface{}
 	if pl["Args"] != nil {
 		args = pl["Args"].([]interface{})
@@ -109,17 +103,10 @@ func ConvertPayload(payload interface{}) *types.Cmd {
 		Args:    args,
 		Status:  status,
 		Service: serv,
-		ErrMsg:  errMsg,
-		Trace:   tr,
 		NoLog:   noLog,
 	}
 	if args != nil {
 		cmd.Args = args
-	}
-	if pl["ErrMsg"].(string) != "" {
-		msg := pl["ErrMsg"].(string)
-		err := errors.New(msg)
-		cmd.Trace = terr.New(err)
 	}
 	if pl["ReturnValues"] != nil {
 		cmd.ReturnValues = pl["ReturnValues"].([]interface{})
@@ -169,9 +156,8 @@ func sendCommand(cmd *types.Cmd, state *types.State) *terr.Trace {
 		Sends the command results back to the client
 	*/
 	if cmd.Trace != nil {
-		cmd.ErrMsg = cmd.Trace.Msg()
 		var rvs []interface{}
-		rvs = append(rvs, cmd.Trace.Error())
+		rvs = append(rvs, cmd.Trace.Log())
 		cmd.ReturnValues = rvs
 		cmd.Status = "error"
 	} else {
@@ -183,15 +169,12 @@ func sendCommand(cmd *types.Cmd, state *types.State) *terr.Trace {
 		err := errors.New(msg)
 		trace := terr.New(err)
 		cmd.Trace = trace
-		cmd.ErrMsg = cmd.Trace.Msg()
 		return trace
 	}
 	_, err = state.Cli.Http.Publish(state.WsServer.CmdChanOut, payload)
 	if err != nil {
-		trace := terr.New(err)
-		cmd.Trace = trace
-		cmd.ErrMsg = cmd.Trace.Msg()
-		return trace
+		cmd.Trace = terr.New(err)
+		return cmd.Trace
 	}
 	return nil
 }

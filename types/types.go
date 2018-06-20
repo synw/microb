@@ -38,8 +38,6 @@ type Cmd struct {
 	Args         []interface{}
 	From         string
 	Status       string
-	ErrMsg       string
-	LogMsg       string
 	Trace        *terr.Trace
 	NoLog        bool
 	ReturnValues []interface{}

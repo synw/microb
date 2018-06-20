@@ -53,11 +53,6 @@ func Init(conf *types.Conf, state *types.State) *terr.Trace {
 }
 
 func Event(event *types.Event) {
-	if event.Cmd != nil {
-		if event.Cmd.LogMsg != "" {
-			event.Msg = event.Cmd.LogMsg
-		}
-	}
 	New(event)
 }
 

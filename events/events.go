@@ -1,7 +1,6 @@
 package events
 
 import (
-	"errors"
 	"fmt"
 	"github.com/SKAhack/go-shortid"
 	color "github.com/acmacalister/skittles"
@@ -53,21 +52,13 @@ func Panic(service string, mesg string, tr *terr.Trace) *types.Event {
 func CmdIn(cmd *types.Cmd) {
 	msg := color.BoldWhite(cmd.Name) + " from " + cmd.Service
 	msg = msg + fmt.Sprintf("%s ", cmd.Date)
-	cmd.LogMsg = cmd.Name + " received from service " + cmd.Service
 	data := map[string]interface{}{
 		"args":         cmd.Args,
 		"returnValues": cmd.ReturnValues,
 	}
-	var tr *terr.Trace
-	if cmd.ErrMsg != "" {
-		err := errors.New(cmd.ErrMsg)
-		tr = terr.New(err)
-	}
 	args := make(map[string]interface{})
 	args["service"] = cmd.Service
 	args["from"] = cmd.From
-	//args["msg"] = msg
-	args["trace"] = tr
 	args["data"] = data
 	args["cmd"] = cmd
 	args["class"] = "command_in"
@@ -78,20 +69,16 @@ func CmdIn(cmd *types.Cmd) {
 func CmdOut(cmd *types.Cmd) {
 	msg := color.BoldWhite(cmd.Name) + " from " + cmd.Service
 	msg = msg + fmt.Sprintf("%s ", cmd.Date)
-	cmd.LogMsg = cmd.Name + " processed from service " + cmd.Service
 	data := map[string]interface{}{
 		"args":         cmd.Args,
 		"returnValues": cmd.ReturnValues,
 	}
-	var tr *terr.Trace
-	if cmd.ErrMsg != "" {
-		err := errors.New(cmd.ErrMsg)
-		tr = terr.New(err)
-	}
 	args := make(map[string]interface{})
 	args["service"] = cmd.Service
 	args["from"] = cmd.From
-	args["trace"] = tr
+	if cmd.Trace != nil {
+		args["trace"] = cmd.Trace
+	}
 	args["data"] = data
 	args["cmd"] = cmd
 	args["class"] = "command_out"
@@ -99,7 +86,6 @@ func CmdOut(cmd *types.Cmd) {
 	for _, val := range cmd.ReturnValues {
 		rvs = rvs + val.(string)
 		msg = rvs
-		cmd.LogMsg = rvs
 	}
 	event := build_(msg, args)
 	handle(event)

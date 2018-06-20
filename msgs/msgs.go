@@ -71,11 +71,7 @@ func Event(event *types.Event) {
 		if event.Class == "command_out" {
 			if event.Cmd.Status == "error" {
 				status = color.BoldRed("Error")
-				if event.Cmd.ErrMsg != "" {
-					fmt.Println("  |->", status, event.Cmd.ErrMsg)
-				} else {
-					fmt.Println("  |->", status, event.Cmd.Trace.Errors[0].Error)
-				}
+				fmt.Println("  |->", status, event.Cmd.Trace.Errors[0].Error)
 				return
 			} else if event.Cmd.Status == "success" {
 				status = "  |-> " + color.Green("Success")
