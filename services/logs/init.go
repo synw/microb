@@ -63,7 +63,12 @@ func New(event *types.Event) {
 	now := time.Now().UnixNano() / int64(time.Millisecond)
 	cmdName := ""
 	cmdStatus := ""
+	msg := event.Msg
 	if event.Cmd != nil {
+		msg = "Command " + event.Cmd.Name + " from the " + event.Cmd.Service + " service"
+		if event.Cmd.Trace != nil {
+			msg = msg + " \n[ " + event.LogLvl + " ] " + event.Cmd.Trace.Log()
+		}
 		cmdName = event.Cmd.Name
 		cmdStatus = event.Cmd.Status
 	}
@@ -76,7 +81,6 @@ func New(event *types.Event) {
 		"command_status": cmdStatus,
 	})
 	level := event.LogLvl
-	msg := event.Msg
 	if level == "debug" {
 		logobj.Debug(msg)
 	} else if level == "info" {
